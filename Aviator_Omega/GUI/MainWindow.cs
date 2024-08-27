@@ -170,8 +170,9 @@ public class MainWindow
             }
             if (ImGui.BeginMenu("Help"))
             {
-                ImGui.MenuItem("Check for Updates");
+                ImGui.MenuItem("Documentation");
                 ImGui.Separator();
+                ImGui.MenuItem("Check for Updates");
                 ImGui.MenuItem("About");
                 ImGui.EndMenu();
             }
