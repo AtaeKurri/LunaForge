@@ -1,7 +1,4 @@
-﻿/*
-using Aviator_Omega.Windows;
+﻿using Aviator_Omega.GUI;
 
-MainWindow mainWindow = new();
-Thread renderThread = new(mainWindow.Start().Wait);
-renderThread.Start();
-*/
+MainWindow mw = new();
+mw.Initialize();
