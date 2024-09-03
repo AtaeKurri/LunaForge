@@ -1,4 +1,4 @@
-﻿using Aviator_Omega.GUI.ImGuiHelpers;
+﻿using Aviator_Omega.GUI.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;

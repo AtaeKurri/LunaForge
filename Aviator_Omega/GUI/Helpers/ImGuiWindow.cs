@@ -6,7 +6,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Aviator_Omega.GUI.ImGuiHelpers;
+namespace Aviator_Omega.GUI.Helpers;
 
 public abstract class ImGuiWindow(MainWindow parentWin, bool showByDefault)
 {
@@ -38,6 +38,21 @@ public abstract class ImGuiWindow(MainWindow parentWin, bool showByDefault)
 
         ImGui.SetNextWindowSize((Vector2)windowSize, ImGuiCond.FirstUseEver);
         if (ImGui.Begin(windowName))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public bool BeginFlags(string windowName, ImGuiWindowFlags flags, Vector2? windowSize = null)
+    {
+        if (!ShowWindow)
+            return false;
+        if (windowSize == null)
+            windowSize = new Vector2(200, 100);
+
+        ImGui.SetNextWindowSize((Vector2)windowSize, ImGuiCond.FirstUseEver);
+        if (ImGui.Begin(windowName, ref ShowWindow, flags))
         {
             return true;
         }

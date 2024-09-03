@@ -34,5 +34,29 @@ namespace Aviator_Omega.Properties {
                 this["DefinitionsWindowOpen"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("John Dough")]
+        public string AuthorName {
+            get {
+                return ((string)(this["AuthorName"]));
+            }
+            set {
+                this["AuthorName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastUsedPath {
+            get {
+                return ((string)(this["LastUsedPath"]));
+            }
+            set {
+                this["LastUsedPath"] = value;
+            }
+        }
     }
 }

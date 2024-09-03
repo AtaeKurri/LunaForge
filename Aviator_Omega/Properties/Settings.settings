@@ -5,5 +5,11 @@
     <Setting Name="DefinitionsWindowOpen" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="AuthorName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">John Dough</Value>
+    </Setting>
+    <Setting Name="LastUsedPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>
