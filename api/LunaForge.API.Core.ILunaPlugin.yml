@@ -1,0 +1,191 @@
+### YamlMime:ManagedReference
+items:
+- uid: LunaForge.API.Core.ILunaPlugin
+  commentId: T:LunaForge.API.Core.ILunaPlugin
+  id: ILunaPlugin
+  parent: LunaForge.API.Core
+  children:
+  - LunaForge.API.Core.ILunaPlugin.Authors
+  - LunaForge.API.Core.ILunaPlugin.Initialize
+  - LunaForge.API.Core.ILunaPlugin.Name
+  langs:
+  - csharp
+  - vb
+  name: ILunaPlugin
+  nameWithType: ILunaPlugin
+  fullName: LunaForge.API.Core.ILunaPlugin
+  type: Interface
+  source:
+    remote:
+      path: LunaForge.API/Core/IPlugin.cs
+      branch: main
+      repo: https://github.com/AtaeKurri/LunaForge
+    id: ILunaPlugin
+    path: LunaForge.API/Core/IPlugin.cs
+    startLine: 12
+  assemblies:
+  - LunaForge.API
+  namespace: LunaForge.API.Core
+  summary: "\nBase interface for LunaForge plugins. Every plugin needs to implement this class.<br />\nThere can be only one class implementing this interface by assembly.\n"
+  example: []
+  syntax:
+    content: 'public interface ILunaPlugin : IDisposable'
+    content.vb: >-
+      Public Interface ILunaPlugin
+          Inherits IDisposable
+  modifiers.csharp:
+  - public
+  - interface
+  modifiers.vb:
+  - Public
+  - Interface
+- uid: LunaForge.API.Core.ILunaPlugin.Name
+  commentId: P:LunaForge.API.Core.ILunaPlugin.Name
+  id: Name
+  parent: LunaForge.API.Core.ILunaPlugin
+  langs:
+  - csharp
+  - vb
+  name: Name
+  nameWithType: ILunaPlugin.Name
+  fullName: LunaForge.API.Core.ILunaPlugin.Name
+  type: Property
+  source:
+    remote:
+      path: LunaForge.API/Core/IPlugin.cs
+      branch: main
+      repo: https://github.com/AtaeKurri/LunaForge
+    id: Name
+    path: LunaForge.API/Core/IPlugin.cs
+    startLine: 17
+  assemblies:
+  - LunaForge.API
+  namespace: LunaForge.API.Core
+  summary: "\nThe plugin&apos;s name displayed in the plugin manager.\n"
+  example: []
+  syntax:
+    content: string Name { get; }
+    parameters: []
+    return:
+      type: System.String
+    content.vb: ReadOnly Property Name As String
+  overload: LunaForge.API.Core.ILunaPlugin.Name*
+  modifiers.csharp:
+  - get
+  modifiers.vb:
+  - ReadOnly
+- uid: LunaForge.API.Core.ILunaPlugin.Authors
+  commentId: P:LunaForge.API.Core.ILunaPlugin.Authors
+  id: Authors
+  parent: LunaForge.API.Core.ILunaPlugin
+  langs:
+  - csharp
+  - vb
+  name: Authors
+  nameWithType: ILunaPlugin.Authors
+  fullName: LunaForge.API.Core.ILunaPlugin.Authors
+  type: Property
+  source:
+    remote:
+      path: LunaForge.API/Core/IPlugin.cs
+      branch: main
+      repo: https://github.com/AtaeKurri/LunaForge
+    id: Authors
+    path: LunaForge.API/Core/IPlugin.cs
+    startLine: 21
+  assemblies:
+  - LunaForge.API
+  namespace: LunaForge.API.Core
+  summary: "\nThe plugin&apos;s author(s). Every string in the array is a different person.\n"
+  example: []
+  syntax:
+    content: string[] Authors { get; }
+    parameters: []
+    return:
+      type: System.String[]
+    content.vb: ReadOnly Property Authors As String()
+  overload: LunaForge.API.Core.ILunaPlugin.Authors*
+  modifiers.csharp:
+  - get
+  modifiers.vb:
+  - ReadOnly
+- uid: LunaForge.API.Core.ILunaPlugin.Initialize
+  commentId: M:LunaForge.API.Core.ILunaPlugin.Initialize
+  id: Initialize
+  parent: LunaForge.API.Core.ILunaPlugin
+  langs:
+  - csharp
+  - vb
+  name: Initialize()
+  nameWithType: ILunaPlugin.Initialize()
+  fullName: LunaForge.API.Core.ILunaPlugin.Initialize()
+  type: Method
+  source:
+    remote:
+      path: LunaForge.API/Core/IPlugin.cs
+      branch: main
+      repo: https://github.com/AtaeKurri/LunaForge
+    id: Initialize
+    path: LunaForge.API/Core/IPlugin.cs
+    startLine: 26
+  assemblies:
+  - LunaForge.API
+  namespace: LunaForge.API.Core
+  summary: "\nThe entry point of the plugin. This method will be used everytime your plugin is loaded/enabled.\n"
+  example: []
+  syntax:
+    content: void Initialize()
+    content.vb: Sub Initialize
+  overload: LunaForge.API.Core.ILunaPlugin.Initialize*
+references:
+- uid: LunaForge.API.Core
+  commentId: N:LunaForge.API.Core
+  name: LunaForge.API.Core
+  nameWithType: LunaForge.API.Core
+  fullName: LunaForge.API.Core
+- uid: LunaForge.API.Core.ILunaPlugin.Name*
+  commentId: Overload:LunaForge.API.Core.ILunaPlugin.Name
+  name: Name
+  nameWithType: ILunaPlugin.Name
+  fullName: LunaForge.API.Core.ILunaPlugin.Name
+- uid: System.String
+  isExternal: true
+  name: String
+  nameWithType: String
+  fullName: System.String
+- uid: LunaForge.API.Core.ILunaPlugin.Authors*
+  commentId: Overload:LunaForge.API.Core.ILunaPlugin.Authors
+  name: Authors
+  nameWithType: ILunaPlugin.Authors
+  fullName: LunaForge.API.Core.ILunaPlugin.Authors
+- uid: System.String[]
+  isExternal: true
+  name: String[]
+  nameWithType: String[]
+  fullName: System.String[]
+  nameWithType.vb: String()
+  fullName.vb: System.String()
+  name.vb: String()
+  spec.csharp:
+  - uid: System.String
+    name: String
+    nameWithType: String
+    fullName: System.String
+    isExternal: true
+  - name: '[]'
+    nameWithType: '[]'
+    fullName: '[]'
+  spec.vb:
+  - uid: System.String
+    name: String
+    nameWithType: String
+    fullName: System.String
+    isExternal: true
+  - name: ()
+    nameWithType: ()
+    fullName: ()
+- uid: LunaForge.API.Core.ILunaPlugin.Initialize*
+  commentId: Overload:LunaForge.API.Core.ILunaPlugin.Initialize
+  name: Initialize
+  nameWithType: ILunaPlugin.Initialize
+  fullName: LunaForge.API.Core.ILunaPlugin.Initialize

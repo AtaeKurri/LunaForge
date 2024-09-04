@@ -1,0 +1,22 @@
+### YamlMime:ManagedReference
+items:
+- uid: LunaForge.API.Core
+  commentId: N:LunaForge.API.Core
+  id: LunaForge.API.Core
+  children:
+  - LunaForge.API.Core.ILunaPlugin
+  langs:
+  - csharp
+  - vb
+  name: LunaForge.API.Core
+  nameWithType: LunaForge.API.Core
+  fullName: LunaForge.API.Core
+  type: Namespace
+  assemblies:
+  - LunaForge.API
+references:
+- uid: LunaForge.API.Core.ILunaPlugin
+  commentId: T:LunaForge.API.Core.ILunaPlugin
+  name: ILunaPlugin
+  nameWithType: ILunaPlugin
+  fullName: LunaForge.API.Core.ILunaPlugin

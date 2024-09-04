@@ -1,0 +1,88 @@
+### YamlMime:ManagedReference
+items:
+- uid: LunaForge.API.Services.IToolboxService
+  commentId: T:LunaForge.API.Services.IToolboxService
+  id: IToolboxService
+  parent: LunaForge.API.Services
+  children:
+  - LunaForge.API.Services.IToolboxService.GetToolboxTab(System.String)
+  langs:
+  - csharp
+  - vb
+  name: IToolboxService
+  nameWithType: IToolboxService
+  fullName: LunaForge.API.Services.IToolboxService
+  type: Interface
+  source:
+    remote:
+      path: LunaForge.API/Services/IToolboxService.cs
+      branch: main
+      repo: https://github.com/AtaeKurri/LunaForge
+    id: IToolboxService
+    path: LunaForge.API/Services/IToolboxService.cs
+    startLine: 11
+  assemblies:
+  - LunaForge.API
+  namespace: LunaForge.API.Services
+  summary: "\nThe service used to interact with the Node Toolbox. Define tabs, nodes, etc.\n"
+  example: []
+  syntax:
+    content: public interface IToolboxService
+    content.vb: Public Interface IToolboxService
+  modifiers.csharp:
+  - public
+  - interface
+  modifiers.vb:
+  - Public
+  - Interface
+- uid: LunaForge.API.Services.IToolboxService.GetToolboxTab(System.String)
+  commentId: M:LunaForge.API.Services.IToolboxService.GetToolboxTab(System.String)
+  id: GetToolboxTab(System.String)
+  parent: LunaForge.API.Services.IToolboxService
+  langs:
+  - csharp
+  - vb
+  name: GetToolboxTab(String)
+  nameWithType: IToolboxService.GetToolboxTab(String)
+  fullName: LunaForge.API.Services.IToolboxService.GetToolboxTab(System.String)
+  type: Method
+  source:
+    remote:
+      path: LunaForge.API/Services/IToolboxService.cs
+      branch: main
+      repo: https://github.com/AtaeKurri/LunaForge
+    id: GetToolboxTab
+    path: LunaForge.API/Services/IToolboxService.cs
+    startLine: 18
+  assemblies:
+  - LunaForge.API
+  namespace: LunaForge.API.Services
+  summary: "\nGets a Toolbox Tab by its name.\n"
+  example: []
+  syntax:
+    content: string GetToolboxTab(string id)
+    parameters:
+    - id: id
+      type: System.String
+      description: The name displayed on the Toolbox tab.
+    return:
+      type: System.String
+      description: A ToolboxTab object.
+    content.vb: Function GetToolboxTab(id As String) As String
+  overload: LunaForge.API.Services.IToolboxService.GetToolboxTab*
+references:
+- uid: LunaForge.API.Services
+  commentId: N:LunaForge.API.Services
+  name: LunaForge.API.Services
+  nameWithType: LunaForge.API.Services
+  fullName: LunaForge.API.Services
+- uid: LunaForge.API.Services.IToolboxService.GetToolboxTab*
+  commentId: Overload:LunaForge.API.Services.IToolboxService.GetToolboxTab
+  name: GetToolboxTab
+  nameWithType: IToolboxService.GetToolboxTab
+  fullName: LunaForge.API.Services.IToolboxService.GetToolboxTab
+- uid: System.String
+  isExternal: true
+  name: String
+  nameWithType: String
+  fullName: System.String

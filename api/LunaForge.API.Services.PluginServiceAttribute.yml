@@ -1,0 +1,46 @@
+### YamlMime:ManagedReference
+items:
+- uid: LunaForge.API.Services.PluginServiceAttribute
+  commentId: T:LunaForge.API.Services.PluginServiceAttribute
+  id: PluginServiceAttribute
+  parent: LunaForge.API.Services
+  children: []
+  langs:
+  - csharp
+  - vb
+  name: PluginServiceAttribute
+  nameWithType: PluginServiceAttribute
+  fullName: LunaForge.API.Services.PluginServiceAttribute
+  type: Class
+  source:
+    remote:
+      path: LunaForge.API/Services/PluginServiceAttribute.cs
+      branch: main
+      repo: https://github.com/AtaeKurri/LunaForge
+    id: PluginServiceAttribute
+    path: LunaForge.API/Services/PluginServiceAttribute.cs
+    startLine: 11
+  assemblies:
+  - LunaForge.API
+  namespace: LunaForge.API.Services
+  summary: "\nThis attribute indicates whether an applicable service should be injected into the plugin.\n"
+  example: []
+  syntax:
+    content: 'public class PluginServiceAttribute : Attribute'
+    content.vb: >-
+      Public Class PluginServiceAttribute
+          Inherits Attribute
+  inheritance:
+  - System.Object
+  modifiers.csharp:
+  - public
+  - class
+  modifiers.vb:
+  - Public
+  - Class
+references:
+- uid: LunaForge.API.Services
+  commentId: N:LunaForge.API.Services
+  name: LunaForge.API.Services
+  nameWithType: LunaForge.API.Services
+  fullName: LunaForge.API.Services

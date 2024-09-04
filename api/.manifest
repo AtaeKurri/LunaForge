@@ -1,0 +1,11 @@
+{
+  "LunaForge.API.Core": "LunaForge.API.Core.yml",
+  "LunaForge.API.Core.ILunaPlugin": "LunaForge.API.Core.ILunaPlugin.yml",
+  "LunaForge.API.Core.ILunaPlugin.Authors": "LunaForge.API.Core.ILunaPlugin.yml",
+  "LunaForge.API.Core.ILunaPlugin.Initialize": "LunaForge.API.Core.ILunaPlugin.yml",
+  "LunaForge.API.Core.ILunaPlugin.Name": "LunaForge.API.Core.ILunaPlugin.yml",
+  "LunaForge.API.Services": "LunaForge.API.Services.yml",
+  "LunaForge.API.Services.IToolboxService": "LunaForge.API.Services.IToolboxService.yml",
+  "LunaForge.API.Services.IToolboxService.GetToolboxTab(System.String)": "LunaForge.API.Services.IToolboxService.yml",
+  "LunaForge.API.Services.PluginServiceAttribute": "LunaForge.API.Services.PluginServiceAttribute.yml"
+}

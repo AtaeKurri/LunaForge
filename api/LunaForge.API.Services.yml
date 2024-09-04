@@ -1,0 +1,28 @@
+### YamlMime:ManagedReference
+items:
+- uid: LunaForge.API.Services
+  commentId: N:LunaForge.API.Services
+  id: LunaForge.API.Services
+  children:
+  - LunaForge.API.Services.IToolboxService
+  - LunaForge.API.Services.PluginServiceAttribute
+  langs:
+  - csharp
+  - vb
+  name: LunaForge.API.Services
+  nameWithType: LunaForge.API.Services
+  fullName: LunaForge.API.Services
+  type: Namespace
+  assemblies:
+  - LunaForge.API
+references:
+- uid: LunaForge.API.Services.IToolboxService
+  commentId: T:LunaForge.API.Services.IToolboxService
+  name: IToolboxService
+  nameWithType: IToolboxService
+  fullName: LunaForge.API.Services.IToolboxService
+- uid: LunaForge.API.Services.PluginServiceAttribute
+  commentId: T:LunaForge.API.Services.PluginServiceAttribute
+  name: PluginServiceAttribute
+  nameWithType: PluginServiceAttribute
+  fullName: LunaForge.API.Services.PluginServiceAttribute
