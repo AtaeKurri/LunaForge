@@ -8,7 +8,13 @@
 	<UseWindowsForms>True</UseWindowsForms>
 	<UseWPF>True</UseWPF>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<BaseOutputPath>..\bin</BaseOutputPath>
   </PropertyGroup>
+
+	<PropertyGroup>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+	</PropertyGroup>
 
   <ItemGroup>
     <None Remove="Images\Error.png" />
@@ -98,5 +104,4 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
-
 </Project>

@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+		<OutputPath>..\bin\$(Configuration)\Plugins\</OutputPath>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+		<OutputPath>..\bin\$(Configuration)\Plugins\</OutputPath>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+		<PackageOutputPath>$(OutputPath)</PackageOutputPath>
+		<PackAsTool>True</PackAsTool>
+	</PropertyGroup>
+
+	<ItemGroup>
+		
+		<ProjectReference Include="..\LunaForge.API\LunaForge.API.csproj" >
+			<Private>false</Private>
+			<ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+			<CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+		</ProjectReference>
+	</ItemGroup>
+
+</Project>

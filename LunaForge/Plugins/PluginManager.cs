@@ -43,11 +43,13 @@ public sealed class PluginManager
                 try
                 {
                     Assembly assembly = Assembly.LoadFrom(file);
-                    IEnumerable<Type>? types = assembly.GetTypes().Where(t => typeof(ILunaPlugin).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
 
-                    foreach (Type type in types)
+                    Type? pluginType = assembly.GetTypes()
+                        .FirstOrDefault(t => typeof(ILunaPlugin).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+
+                    if (pluginType != null)
                     {
-                        ILunaPlugin newPlugin = (ILunaPlugin)Activator.CreateInstance(type);
+                        ILunaPlugin newPlugin = (ILunaPlugin)Activator.CreateInstance(pluginType);
                         InitializePlugin(newPlugin);
                     }
                 }

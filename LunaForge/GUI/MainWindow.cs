@@ -60,10 +60,9 @@ public enum InsertMode
 public sealed class MainWindow
 {
     public static readonly string LunaForgeName = $"LunaForge Editor";
-    public Version VersionNumber = Assembly.GetEntryAssembly().GetName().Version;
+    public Version? VersionNumber = Assembly.GetEntryAssembly()?.GetName().Version;
 
-    public static IServiceProvider ServiceProvider { get; private set; }
-    public PluginManager Plugins { get; private set; }
+    public PluginManager Plugins { get; private set; } = new();
 
     #region Windows
 
@@ -88,13 +87,6 @@ public sealed class MainWindow
 
     public MainWindow()
     {
-        #region Plugins
-
-        Plugins = new();
-        Plugins.LoadPlugins();
-
-        #endregion
-
         NodeToolboxWin = new(this);
         NodeAttributeWin = new(this);
         DefinitionsWin = new(this);
@@ -119,6 +111,8 @@ public sealed class MainWindow
         ImGui.GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
 
         ShortcutList.RegisterShortcuts(this);
+
+        Plugins.LoadPlugins();
 
         while (!Raylib.WindowShouldClose())
         {
@@ -353,7 +347,7 @@ public sealed class MainWindow
 
     public bool IsProjectOpened(string path) => Workspaces.Any(x => x.PathToLFP == path);
 
-    public LunaForgeProject OpenProjectFromPath(string name, string path)
+    public LunaForgeProject? OpenProjectFromPath(string name, string path)
     {
         try
         {
