@@ -1,12 +1,15 @@
 name: DocFX Build and Publish
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
 
 jobs:
   build-docs:
     name: Build Docs
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -19,5 +22,5 @@ jobs:
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        personal_token: ${{ secrets.PERSONAL_TOKEN }}
         publish_dir: ./docs
