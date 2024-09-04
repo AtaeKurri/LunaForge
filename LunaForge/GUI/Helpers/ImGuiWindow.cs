@@ -65,4 +65,18 @@ public abstract class ImGuiWindow(MainWindow parentWin, bool showByDefault)
     {
         ImGui.End();
     }
+
+    public static bool BeginDisabledButton(string label, bool isEnabled)
+    {
+        if (!isEnabled)
+            ImGui.BeginDisabled();
+
+        return ImGui.Button(label);
+    }
+
+    public static void EndDisabledButton(bool isEnabled)
+    {
+        if (!isEnabled)
+            ImGui.EndDisabled();
+    }
 }

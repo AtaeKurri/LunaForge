@@ -7,28 +7,30 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using ImGuiNET;
+using Newtonsoft.Json;
 
 namespace LunaForge.GUI.Windows;
 
 public class NewProjWindow : ImGuiWindow
 {
-    public string FileName = "Untitled";
-    public string Author;
+    public string ProjectName = "Untitled";
+    public string Author = string.Empty;
     public bool AllowPr = true;
     public bool AllowScPr = true;
-    public int Modversion = 4096; // For LuaSTG.
+    public const int Modversion = 4096; // For LuaSTG.
 
     public string SelectedPath = string.Empty;
-    private DefS SelectedTemplate = null;
+    private TemplateDef SelectedTemplate = null;
 
-    private class DefS
+    private class TemplateDef
     {
-        public string Text { get; set; }
-        public string FullPath { get; set; }
-        public string Description { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Version { get; set; } = "1.0.0";
+        public string ZipPath { get; set; } = string.Empty;
     }
 
-    private List<DefS> Templates;
+    private List<TemplateDef> Templates;
 
     public NewProjWindow(MainWindow parent)
         : base(parent, false)
@@ -41,18 +43,13 @@ public class NewProjWindow : ImGuiWindow
         ShowWindow = false;
         SelectedTemplate = null;
 
-        string s = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates\\"));
-        DirectoryInfo dir = new(s);
-        List<FileInfo> fis = new(dir.GetFiles("*.avtr"));
+        string templatePath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates\\"));
+        DirectoryInfo dir = new(templatePath);
+        List<FileInfo> fis = new(dir.GetFiles("*.json"));
 
         Templates = new(
-            from FileInfo fi in fis
-            select new DefS
-            {
-                Text = Path.GetFileNameWithoutExtension(fi.Name),
-                FullPath = fi.FullName,
-                Description = GetTemplateDescription(Path.GetFileNameWithoutExtension(fi.Name))
-            }
+            from FileInfo fi in fis where File.Exists(Path.Combine(templatePath, Path.GetFileNameWithoutExtension(fi.Name) + ".zip"))
+            select GetTemplateInfo(templatePath, fi)
         );
     }
 
@@ -62,36 +59,38 @@ public class NewProjWindow : ImGuiWindow
         ShowWindow = true;
     }
 
-    private string GetTemplateDescription(string? sel)
+    private TemplateDef? GetTemplateInfo(string templatePath, FileInfo fi)
     {
         try
         {
-            string fullPathDesc = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory
-                , "Templates", sel + ".txt"));
-            FileStream f = new FileStream(fullPathDesc, FileMode.Open);
-            StreamReader sr = new StreamReader(f);
-            string desc = sr.ReadToEnd();
-            f.Close();
-            return desc;
+            
+            using (StreamReader sr = fi.OpenText())
+            {
+                TemplateDef? def = JsonConvert.DeserializeObject<TemplateDef>(sr.ReadToEnd());
+                if (def != null)
+                    def.ZipPath = Path.Combine(templatePath, Path.GetFileNameWithoutExtension(fi.Name) + ".zip");
+                return def;
+            }
+            
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.ToString());
-            return string.Empty;
+            return null;
         }
     }
 
     public override void Render()
     {
-        if (BeginFlags("New File...", ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoCollapse, new Vector2(800, 450)))
+        if (BeginFlags("New Project...", ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoCollapse, new Vector2(800, 450)))
         {
             ImGui.BeginGroup();
             {
                 if (ImGui.BeginListBox(""))
                 {
-                    foreach (DefS def in Templates)
+                    foreach (TemplateDef def in Templates)
                     {
-                        if (ImGui.Selectable(def.Text, SelectedTemplate == def))
+                        if (ImGui.Selectable($"{def.Name}", SelectedTemplate == def))
                         {
                             SelectedTemplate = def;
                         }
@@ -101,18 +100,20 @@ public class NewProjWindow : ImGuiWindow
 
                 ImGui.SameLine();
 
-                ImGui.BeginGroup();
-                ImGui.Text("Description");
-                if (SelectedTemplate?.Description != null)
+                if (SelectedTemplate != null)
+                {
+                    ImGui.BeginGroup();
+                    ImGui.TextWrapped($"{SelectedTemplate.Name} (v{SelectedTemplate.Version})");
                     ImGui.TextWrapped(SelectedTemplate?.Description);
-                ImGui.EndGroup();
+                    ImGui.EndGroup();
+                }
             }
             ImGui.EndGroup();
 
             ImGui.Separator();
             ImGui.Spacing();
 
-            ImGui.InputText("Name", ref FileName, 128);
+            ImGui.InputText("Name", ref ProjectName, 128);
             ImGui.InputText("Author", ref Author, 128);
 
             ImGui.Spacing();
@@ -120,9 +121,14 @@ public class NewProjWindow : ImGuiWindow
             ImGui.SameLine();
             ImGui.Checkbox("Allow SC Practice", ref AllowScPr);
 
-            ImGui.Spacing();
-            if (ImGui.Button("OK"))
+            float availableHeight = ImGui.GetWindowHeight() - ImGui.GetCursorPosY();
+            float buttonHeight = ImGui.CalcTextSize("OK").Y + ImGui.GetStyle().FramePadding.Y * 2;
+            float spacing = ImGui.GetStyle().ItemSpacing.Y + 4;
+            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + availableHeight - buttonHeight - spacing);
+
+            if (BeginDisabledButton("OK", SelectedTemplate != null))
                 ClickOk();
+            EndDisabledButton(SelectedTemplate != null);
             ImGui.SameLine();
             if (ImGui.Button("Cancel"))
                 ClickCancel();
@@ -137,7 +143,7 @@ public class NewProjWindow : ImGuiWindow
 
     public void ClickOk()
     {
-        SelectedPath = SelectedTemplate?.FullPath;
+        SelectedPath = SelectedTemplate?.ZipPath;
         ParentWindow.CreateNewProject();
         Close();
     }

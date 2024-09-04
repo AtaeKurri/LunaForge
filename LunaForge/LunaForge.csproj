@@ -23,8 +23,8 @@
     <None Remove="Images\Nodes\FolderRed.png" />
     <None Remove="Images\Nodes\Unknown.png" />
     <None Remove="Images\Warning.png" />
-    <None Remove="Templates\test.avtr" />
-    <None Remove="Templates\test.txt" />
+    <None Remove="Templates\Empty.json" />
+    <None Remove="Templates\Empty.zip" />
   </ItemGroup>
 
   <ItemGroup>
@@ -64,10 +64,10 @@
     <Content Include="Images\Warning.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Templates\test.avtr">
+    <Content Include="Templates\Empty.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Templates\test.txt">
+    <Content Include="Templates\Empty.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

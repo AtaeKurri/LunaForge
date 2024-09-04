@@ -18,6 +18,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows;
 using System.Collections.ObjectModel;
 using LunaForge.EditorData.Project;
+using System.IO.Compression;
 
 namespace LunaForge.GUI;
 
@@ -35,6 +36,7 @@ namespace LunaForge.GUI;
  * Each project is a window instance.
  * 
  * Templates are in a zip format and unzipped at creation.
+ * Have a single file for the entry point (main menu? (with an option to hijack the launcher.lua?))
  * 
  * 
  * Plugin system:
@@ -53,13 +55,13 @@ public enum InsertMode
 
 public class MainWindow
 {
+    public static readonly string LunaForgeName = $"LunaForge Editor";
     public Version VersionNumber = Assembly.GetEntryAssembly().GetName().Version;
 
     #region Windows
 
     public NodeToolboxWindow NodeToolboxWin;
     public NodeAttributeWindow NodeAttributeWin;
-    public TreeViewWindow TreeViewWin;
     public DefinitionsWindow DefinitionsWin;
     public MessagesWindow MessagesWin;
     public DebugLogWindow DebugLogWin;
@@ -70,7 +72,10 @@ public class MainWindow
 
     public InsertMode InsertMode { get; set; }
 
+    public ProjectViewerWindow? CurrentProjectWindow;
     public Dictionary<string, Texture2D> EditorImages = [];
+
+    public ProjectCollection Workspaces;
 
     #endregion
 
@@ -78,17 +83,18 @@ public class MainWindow
     {
         NodeToolboxWin = new(this);
         NodeAttributeWin = new(this);
-        TreeViewWin = new(this);
         DefinitionsWin = new(this);
         MessagesWin = new(this);
         DebugLogWin = new(this);
         NewProjWin = new(this);
+
+        Workspaces = new(this);
     }
 
     public void Initialize()
     {
         Raylib.SetConfigFlags(ConfigFlags.Msaa4xHint | ConfigFlags.VSyncHint | ConfigFlags.ResizableWindow);
-        Raylib.InitWindow(1280, 800, $"LunaForge v{VersionNumber}");
+        Raylib.InitWindow(1280, 800, $"{LunaForgeName} v{VersionNumber}");
         Raylib.SetExitKey(KeyboardKey.Null);
         Raylib.MaximizeWindow();
         Raylib.SetTargetFPS(60);
@@ -136,7 +142,11 @@ public class MainWindow
     {
         NodeToolboxWin.Render();
         NodeAttributeWin.Render();
-        TreeViewWin.Render();
+        lock (Workspaces) // uh.
+        {
+            foreach (LunaForgeProject? proj in Workspaces)
+                proj?.Window?.Render();
+        }
         DefinitionsWin.Render();
         MessagesWin.Render();
         DebugLogWin.Render();
@@ -156,10 +166,10 @@ public class MainWindow
                 if (ImGui.MenuItem("Open", "Ctrl+O"))
                     OpenProj();
                 ImGui.Separator();
-                if (ImGui.MenuItem("Save", "Ctrl+S", false, TreeViewWin.CurrentWorkspace != null))
-                    SaveActiveDocument();
-                if (ImGui.MenuItem("Save As", string.Empty, false, TreeViewWin.CurrentWorkspace != null))
-                    SaveActiveDocumentAs();
+                if (ImGui.MenuItem("Save", "Ctrl+S", false, CurrentProjectWindow != null))
+                    return; //SaveActiveProject();
+                if (ImGui.MenuItem("Save As", string.Empty, false, CurrentProjectWindow != null))
+                    return; //SaveActiveProjectAs();
                 ImGui.Separator();
                 ImGui.MenuItem("Close");
                 ImGui.EndMenu();
@@ -195,8 +205,10 @@ public class MainWindow
                 ImGui.MenuItem("Child");
                 ImGui.EndMenu();
             }
-            if (ImGui.BeginMenu("Preset"))
+            if (ImGui.BeginMenu("Presets"))
             {
+                if (ImGui.MenuItem("Create template from project"))
+                    ProjectToTemplate();
                 ImGui.EndMenu();
             }
             if (ImGui.BeginMenu("Compile"))
@@ -252,7 +264,54 @@ public class MainWindow
     public void CreateNewProject()
     {
         string pathToTemplate = Path.GetFullPath(NewProjWin.SelectedPath);
-        CloneTemplate(NewProjWin.FileName, pathToTemplate, NewProjWin.Author);
+
+        Thread dialogThread = new(() =>
+        {
+            string lastUsedPath = LastUsedPath;
+            FolderBrowserDialog dialog = new()
+            {
+                InitialDirectory = string.IsNullOrEmpty(lastUsedPath) ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) : lastUsedPath,
+                ShowHiddenFiles = true,
+                ShowNewFolderButton = true,
+                ShowPinnedPlaces = true
+            };
+            if (dialog.ShowDialog() != DialogResult.OK) return;
+            LastUsedPath = dialog.SelectedPath;
+            CloneTemplate(pathToTemplate, dialog.SelectedPath);
+        });
+        dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
+        dialogThread.Start();
+    }
+
+    public async void CloneTemplate(string pathToTemplate, string pathToFolder)
+    {
+        try
+        {
+#if DEBUG
+            // No template, debug only
+            if (pathToTemplate.Contains("specialCommand|=GenerateEmpty"))
+            {
+                LunaForgeProject newProjDebug = new(NewProjWin, Path.Combine(pathToFolder, NewProjWin.ProjectName));
+                Workspaces.Add(newProjDebug);
+                await newProjDebug.TryGenerateProject();
+                return; // Return only for debug to avoid cloning the template.
+            }
+#endif
+            await Task.Factory.StartNew(() =>
+            {
+                ZipFile.ExtractToDirectory(pathToTemplate, Path.Combine(pathToFolder, NewProjWin.ProjectName));
+            });
+            string pathToLFP = Path.Combine(pathToFolder, NewProjWin.ProjectName, "Project.lfp");
+            Console.WriteLine(pathToLFP);
+            LunaForgeProject newProj = LunaForgeProject.CreateFromFile(pathToLFP);
+            newProj.ResetVariables(NewProjWin);
+            newProj.Save();
+            Workspaces.Add(newProj);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
     }
 
     public void OpenProject()
@@ -263,14 +322,14 @@ public class MainWindow
             Microsoft.Win32.OpenFileDialog openFileDialog = new()
             {
                 Multiselect = true,
-                Filter = "LunaForge Project (*.avtr)|*.avtr",
+                Filter = "LunaForge Project (*.lfp)|*.lfp",
                 InitialDirectory = string.IsNullOrEmpty(lastUsedPath) ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) : lastUsedPath
             };
             if (openFileDialog.ShowDialog() != true) return;
             for (int i = 0; i < openFileDialog.FileNames.Length; i++)
             {
-                if (!IsFileOpened(openFileDialog.FileNames[i]))
-                    OpenDocumentFromPath(openFileDialog.SafeFileNames[i], openFileDialog.FileNames[i]);
+                if (!IsProjectOpened(openFileDialog.FileNames[i]))
+                    OpenProjectFromPath(openFileDialog.SafeFileNames[i], openFileDialog.FileNames[i]);
                 Properties.Settings.Default.LastUsedPath = Path.GetDirectoryName(openFileDialog.FileNames[i]);
             }
         });
@@ -278,17 +337,34 @@ public class MainWindow
         dialogThread.Start();
     }
 
+    public bool IsProjectOpened(string path) => Workspaces.Any(x => x.PathToLFP == path);
+
+    public LunaForgeProject OpenProjectFromPath(string name, string path)
+    {
+        try
+        {
+            LunaForgeProject proj = LunaForgeProject.CreateFromFile(path);
+            Workspaces.Add(proj);
+            return proj;
+        }
+        catch (JsonException ex)
+        {
+            Console.WriteLine(ex.ToString());
+            return null;
+        }
+    }
+
     public bool CloseProject(LunaForgeProject proj)
     {
         if (proj.IsUnsaved)
         {
-            switch (System.Windows.MessageBox.Show($"Do you want to save \"{proj.Settings.ProjectName}\"?",
-                    "LunaForge Editor", MessageBoxButton.YesNoCancel, MessageBoxImage.Question))
+            switch (System.Windows.MessageBox.Show($"Do you want to save \"{proj.ProjectName}\"?",
+                    LunaForgeName, MessageBoxButton.YesNoCancel, MessageBoxImage.Question))
             {
                 case MessageBoxResult.Yes:
                     if (SaveProject(proj))
                     {
-                        TreeViewWin.Workspaces.Remove(proj.Settings.ProjectName);
+                        Workspaces.Remove(proj);
                     }
                     return true;
                 case MessageBoxResult.No:
@@ -297,54 +373,8 @@ public class MainWindow
                     return false;
             }
         }
-        TreeViewWin.Workspaces.Remove(proj.Settings.ProjectName);
+        Workspaces.Remove(proj);
         return true;
-    }
-
-    public bool IsFileOpened(string path)
-    {
-        foreach (LunaForgeDocument doc in TreeViewWin.Workspaces.Values)
-            if (!string.IsNullOrEmpty(doc.DocPath) && Path.GetFullPath(doc.DocPath) == Path.GetFullPath(path))
-                return true;
-        return false;
-    }
-
-    public async void OpenDocumentFromPath(string name, string path)
-    {
-        try
-        {
-            LunaForgeDocument doc = await LunaForgeDocument.CreateDocumentFromFileAsync(name, path);
-            TreeViewWin.Workspaces.AddAndAllocHash(doc, this);
-        }
-        catch (JsonException ex)
-        {
-            Console.WriteLine(ex.ToString());
-        }
-    }
-
-    public async void CloneTemplate(string name, string path, string author)
-    {
-        try
-        {
-            LunaForgeDocument newDoc = null;
-            ProjectConfiguration config = new()
-            {
-                AuthorName = author
-            };
-            if (path.Contains("specialCommand|=GenerateEmpty"))
-            {
-                newDoc = TreeViewWin.Workspaces.GenerateEmptyDocument(name, config, this);
-            }
-            else
-            {
-                newDoc = await LunaForgeDocument.CreateDocumentFromFileAsync(name, path, config);
-                TreeViewWin.Workspaces.AddAndAllocHash(newDoc, this);
-            }
-        }
-        catch (JsonException ex)
-        {
-            Console.WriteLine(ex.ToString());
-        }
     }
 
     #endregion
@@ -371,14 +401,32 @@ public class MainWindow
 
 
     #endregion
-    #region Document Operation
+    #region Project Operation
 
-    public bool SaveActiveDocument() => SaveDocument(TreeViewWin.CurrentWorkspace);
-    public bool SaveActiveDocumentAs() => SaveDocument(TreeViewWin.CurrentWorkspace, true);
+    //public bool SaveActiveProject() => SaveProject(TreeViewWin.CurrentWorkspace);
 
-    public bool SaveDocument(LunaForgeDocument doc, bool saveAs = false)
+    public bool SaveProject(LunaForgeProject proj)
     {
-        return doc.Save(saveAs);
+        return proj.Save();
+    }
+
+    public bool ProjectToTemplate()
+    {
+        LunaForgeProject? currentProj = Workspaces.Current;
+        if (currentProj == null)
+            return false;
+
+        try
+        {
+            string pathToFile = Path.Combine(Directory.GetCurrentDirectory(), "Templates", $"{currentProj.ProjectName}.zip");
+            ZipFile.CreateFromDirectory(currentProj.PathToProjectRoot, pathToFile);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+            return false;
+        }
     }
 
     #endregion
@@ -392,19 +440,19 @@ public class MainWindow
     public bool DefinitionsWindowOpen
     {
         get => Properties.Settings.Default.DefinitionsWindowOpen;
-        set
-        { 
-            Properties.Settings.Default.DefinitionsWindowOpen = value;
-        }
+        set => Properties.Settings.Default.DefinitionsWindowOpen = value;
     }
 
     public string AuthorName
     {
         get => Properties.Settings.Default.AuthorName;
-        set
-        {
-            Properties.Settings.Default.AuthorName = value;
-        }
+        set => Properties.Settings.Default.AuthorName = value;
+    }
+
+    public string LastUsedPath
+    {
+        get => Properties.Settings.Default.LastUsedPath;
+        set => Properties.Settings.Default.LastUsedPath = value;
     }
 
     #endregion

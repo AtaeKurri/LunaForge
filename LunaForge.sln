@@ -7,6 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LunaForge", "LunaForge\Luna
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "rlImGui", "rlImGui-cs\rlImGui\rlImGui.csproj", "{CDFD5151-A556-4594-9174-920F65FF0997}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Éléments de solution", "Éléments de solution", "{7B7B260E-E2F8-46BF-AE47-C355C76C2DEE}"
+	ProjectSection(SolutionItems) = preProject
+		setup.iss = setup.iss
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
