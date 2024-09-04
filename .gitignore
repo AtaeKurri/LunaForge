@@ -366,6 +366,5 @@ FodyWeavers.xsd
 api/
 docs/
 _site/
-docfx.json
 toc.yml
 index.md
