@@ -74,11 +74,13 @@
 
   <ItemGroup>
     <PackageReference Include="ImGui.NET" Version="1.91.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="YamlDotNet" Version="16.1.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\LunaForge.API\LunaForge.API.csproj" />
     <ProjectReference Include="..\rlImGui-cs\rlImGui\rlImGui.csproj" />
   </ItemGroup>
 

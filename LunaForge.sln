@@ -9,8 +9,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "rlImGui", "rlImGui-cs\rlImG
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Éléments de solution", "Éléments de solution", "{7B7B260E-E2F8-46BF-AE47-C355C76C2DEE}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
 		setup.iss = setup.iss
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LunaForge.API", "LunaForge.API\LunaForge.API.csproj", "{183977A9-B090-4BBF-A469-46E0AFB936CC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,6 +29,10 @@ Global
 		{CDFD5151-A556-4594-9174-920F65FF0997}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CDFD5151-A556-4594-9174-920F65FF0997}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CDFD5151-A556-4594-9174-920F65FF0997}.Release|Any CPU.Build.0 = Release|Any CPU
+		{183977A9-B090-4BBF-A469-46E0AFB936CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{183977A9-B090-4BBF-A469-46E0AFB936CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{183977A9-B090-4BBF-A469-46E0AFB936CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{183977A9-B090-4BBF-A469-46E0AFB936CC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

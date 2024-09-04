@@ -14,11 +14,15 @@ using System.IO;
 using LunaForge.EditorData.Documents;
 using Newtonsoft.Json;
 using Microsoft.Win32;
+using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls.Primitives;
 using System.Windows;
 using System.Collections.ObjectModel;
 using LunaForge.EditorData.Project;
 using System.IO.Compression;
+using LunaForge.Plugins.Services;
+using LunaForge.Plugins;
+using LunaForge.API.Services;
 
 namespace LunaForge.GUI;
 
@@ -53,10 +57,13 @@ public enum InsertMode
     After,
 }
 
-public class MainWindow
+public sealed class MainWindow
 {
     public static readonly string LunaForgeName = $"LunaForge Editor";
     public Version VersionNumber = Assembly.GetEntryAssembly().GetName().Version;
+
+    public static IServiceProvider ServiceProvider { get; private set; }
+    public PluginManager Plugins { get; private set; }
 
     #region Windows
 
@@ -81,6 +88,13 @@ public class MainWindow
 
     public MainWindow()
     {
+        #region Plugins
+
+        Plugins = new();
+        Plugins.LoadPlugins();
+
+        #endregion
+
         NodeToolboxWin = new(this);
         NodeAttributeWin = new(this);
         DefinitionsWin = new(this);
