@@ -1,4 +1,5 @@
-﻿using LunaForge.EditorData.Documents;
+﻿using LunaForge.API.Core;
+using LunaForge.EditorData.Documents;
 using LunaForge.EditorData.Project;
 using System;
 using System.Collections.Generic;
@@ -15,9 +16,9 @@ public class RootNode : TreeNode
 
     public override string ToString() => "Root";
 
-    public override IEnumerable<Tuple<int, TreeNode>> GetLines()
+    public override IEnumerable<Tuple<int, ITreeNode>> GetLines()
     {
-        foreach (Tuple<int, TreeNode> item in GetChildLines())
+        foreach (Tuple<int, ITreeNode> item in GetChildLines())
             yield return item;
     }
 

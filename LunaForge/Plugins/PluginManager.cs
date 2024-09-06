@@ -1,4 +1,5 @@
-﻿using LunaForge.API.Core;
+﻿using LunaForge.API.Attributes;
+using LunaForge.API.Core;
 using LunaForge.API.Services;
 using LunaForge.Plugins.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +23,7 @@ public sealed class PluginManager
     {
         ServiceCollection serviceCollection = new();
         serviceCollection.AddSingleton<IToolboxService, ToolboxService>();
+        serviceCollection.AddSingleton<INodeService, NodeService>();
 
         serviceProvider = serviceCollection.BuildServiceProvider();
 

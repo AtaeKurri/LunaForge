@@ -12,11 +12,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using LunaForge.EditorData.Project;
+using LunaForge.API.Core;
 
 namespace LunaForge.EditorData.Nodes;
 
 [Serializable]
-public abstract class TreeNode : ICloneable
+public abstract class TreeNode : ITreeNode
 {
     #region Properties
 
@@ -39,7 +40,7 @@ public abstract class TreeNode : ICloneable
     public bool IsExpanded { get; set; }
 
     [JsonIgnore]
-    public List<TreeNode> children = [];
+    private List<TreeNode> children = [];
     [JsonIgnore]
     public List<TreeNode> Children
     {
@@ -206,15 +207,15 @@ public abstract class TreeNode : ICloneable
     #endregion
     #region Data Handle
 
-    public abstract IEnumerable<Tuple<int, TreeNode>> GetLines();
+    public abstract IEnumerable<Tuple<int, ITreeNode>> GetLines();
 
-    protected IEnumerable<Tuple<int, TreeNode>> GetChildLines()
+    protected IEnumerable<Tuple<int, ITreeNode>> GetChildLines()
     {
         foreach (TreeNode node in Children)
         {
             if (node.IsBanned)
                 continue;
-            foreach (Tuple<int, TreeNode> tuple in node.GetLines())
+            foreach (Tuple<int, ITreeNode> tuple in node.GetLines())
             {
                 yield return tuple;
             }

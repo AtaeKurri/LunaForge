@@ -8,12 +8,9 @@ public class Entry : ILunaPlugin
     public string Name => "Default Toolbox";
     public string[] Authors => [ "Tania Anehina" ];
 
-    [PluginService]
-    public static IToolboxService ToolboxService { get; set; }
-
     public void Initialize()
     {
-        Console.WriteLine(ToolboxService.GetToolboxTab("test"));
+        Console.WriteLine(LunaServices.ToolboxService.GetToolboxTab("test"));
     }
 
     public void Update()

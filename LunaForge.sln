@@ -14,6 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Éléments de solution", "�
 		index.md = index.md
 		README.md = README.md
 		setup.iss = setup.iss
+		toc.yml = toc.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LunaForge.API", "LunaForge.API\LunaForge.API.csproj", "{183977A9-B090-4BBF-A469-46E0AFB936CC}"
