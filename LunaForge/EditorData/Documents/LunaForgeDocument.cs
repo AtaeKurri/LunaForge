@@ -146,7 +146,7 @@ public class LunaForgeDocument
                         }
                     }
                     tempNode = TreeSerializer.DeserializeTreeNode(nodeToDeserialize);
-                    tempNode.ParentDocument = doc;
+                    //tempNode.ParentDocument = doc;
                     parent.AddChild(tempNode);
                     parent = tempNode;
                     previousLevel += levelGraduation;
@@ -154,7 +154,7 @@ public class LunaForgeDocument
                 else
                 {
                     root = TreeSerializer.DeserializeTreeNode(nodeToDeserialize);
-                    root.ParentDocument = doc;
+                    //root.ParentDocument = doc;
                     parent = root;
                     previousLevel = 0;
                 }

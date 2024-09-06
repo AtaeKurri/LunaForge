@@ -1,4 +1,5 @@
 ﻿using LunaForge.EditorData.Documents;
+using LunaForge.EditorData.Project;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace LunaForge.EditorData.Nodes.NodeData;
 public class RootNode : TreeNode
 {
     public RootNode() : base() { }
-    public RootNode(LunaForgeDocument document) : base(document) { }
+    public RootNode(LunaDefinition document) : base(document) { }
 
     public override string ToString() => "Root";
 
@@ -22,7 +23,7 @@ public class RootNode : TreeNode
 
     public override object Clone()
     {
-        RootNode node = new(ParentDocument);
+        RootNode node = new(ParentDef);
         //node.CopyData(this);
         return node;
     }

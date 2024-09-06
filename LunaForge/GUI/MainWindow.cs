@@ -48,6 +48,16 @@ namespace LunaForge.GUI;
  * Plugin manager, loaded at startup. Can add nodes or other features.
  * An interface entry plugin scanned with Reflection and instanciated.
  * Plugin window in config to enable/disable them with warning like "can allow malicious code to run"
+ * 
+ * 
+ * Definitions:
+ * The typical TreeNode architecture. Most of the software uses these. Every file definition is a single object.
+ * One definition can be the entry point of the game.
+ * There a node "Import Definition" to allow the editor to allow the user to instanciate this definition. "Create Object"
+ * 
+ * 
+ * Scripts:
+ * Pure lua scripts. Can be opened by the editor as code.
  */
 
 public enum InsertMode
@@ -155,7 +165,7 @@ public sealed class MainWindow
         NodeAttributeWin.Render();
         lock (Workspaces) // uh.
         {
-            foreach (LunaForgeProject? proj in Workspaces)
+            foreach (LunaForgeProject? proj in Workspaces.ToList())
                 proj?.Window?.Render();
         }
         DefinitionsWin.Render();

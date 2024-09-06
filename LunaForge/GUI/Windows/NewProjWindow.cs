@@ -86,7 +86,7 @@ public class NewProjWindow : ImGuiWindow
         {
             ImGui.BeginGroup();
             {
-                if (ImGui.BeginListBox(""))
+                if (ImGui.BeginListBox(string.Empty))
                 {
                     foreach (TemplateDef def in Templates)
                     {

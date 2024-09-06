@@ -10,13 +10,15 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Éléments de solution", "Éléments de solution", "{7B7B260E-E2F8-46BF-AE47-C355C76C2DEE}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
+		docfx.json = docfx.json
+		index.md = index.md
 		README.md = README.md
 		setup.iss = setup.iss
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LunaForge.API", "LunaForge.API\LunaForge.API.csproj", "{183977A9-B090-4BBF-A469-46E0AFB936CC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DefaultToolbox", "DefaultToolbox\DefaultToolbox.csproj", "{3D4A2599-9C7D-45C9-A583-AB11DD6E82FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DefaultToolbox", "DefaultToolbox\DefaultToolbox.csproj", "{3D4A2599-9C7D-45C9-A583-AB11DD6E82FF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

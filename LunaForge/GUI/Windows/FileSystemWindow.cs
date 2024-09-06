@@ -45,11 +45,16 @@ public class FileSystemWindow : ImGuiWindow
         {
             string folderName = Path.GetFileName(dir);
 
-            if (ImGui.TreeNode(folderName))
+            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.OpenOnDoubleClick | ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.SpanAvailWidth;
+
+            if (ImGui.TreeNodeEx($"{folderName}", flags))
             {
+                TreeNodeContextMenu(folderName);
+
                 RenderFileTree(dir);
                 ImGui.TreePop();
             }
+            TreeNodeContextMenu(folderName);
         }
 
         foreach (string file in files)
@@ -85,8 +90,32 @@ public class FileSystemWindow : ImGuiWindow
         }
     }
 
-    void OpenFile(string filePath)
+    public void TreeNodeContextMenu(string folderName)
     {
-        Console.WriteLine($"Opening file: {filePath}");
+        if (ImGui.BeginPopupContextItem())
+        {
+            ImGui.Text(folderName);
+            ImGui.Separator();
+
+            if (ImGui.Selectable("New file"))
+            {
+
+            }
+            ImGui.EndPopup();
+        }
+    }
+
+    public async Task OpenFile(string filePath)
+    {
+        switch (Path.GetExtension(filePath))
+        {
+            case ".lfp":
+                return;
+            case ".lfd":
+                ParentWindow.Workspaces.Current!.OpenDefinitionFile(filePath);
+                break;
+            default:
+                return;
+        }
     }
 }

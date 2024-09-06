@@ -1,5 +1,4 @@
 ﻿using ImGuiNET;
-using LunaForge.API.Windows;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace LunaForge.GUI.Helpers;
 
-public abstract class ImGuiWindow(MainWindow parentWin, bool showByDefault) : IImGuiWindow
+public abstract class ImGuiWindow(MainWindow parentWin, bool showByDefault)
 {
     public MainWindow ParentWindow = parentWin;
 

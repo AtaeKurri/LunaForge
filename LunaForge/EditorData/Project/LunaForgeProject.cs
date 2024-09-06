@@ -35,6 +35,8 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
 
     [YamlIgnore]
     public int Hash { get; set; }
+    [YamlIgnore]
+    public int ProjectFileMaxHash = 0;
 
     [YamlIgnore]
     public bool IsSelected;
@@ -42,16 +44,11 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
     public bool IsUnsaved { get; set; } = false;
 
     [YamlIgnore]
-    public Stack<Command> CommandStack = [];
-    [YamlIgnore]
-    public Stack<Command> UndoCommandStack = [];
-    [YamlIgnore]
-    public Command? SavedCommand { get; set; } = null;
-
-    [YamlIgnore]
     public ProjectViewerWindow Window { get; set; }
     [YamlIgnore]
     public ProjectCollection Parent { get; set; }
+    [YamlIgnore]
+    public List<LunaProjectFile> ProjectFiles { get; set; } = [];
 
     /* This fucking line took 1 hour of my life for nothing.
      * YamlDotNet, please make your fucking Exceptions more precise. How the fuck was I supposed to know that
@@ -143,6 +140,21 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
             Console.WriteLine(ex.ToString());
             return null;
         }
+    }
+
+    #endregion
+    #region Definitions
+
+    public async Task<bool> OpenDefinitionFile(string filePath)
+    {
+        if (!File.Exists(filePath))
+            return false;
+
+        LunaDefinition newDef = await LunaDefinition.CreateFromFile(this, filePath);
+        newDef.AllocHash(ref ProjectFileMaxHash);
+        ProjectFiles.Add(newDef);
+
+        return true;
     }
 
     #endregion

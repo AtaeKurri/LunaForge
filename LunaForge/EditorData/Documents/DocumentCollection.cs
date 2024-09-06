@@ -32,8 +32,8 @@ public class DocumentCollection : Dictionary<string, LunaForgeDocument>
     public LunaForgeDocument GenerateEmptyDocument(string name, ProjectConfiguration conf, MainWindow mainWin)
     {
         LunaForgeDocument doc = new(name, string.Empty, conf, true);
-        doc.TreeNodes.Add(new RootNode(doc)); // TODO: this really works?
-        doc.TreeNodes[0].AddChild(new RootNode(doc));
+        //doc.TreeNodes.Add(new RootNode(doc)); // TODO: this really works?
+        //doc.TreeNodes[0].AddChild(new RootNode(doc));
         AddAndAllocHash(doc, mainWin);
         return doc;
     }

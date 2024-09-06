@@ -11,6 +11,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using LunaForge.EditorData.Project;
 
 namespace LunaForge.EditorData.Nodes;
 
@@ -26,7 +27,7 @@ public abstract class TreeNode : ICloneable
     public TreeNode Parent;
 
     [JsonIgnore]
-    public LunaForgeDocument ParentDocument;
+    public LunaDefinition ParentDef;
 
     [JsonProperty, DefaultValue(false)]
     public bool IsSelected { get; set; }
@@ -77,12 +78,12 @@ public abstract class TreeNode : ICloneable
         
     }
 
-    public TreeNode(LunaForgeDocument doc)
+    public TreeNode(LunaDefinition def)
         : this()
     {
-        ParentDocument = doc;
-        Hash = ParentDocument.TreeNodeMaxHash;
-        ParentDocument.TreeNodeMaxHash++;
+        ParentDef = def;
+        Hash = ParentDef.TreeNodeMaxHash;
+        ParentDef.TreeNodeMaxHash++;
     }
 
     public override string ToString()
@@ -108,11 +109,11 @@ public abstract class TreeNode : ICloneable
 
         bool isExpanded = ImGui.TreeNodeEx(string.Empty, flags);
         ImGui.SameLine();
-        rlImGui.ImageSize(ParentDocument.MainWin.FindTexture("icon"), new Vector2(16, 16));
+        rlImGui.ImageSize(ParentDef.ParentProject.Window.ParentWindow.FindTexture("icon"), new Vector2(16, 16));
         ImGui.SameLine();
         if (ImGui.Selectable(node.DisplayString, node.IsSelected))
         {
-            DeselectAllNodes(ParentDocument.TreeNodes[0]);
+            DeselectAllNodes(ParentDef.TreeNodes[0]);
             node.IsSelected = true;
         }
 
