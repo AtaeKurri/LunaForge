@@ -16,6 +16,11 @@ public class Entry : ILunaPlugin
         Console.WriteLine(ToolboxService.GetToolboxTab("test"));
     }
 
+    public void Update()
+    {
+        return;
+    }
+
     public void Dispose()
     {
         return;

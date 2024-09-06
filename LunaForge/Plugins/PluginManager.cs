@@ -49,8 +49,9 @@ public sealed class PluginManager
 
                     if (pluginType != null)
                     {
-                        ILunaPlugin newPlugin = (ILunaPlugin)Activator.CreateInstance(pluginType);
-                        InitializePlugin(newPlugin);
+                        ILunaPlugin? newPlugin = (ILunaPlugin?)Activator.CreateInstance(pluginType);
+                        if (newPlugin != null)
+                            InitializePlugin(newPlugin);
                     }
                 }
                 catch (Exception ex)

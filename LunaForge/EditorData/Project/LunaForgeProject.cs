@@ -53,8 +53,6 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
     [YamlIgnore]
     public ProjectCollection Parent { get; set; }
 
-    #region IO
-
     /* This fucking line took 1 hour of my life for nothing.
      * YamlDotNet, please make your fucking Exceptions more precise. How the fuck was I supposed to know that
      * "(Line: 1, Col: 1, Idx: 0) - (Line: 1, Col: 1, Idx: 0): Exception during deserialization"
@@ -62,6 +60,8 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
      * Please.
      */
     public LunaForgeProject() : this(null, string.Empty) { }
+
+    #region IO
 
     public void ResetVariables(NewProjWindow newProjWin)
     {
@@ -76,7 +76,7 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
     /// Only use this for debugging since the editor only supports template copying at Release.
     /// </summary>
     /// <returns>False if the project already exists or something went wrong. True if the Project was created.</returns>
-    public async Task<bool> TryGenerateProject()
+    public bool TryGenerateProject()
     {
         if (Directory.Exists(PathToProjectRoot))
             return false;

@@ -26,4 +26,9 @@ public interface ILunaPlugin : IDisposable
     /// The entry point of the plugin. This method will be used everytime your plugin is loaded/enabled.
     /// </summary>
     public void Initialize();
+
+    /// <summary>
+    /// This method is called every frame.
+    /// </summary>
+    public void Update();
 }

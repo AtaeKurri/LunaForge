@@ -23,6 +23,7 @@ using System.IO.Compression;
 using LunaForge.Plugins.Services;
 using LunaForge.Plugins;
 using LunaForge.API.Services;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace LunaForge.GUI;
 
@@ -72,6 +73,7 @@ public sealed class MainWindow
     public MessagesWindow MessagesWin;
     public DebugLogWindow DebugLogWin;
     public NewProjWindow NewProjWin;
+    public FileSystemWindow FSWin;
 
     #endregion
     #region Properties
@@ -93,6 +95,7 @@ public sealed class MainWindow
         MessagesWin = new(this);
         DebugLogWin = new(this);
         NewProjWin = new(this);
+        FSWin = new(this);
 
         Workspaces = new(this);
     }
@@ -119,7 +122,7 @@ public sealed class MainWindow
             try
             {
                 Raylib.BeginDrawing();
-                Raylib.ClearBackground(Color.DarkGray);
+                Raylib.ClearBackground(Color.Black);
 
                 rlImGui.Begin();
 
@@ -159,6 +162,7 @@ public sealed class MainWindow
         MessagesWin.Render();
         DebugLogWin.Render();
         NewProjWin.Render();
+        FSWin.Render();
     }
 
     #region RenderMenu
@@ -301,7 +305,7 @@ public sealed class MainWindow
             {
                 LunaForgeProject newProjDebug = new(NewProjWin, Path.Combine(pathToFolder, NewProjWin.ProjectName));
                 Workspaces.Add(newProjDebug);
-                await newProjDebug.TryGenerateProject();
+                newProjDebug.TryGenerateProject();
                 return; // Return only for debug to avoid cloning the template.
             }
 #endif
@@ -382,6 +386,7 @@ public sealed class MainWindow
             }
         }
         Workspaces.Remove(proj);
+        Workspaces.Current = null;
         return true;
     }
 
