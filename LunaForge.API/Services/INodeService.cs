@@ -13,8 +13,9 @@ namespace LunaForge.API.Services;
 public interface INodeService
 {
     /// <summary>
-    /// Register a <see cref="ITreeNode"/> into the editor memory.
+    /// Register a <see cref="ITreeNode"/> to be used for definitions.
     /// </summary>
+    /// <param name="displayName">The Definition Display name on definition selection.</param>
     /// <returns>True if the node has been registered correctly; otherwise, false.</returns>
-    public bool RegisterNode<T>() where T : ITreeNode;
+    public bool RegisterDefinitionNode<T>(string displayName) where T : ITreeNode;
 }

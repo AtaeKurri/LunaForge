@@ -79,4 +79,9 @@ public abstract class ImGuiWindow(MainWindow parentWin, bool showByDefault)
         if (!isEnabled)
             ImGui.EndDisabled();
     }
+
+    public static void VerticalSeparator(float size = 20.0f)
+    {
+        ImGui.SameLine(0, size);
+    }
 }

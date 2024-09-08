@@ -13,7 +13,7 @@
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{FB4EDACF-893A-4BEB-9B78-BD9741CC2624}
+AppId={E806E102-890B-4A5E-BB03-7D4301BC5098}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
@@ -24,14 +24,14 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName} {#MyAppVersion}
 ChangesAssociations=yes
 DisableProgramGroupPage=yes
-LicenseFile=D:\GitHub\LuaSTG-Editor-Sharp-X\InnoFiles\license.txt
-InfoBeforeFile=D:\GitHub\LuaSTG-Editor-Sharp-X\InnoFiles\before.txt
-InfoAfterFile=D:\GitHub\LuaSTG-Editor-Sharp-X\InnoFiles\after.txt
+LicenseFile=D:\Programmation\Editeurs\LunaForge\InnoFiles\license.txt
+InfoBeforeFile=D:\Programmation\Editeurs\LunaForge\InnoFiles\before.txt
+InfoAfterFile=D:\Programmation\Editeurs\LunaForge\InnoFiles\after.txt
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
-OutputDir=C:\Users\Ryann\Desktop\SharpXInstall
-OutputBaseFilename=LuaSTG Editor Sharp X v0.76.0
-SetupIconFile=D:\GitHub\LuaSTG-Editor-Sharp-X\LuaSTGEditorSharp\Icon.ico
+OutputDir=D:\Bordel sans nom\logiciels\LunaForgeInstall
+OutputBaseFilename={#MyAppName} {#MyAppVersion}
+SetupIconFile=D:\Programmation\Editeurs\LunaForge\Icon.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -43,8 +43,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "D:\GitHub\LuaSTG-Editor-Sharp-X\bin\Release\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\GitHub\LuaSTG-Editor-Sharp-X\bin\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\Programmation\Editeurs\LunaForge\bin\Release\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Programmation\Editeurs\LunaForge\bin\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

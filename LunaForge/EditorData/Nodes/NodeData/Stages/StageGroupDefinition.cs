@@ -1,5 +1,4 @@
-﻿using LunaForge.API.Core;
-using LunaForge.EditorData.Documents;
+﻿using LunaForge.EditorData.Nodes.Attributes;
 using LunaForge.EditorData.Project;
 using System;
 using System.Collections.Generic;
@@ -7,14 +6,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LunaForge.EditorData.Nodes.NodeData;
+namespace LunaForge.EditorData.Nodes.NodeData.Stages;
 
-public class RootNode : TreeNode
+[DefinitionNode]
+[CannotBeDeleted]
+public class StageGroupDefinition : TreeNode
 {
-    public RootNode() : base() { }
-    public RootNode(LunaDefinition document) : base(document) { }
+    public StageGroupDefinition() : base() { }
+    public StageGroupDefinition(LunaDefinition def) : base(def) { }
 
-    public override string ToString() => "Root";
+    public override string ToString() => "Define Stage";
 
     public override IEnumerable<Tuple<int, TreeNode>> GetLines()
     {
@@ -24,7 +25,7 @@ public class RootNode : TreeNode
 
     public override object Clone()
     {
-        RootNode node = new(ParentDef);
+        StageGroupDefinition node = new(ParentDef);
         //node.CopyData(this);
         return node;
     }

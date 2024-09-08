@@ -13,13 +13,22 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using LunaForge.EditorData.Project;
 using LunaForge.API.Core;
+using System.Text.RegularExpressions;
+using System.Runtime.CompilerServices;
+using LunaForge.EditorData.Nodes.NodeData;
+using System.Collections.Specialized;
+using System.Collections.ObjectModel;
+using YamlDotNet.Core;
 
 namespace LunaForge.EditorData.Nodes;
 
 [Serializable]
-public abstract class TreeNode : ITreeNode
+public abstract class TreeNode
 {
     #region Properties
+
+    [JsonIgnore]
+    public NodeMeta MetaData { get; set; }
 
     [JsonIgnore]
     public int Hash;
@@ -30,19 +39,19 @@ public abstract class TreeNode : ITreeNode
     [JsonIgnore]
     public LunaDefinition ParentDef;
 
-    [JsonProperty, DefaultValue(false)]
-    public bool IsSelected { get; set; }
+    /*[JsonProperty, DefaultValue(false)]
+    public bool IsSelected { get; set; }*/
 
     [JsonProperty, DefaultValue(false)]
     public bool IsBanned { get; set; }
 
-    [JsonProperty, DefaultValue(false)]
-    public bool IsExpanded { get; set; }
+    /*[JsonProperty, DefaultValue(false)]
+    public bool IsExpanded { get; set; }*/
 
     [JsonIgnore]
-    private List<TreeNode> children = [];
+    private ObservableCollection<TreeNode> children = [];
     [JsonIgnore]
-    public List<TreeNode> Children
+    public ObservableCollection<TreeNode> Children
     {
         get => children;
         set
@@ -50,17 +59,36 @@ public abstract class TreeNode : ITreeNode
             if (value == null)
             {
                 children = [];
-                // Gérer l'event de changement.
+                children.CollectionChanged += new NotifyCollectionChangedEventHandler(ChildrenChanged);
             }
             else
             {
-                throw new InvalidOperationException("Cannot set a Children as a null value");
+                throw new InvalidOperationException("Cannot set a Children as a null value.");
             }
         }
     }
 
     [JsonIgnore]
-    private bool IsLeafNode => Children.Count == 0;
+    public ObservableCollection<NodeAttribute> attributes = [];
+    public ObservableCollection<NodeAttribute> Attributes
+    {
+        get => attributes;
+        set
+        {
+            if (value == null)
+            {
+                attributes = [];
+                attributes.CollectionChanged += new NotifyCollectionChangedEventHandler(AttributesChanged);
+            }
+            else
+            {
+                throw new InvalidOperationException("Cannot add a null attribute to a TreeNode.");
+            }
+        }
+    }
+
+    [JsonIgnore]
+    public bool HasNoChildren => Children.Count <= 0;
 
     [JsonIgnore]
     protected bool Activated = false;
@@ -76,7 +104,9 @@ public abstract class TreeNode : ITreeNode
 
     protected TreeNode()
     {
-        
+        MetaData = new(this);
+        Children = null;
+        Attributes = null;
     }
 
     public TreeNode(LunaDefinition def)
@@ -92,48 +122,117 @@ public abstract class TreeNode : ITreeNode
         return $"You're not supposed to see that. If you do, please report to 'tania_anehina' on discord or create an issue on the git repo.\nNode: {GetType()}";
     }
 
+    #region Attributes
+
+    private void AttributesChanged(object sender, NotifyCollectionChangedEventArgs args)
+    {
+        NodeAttribute attr;
+        if (args.NewItems != null)
+        {
+            foreach (NodeAttribute na in args.NewItems)
+            {
+                attr = na;
+                if (attr != null)
+                    attr.ParentNode = this;
+            }
+        }
+    }
+
+    public NodeAttribute GetAttr(int n)
+    {
+        if (Attributes.Count > n)
+            return Attributes[n];
+        else
+            return null;
+    }
+
+    public NodeAttribute GetAttr(string name)
+    {
+        var attrs = from NodeAttribute na in Attributes
+                    where na != null && !string.IsNullOrEmpty(na.AttrName) && na.AttrName == name
+                    select na;
+        if (attrs != null && attrs.Any())
+            return attrs.First();
+        return null;
+    }
+
+    private void InsertAttrAt(int id, NodeAttribute target)
+    {
+        if (id >= Attributes.Count)
+        {
+            for (int i = Attributes.Count; i < id; i++)
+                Attributes.Add(null);
+            Attributes.Insert(id, target);
+        }
+        else
+        {
+            target.AttrValue = Attributes[id]?.AttrValue ?? "";
+            Attributes[id] = target;
+        }
+    }
+
+    public NodeAttribute CheckAttr(int id, [CallerMemberName] string name = "", string editWindow = "", bool isDependency = false)
+    {
+        NodeAttribute na = GetAttr(id);
+        if (na == null || string.IsNullOrEmpty(na.AttrName) || na.AttrName != name)
+        {
+            na = GetAttr(name);
+            if (na != null)
+            {
+                SwapAttr(id, na);
+            }
+            else
+            {
+                if (isDependency)
+                    na = new NodeDependencyAttribute(name, (string)null, editWindow);
+                else
+                    na = new NodeAttribute(name, (string)null, editWindow);
+                InsertAttrAt(id, na);
+            }
+        }
+        na.EditWindow = editWindow;
+        return na;
+    }
+
+    private void SwapAttr(int id, NodeAttribute na)
+    {
+        if (id >= Attributes.Count)
+            for (int i = Attributes.Count; i <= id; i++)
+                Attributes.Add(null);
+        int id2 = Attributes.IndexOf(na);
+        NodeAttribute na2 = Attributes[id];
+        Attributes[id2] = na2;
+        Attributes[id] = na;
+    }
+
+    public virtual void ReflectAttr(NodeDependencyAttribute o, DependencyAttributeChangedEventArgs e) { }
+
+    public static bool CheckVarName(string s)
+    {
+        Regex regex = new("^[a-zA-Z_][\\w\\d_]*$");
+        return regex.IsMatch(s);
+    }
+
+    #endregion
     #region Rendering
 
-    public void RenderNode()
+    public void RenderNodeContext()
     {
-        RenderNode(this);
-    }
-
-    public void RenderNode(TreeNode node)
-    {
-        ImGui.PushID(Hash);
-
-        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick | ImGuiTreeNodeFlags.FramePadding;
-
-        if (node.IsLeafNode) 
-            flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.Bullet;
-
-        bool isExpanded = ImGui.TreeNodeEx(string.Empty, flags);
-        ImGui.SameLine();
-        rlImGui.ImageSize(ParentDef.ParentProject.Window.ParentWindow.FindTexture("icon"), new Vector2(16, 16));
-        ImGui.SameLine();
-        if (ImGui.Selectable(node.DisplayString, node.IsSelected))
-        {
-            DeselectAllNodes(ParentDef.TreeNodes[0]);
-            node.IsSelected = true;
-        }
-
-        ImGui.PopID();
-
-        if (isExpanded && !node.IsLeafNode)
-        {
-            foreach (TreeNode child in node.Children)
-                RenderNode(child);
-        }
-    }
-
-    private void DeselectAllNodes(TreeNode node)
-    {
-        node.IsSelected = false;
-        foreach (TreeNode child in node.Children)
-        {
-            DeselectAllNodes(child);
-        }
+        ImGui.MenuItem("Edit");
+        ImGui.Separator();
+        if (ImGui.MenuItem("Undo", ParentDef.CommandStack.Count <= 0))
+            ParentDef.Undo();
+        if (ImGui.MenuItem("Redo", ParentDef.UndoCommandStack.Count <= 0))
+            ParentDef.Redo();
+        ImGui.Separator();
+        ImGui.MenuItem("Cut");
+        ImGui.MenuItem("Copy");
+        ImGui.MenuItem("Paste");
+        ImGui.Separator();
+        if (ImGui.MenuItem("Ban", string.Empty, IsBanned, true))
+            IsBanned = !IsBanned;
+        ImGui.Separator();
+        ImGui.MenuItem("Delete", !MetaData.CannotBeDeleted);
     }
 
     #endregion
@@ -146,8 +245,235 @@ public abstract class TreeNode : ITreeNode
 
     public bool ValidateChild(TreeNode nodeToValidate, TreeNode sourceNode)
     {
-        // TODO
+        if (MetaData.IsFolder)
+            return GetRealParent()?.ValidateChild(nodeToValidate, sourceNode) ?? true;
+        if (nodeToValidate.MetaData.IsFolder)
+        {
+            foreach (TreeNode t in nodeToValidate.GetRealChildren())
+            {
+                if (!ValidateChild(t, sourceNode))
+                    return false;
+            }
+            return true;
+        }
+        if (sourceNode.MetaData.IsLeafNode)
+            return false;
+        if (!nodeToValidate.CheckRequiredParentsValidation(this))
+            return false;
+
+        Stack<TreeNode> stack = [];
+        stack.Push(nodeToValidate);
+        TreeNode current;
+        while (stack.Count != 0)
+        {
+            current = stack.Pop();
+            if (!current.CheckRequiredAncestorValidation(current, nodeToValidate.Parent, this, null))
+                return false;
+            if (current.MetaData.IsDefinition)
+                if (!(MatchClassNode(current, nodeToValidate.Parent) || MatchClassNode(this, null)))
+                    return false;
+            foreach (TreeNode t in current.Children)
+                stack.Push(t);
+        }
         return true;
+    }
+
+    private bool CheckRequiredParentsValidation(TreeNode toMatch)
+    {
+        if (toMatch == null)
+            return false;
+        if (MetaData.RequireParent == null)
+            return true;
+        foreach (Type type in MetaData.RequireParent)
+        {
+            if (toMatch.GetType().Equals(type))
+                return true;
+        }
+        return false;
+    }
+
+    private static bool MatchClassNode(TreeNode beg, TreeNode end)
+    {
+        while (beg != end)
+        {
+            if (!beg.MetaData.IsFolder && beg.GetType() != typeof(RootNode))
+                return false;
+            beg = beg.Parent;
+        }
+        return true;
+    }
+
+    private bool CheckRequiredAncestorValidation(TreeNode Beg1, TreeNode End1, TreeNode Beg2, TreeNode End2)
+    {
+        Type[][] ts = MetaData.RequireAncestor;
+        if (ts == null)
+            return true;
+        List<Type[]> toSatisfiedGroups = ts.ToList();
+        List<Type> Satisfied = [];
+        List<Type[]> toRemove = [];
+        while (Beg1 != End1)
+        {
+            foreach (Type[] t1 in ts)
+            {
+                foreach (Type t2 in t1)
+                {
+                    if (Beg1.GetType().Equals(t2))
+                        Satisfied.Add(t2);
+                }
+            }
+            foreach (Type[] t1 in toSatisfiedGroups)
+            {
+                foreach (Type t2 in t1)
+                {
+                    foreach (Type t3 in Satisfied)
+                    {
+                        if (t2 == t3 && !toRemove.Contains(t1))
+                            toRemove.Add(t1);
+                    }
+                }
+            }
+            foreach (Type[] t1 in toRemove)
+            {
+                toSatisfiedGroups.Remove(t1);
+            }
+            if (toSatisfiedGroups.Count == 0)
+                return true;
+            Satisfied.Clear();
+            toRemove.Clear();
+            Beg1 = Beg1.Parent;
+        }
+        while (Beg2 != End2)
+        {
+            foreach (Type[] t1 in ts)
+            {
+                foreach (Type t2 in t1)
+                {
+                    if (Beg2.GetType().Equals(t2))
+                        Satisfied.Add(t2);
+                }
+            }
+            foreach (Type[] t1 in toSatisfiedGroups)
+            {
+                foreach (Type t2 in t1)
+                {
+                    foreach (Type t3 in Satisfied)
+                    {
+                        if (t2 == t3 && !toRemove.Contains(t1))
+                            toRemove.Add(t1);
+                    }
+                }
+            }
+            foreach (Type[] t1 in toRemove)
+            {
+                toSatisfiedGroups.Remove(t1);
+            }
+            if (toSatisfiedGroups.Count == 0)
+                return true;
+            Satisfied.Clear();
+            toRemove.Clear();
+            Beg2 = Beg2.Parent;
+        }
+        return false;
+    }
+
+    public TreeNode GetRealParent()
+    {
+        TreeNode p = Parent;
+        while (p != null && p.MetaData.IsFolder)
+            p = p.Parent;
+        return p;
+    }
+
+    public IEnumerable<TreeNode> GetRealChildren()
+    {
+        foreach (TreeNode n in Children)
+        {
+            if (n.Parent == this)
+            {
+                if (n.MetaData.IsFolder)
+                {
+                    foreach (TreeNode t in n.GetRealChildren())
+                        yield return t;
+                }
+                else
+                {
+                    yield return n;
+                }
+            }
+        }
+    }
+
+    public bool CanLogicallyDelete()
+    {
+        if (MetaData.IsFolder)
+        {
+            foreach (TreeNode t in GetRealChildren())
+            {
+                if (t.MetaData.CannotBeDeleted)
+                    return false;
+            }
+            return true;
+        }
+        else
+        {
+            return !MetaData.CannotBeDeleted;
+        }
+    }
+
+    private void ChildrenChanged(object sender, NotifyCollectionChangedEventArgs e)
+    {
+        TreeNode node, previousNode = null;
+        if (e.OldItems != null)
+        {
+            for (int index = 0; index < e.OldItems.Count; index++)
+            {
+                node = (TreeNode)e.OldItems[index];
+                node.RaiseRemove(new OnRemoveEventArgs() { Parent = this });
+                if (index + e.OldStartingIndex != 0)
+                {
+                    if (previousNode == null)
+                        previousNode = Children[index + e.OldStartingIndex - 1];
+                    previousNode.LinkedNext = node.LinkedNext;
+                    if (node.LinkedNext != null)
+                        node.LinkedNext.LinkedPrevious = previousNode;
+                }
+                else
+                {
+                    LinkedNext = node.LinkedNext;
+                    if (LinkedNext != null)
+                        node.LinkedNext.LinkedPrevious = this;
+                    previousNode = this;
+                }
+            }
+        }
+        if (e.NewItems != null)
+        {
+            for (int index = 0; index < e.NewItems.Count; index++)
+            {
+                node = (TreeNode)e.NewItems[index];
+                node.RaiseCreate(new OnCreateEventArgs() { Parent = this });
+                node.Parent = this;
+                if (index + e.NewStartingIndex != 0)
+                {
+                    if (previousNode == null)
+                        previousNode = Children[index + e.NewStartingIndex - 1];
+                    node.LinkedPrevious = previousNode;
+                    node.LinkedNext = previousNode.LinkedNext;
+                    if (previousNode.LinkedNext != null)
+                        previousNode.LinkedNext.LinkedPrevious = node;
+                    previousNode.LinkedNext = node;
+                }
+                else
+                {
+                    node.LinkedPrevious = this;
+                    node.LinkedNext = LinkedNext;
+                    if (LinkedNext != null)
+                        LinkedNext.LinkedPrevious = node;
+                    LinkedNext = node;
+                }
+                previousNode = node;
+            }
+        }
     }
 
     public void AddChild(TreeNode child)
@@ -167,7 +493,7 @@ public abstract class TreeNode : ITreeNode
 
     public void ClearChildSelection()
     {
-        IsSelected = false;
+        //IsSelected = false;
         foreach (TreeNode child in Children)
             child.ClearChildSelection();
     }
@@ -207,18 +533,138 @@ public abstract class TreeNode : ITreeNode
     #endregion
     #region Data Handle
 
-    public abstract IEnumerable<Tuple<int, ITreeNode>> GetLines();
+    public void CopyData(TreeNode source)
+    {
+        var attributes = from NodeAttribute attr in source.Attributes select (NodeAttribute)attr.Clone();
+        var childrens = from TreeNode childn in source.Children select (TreeNode)childn.Clone();
+        Attributes = null;
+        foreach (NodeAttribute na in attributes)
+            this.Attributes.Add(na);
+        Children = null;
+        foreach (TreeNode tn in childrens)
+            this.Children.Add(tn);
+        Parent = source.Parent;
+    }
 
-    protected IEnumerable<Tuple<int, ITreeNode>> GetChildLines()
+    public NodeAttribute GetCreateInvoke()
+    {
+        int? invokeID = MetaData.CreateInvokeId;
+        return invokeID.HasValue ? Attributes[invokeID.Value] : null;
+    }
+
+    public abstract IEnumerable<Tuple<int, TreeNode>> GetLines();
+
+    protected IEnumerable<Tuple<int, TreeNode>> GetChildLines()
     {
         foreach (TreeNode node in Children)
         {
             if (node.IsBanned)
                 continue;
-            foreach (Tuple<int, ITreeNode> tuple in node.GetLines())
+            foreach (Tuple<int, TreeNode> tuple in node.GetLines())
             {
                 yield return tuple;
             }
+        }
+    }
+
+    #endregion
+    #region Macros
+
+    /*public static string ExecuteMacro(DefineMacroSettings macro, string original)
+    {
+        Regex regex = new Regex("\\b" + macro.ToBeReplaced + "\\b"
+            + @"(?<=^([^""]*((?<!(^|[^\\])(\\\\)*\\)""([^""]|((?<=(^|[^\\])(\\\\)*\\)""))*(?<!(^|[^\\])(\\\\)*\\)"")+)*[^""]*.)"
+            + @"(?<=^([^']*((?<!(^|[^\\])(\\\\)*\\)'([^']|((?<=(^|[^\\])(\\\\)*\\)'))*(?<!(^|[^\\])(\\\\)*\\)')+)*[^']*.)");
+        return regex.Replace(original, macro.NewString);
+    }*/
+
+    protected string Macrolize(NodeAttribute attr)
+    {
+        return Macrolize(attr.AttrValue);
+    }
+
+    protected string Macrolize(int i)
+    {
+        if (i < Attributes.Count)
+            return Macrolize(Attributes[i]);
+        return "";
+    }
+
+    protected string Macrolize(string attr)
+    {
+        /*foreach (DefineMacroSettings macro in ParentDocument.CompileProcess.MacroDefinitions)
+        {
+            attr = ExecuteMacro(macro, attr);
+        }*/
+        return attr;
+    }
+
+    protected string NonMacrolize(NodeAttribute attr)
+    {
+        return attr.AttrValue;
+    }
+
+    protected string NonMacrolize(int i)
+    {
+        if (i < Attributes.Count)
+            return NonMacrolize(Attributes[i]);
+        return "";
+    }
+
+    #endregion
+    #region Events
+
+    private event OnCreateNodeHandler OnCreate;
+    private event OnCreateNodeHandler OnVirtualCreate;
+    private event OnRemoveNodeHandler OnRemove;
+    private event OnRemoveNodeHandler OnVirtualRemove;
+    private event OnDependencyAttributeChangedHandler OnDependencyAttributeChanged;
+
+    public void RaiseCreate(OnCreateEventArgs e)
+    {
+        if (e.Parent == null)
+        {
+            if (!IsBanned)
+                OnVirtualCreate?.Invoke(e);
+            OnCreate?.Invoke(e);
+            OnCreateEventArgs args = new() { Parent = this };
+            foreach (TreeNode node in Children)
+                node.RaiseCreate(args);
+        }
+    }
+
+    public void RaiseVirtuallyCreate(OnCreateEventArgs e)
+    {
+        if (!IsBanned)
+        {
+            OnVirtualCreate?.Invoke(e);
+            foreach (TreeNode node in Children)
+                node.RaiseVirtuallyCreate(e);
+        }
+    }
+
+    public void RaiseRemove(OnRemoveEventArgs e)
+    {
+        if (e.Parent == null || e.Parent.Activated)
+        {
+            if (!IsBanned)
+            {
+                OnVirtualRemove?.Invoke(e);
+            }
+            OnRemove?.Invoke(e);
+            OnCreateEventArgs args = new OnCreateEventArgs { Parent = this };
+            foreach (TreeNode node in Children)
+                node.RaiseRemove(e);
+        }
+    }
+
+    public void RaiseVirtuallyRemove(OnRemoveEventArgs e)
+    {
+        if (Activated && IsBanned)
+        {
+            OnVirtualRemove?.Invoke(e);
+            foreach (TreeNode node in Children)
+                node.RaiseVirtuallyRemove(e);
         }
     }
 

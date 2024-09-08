@@ -85,6 +85,11 @@ public abstract class LunaProjectFile
     }
 
     #endregion
+    #region IO
+
+    public abstract bool Save(bool saveAs = false);
+
+    #endregion
 
     public abstract void Render();
 

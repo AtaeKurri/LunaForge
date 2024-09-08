@@ -8,6 +8,11 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using TreeNode = LunaForge.EditorData.Nodes.TreeNode;
 using ImGuiNET;
+using LunaForge.API.Core;
+using LunaForge.EditorData.Commands;
+using static System.ComponentModel.Design.ObjectSelectorEditor;
+using System.ComponentModel;
+using LunaForge.GUI;
 
 namespace LunaForge.EditorData.Project;
 
@@ -15,6 +20,8 @@ public class LunaDefinition : LunaProjectFile
 {
     public WorkTree TreeNodes { get; set; } = [];
     public int TreeNodeMaxHash { get; set; } = 0;
+
+    public TreeNode? SelectedNode = null;
 
     public LunaDefinition(LunaForgeProject parentProj, string path)
     {
@@ -32,7 +39,7 @@ public class LunaDefinition : LunaProjectFile
         if (TreeNodes[0] == null)
             RenderRootTypeSelector();
         else
-            RenderTreeView();
+            RenderTreeView(TreeNodes[0], TreeNodes[0].IsBanned);
     }
 
     private void RenderRootTypeSelector()
@@ -41,17 +48,62 @@ public class LunaDefinition : LunaProjectFile
 
         if (ImGui.BeginListBox(string.Empty))
         {
-            if (ImGui.Selectable("Test"))
+            foreach (var type in NodeManager.DefinitionNodes)
             {
-                Console.WriteLine("Definition Type selected");
+                if (ImGui.Selectable($"{type.Value}"))
+                {
+                    SelectDefinition(type.Key);
+                }
             }
             ImGui.EndListBox();
         }
     }
 
-    private void RenderTreeView()
+    private void RenderTreeView(TreeNode node, bool parentBanned)
     {
+        ImGui.PushID($"{node.DisplayString}_{node.Hash}");
 
+        // Propagate color to the child if the parent is banned.
+        ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32((node.IsBanned || parentBanned) ? ImGuiCol.TextDisabled : ImGuiCol.Text));
+
+        ImGuiTreeNodeFlags flags =
+            ImGuiTreeNodeFlags.OpenOnArrow
+            | ImGuiTreeNodeFlags.OpenOnDoubleClick
+            | ImGuiTreeNodeFlags.SpanFullWidth
+            | ImGuiTreeNodeFlags.FramePadding;
+        if (node == SelectedNode)
+            flags |= ImGuiTreeNodeFlags.Selected;
+        if (node.HasNoChildren)
+            flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.Bullet;
+
+        bool isOpen = ImGui.TreeNodeEx(node.DisplayString, flags);
+        ImGui.PopStyleColor();
+        if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
+            SelectedNode = node;
+        if (ImGui.BeginPopupContextItem($"{node.DisplayString}_{node.Hash}_context"))
+        {
+            SelectedNode = node;
+            node.RenderNodeContext();
+            ImGui.EndPopup();
+        }
+        if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+        {
+            Console.WriteLine($"Double-clicked.");
+        }
+
+        ImGui.PopID();
+
+        if (isOpen)
+        {
+            if (!node.HasNoChildren)
+            {
+                foreach (TreeNode child in node.Children)
+                {
+                    RenderTreeView(child, node.IsBanned || parentBanned);
+                }
+            }
+            ImGui.TreePop();
+        }
     }
 
     #endregion
@@ -88,6 +140,8 @@ public class LunaDefinition : LunaProjectFile
                     }
                     tempNode = TreeSerializer.DeserializeTreeNode(nodeToDeserialize);
                     tempNode.ParentDef = def;
+                    tempNode.Hash = def.TreeNodeMaxHash;
+                    def.TreeNodeMaxHash++;
                     parent.AddChild(tempNode);
                     parent = tempNode;
                     previousLevel += levelGraduation;
@@ -96,6 +150,8 @@ public class LunaDefinition : LunaProjectFile
                 {
                     root = TreeSerializer.DeserializeTreeNode(nodeToDeserialize);
                     root.ParentDef = def;
+                    root.Hash = def.TreeNodeMaxHash;
+                    def.TreeNodeMaxHash++;
                     parent = root;
                     previousLevel = 0;
                 }
@@ -112,7 +168,7 @@ public class LunaDefinition : LunaProjectFile
     #endregion
     #region IO
 
-    public bool Save(bool saveAs = false)
+    public override bool Save(bool saveAs = false)
     {
         bool result = false;
         Thread dialogThread = new(() =>
@@ -186,6 +242,72 @@ public class LunaDefinition : LunaProjectFile
     }
 
     #endregion
+    #region TreeNodes
 
+    private void SelectDefinition(Type definitionType)
+    {
+        try
+        {
+            TreeNodes[0] = (TreeNode)Activator.CreateInstance(definitionType);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+    }
 
+    public bool Insert(TreeNode node, bool doInvoke = true)
+    {
+        try
+        {
+            if (SelectedNode == null)
+                return false;
+            TreeNode oldSelection = SelectedNode;
+            Command cmd = null;
+            switch (ParentProject.Window.ParentWindow.InsertMode)
+            {
+                case InsertMode.Before:
+                    if (SelectedNode.Parent == null || !SelectedNode.Parent.ValidateChild(node))
+                        return false;
+                    cmd = new InsertBeforeCommand(SelectedNode, node);
+                    break;
+                case InsertMode.Child:
+                    if (!SelectedNode.ValidateChild(node))
+                        return false;
+                    cmd = new InsertChildCommand(SelectedNode, node);
+                    break;
+                case InsertMode.After:
+                    if (SelectedNode.Parent == null || !SelectedNode.Parent.ValidateChild(node))
+                        return false;
+                    cmd = new InsertAfterCommand(SelectedNode, node);
+                    break;
+            }
+            if (SelectedNode.Parent == null && ParentProject.Window.ParentWindow.InsertMode != InsertMode.Child)
+                return false;
+            if (AddAndExecuteCommand(cmd))
+            {
+                if (doInvoke)
+                {
+                    //node.CheckTrace(null, new PropertyChangedEventArgs(""));
+                    CreateInvoke(node);
+                }
+                return true;
+            }
+            return false;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+            return false;
+        }
+    }
+
+    public void CreateInvoke(TreeNode node)
+    {
+        //NodePropertiesDataGrid.CommitEdit();
+        NodeAttribute attr = node.GetCreateInvoke();
+        // TODO: inputwindow invoke.
+    }
+
+    #endregion
 }

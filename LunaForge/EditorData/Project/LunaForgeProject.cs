@@ -49,6 +49,8 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
     public ProjectCollection Parent { get; set; }
     [YamlIgnore]
     public List<LunaProjectFile> ProjectFiles { get; set; } = [];
+    [YamlIgnore]
+    public LunaProjectFile? CurrentProjectFile = null;
 
     /* This fucking line took 1 hour of my life for nothing.
      * YamlDotNet, please make your fucking Exceptions more precise. How the fuck was I supposed to know that
@@ -96,6 +98,8 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
         }
 
     }
+
+    public bool IsFileOpened(string path) => ProjectFiles.Any(x => x.FullFilePath == path);
 
     #endregion
     #region Serialization

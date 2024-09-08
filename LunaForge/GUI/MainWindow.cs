@@ -11,19 +11,13 @@ using System.Reflection;
 using LunaForge.GUI.Helpers;
 using LunaForge.GUI.Windows;
 using System.IO;
-using LunaForge.EditorData.Documents;
 using Newtonsoft.Json;
-using Microsoft.Win32;
-using Microsoft.Extensions.DependencyInjection;
-using System.Windows.Controls.Primitives;
 using System.Windows;
-using System.Collections.ObjectModel;
 using LunaForge.EditorData.Project;
 using System.IO.Compression;
-using LunaForge.Plugins.Services;
 using LunaForge.Plugins;
-using LunaForge.API.Services;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using LunaForge.EditorData.Nodes;
+using TreeNode = LunaForge.EditorData.Nodes.TreeNode;
 
 namespace LunaForge.GUI;
 
@@ -77,7 +71,7 @@ public sealed class MainWindow
 
     #region Windows
 
-    public NodeToolboxWindow NodeToolboxWin;
+    public ToolboxWindow ToolboxWin;
     public NodeAttributeWindow NodeAttributeWin;
     public DefinitionsWindow DefinitionsWin;
     public MessagesWindow MessagesWin;
@@ -88,9 +82,8 @@ public sealed class MainWindow
     #endregion
     #region Properties
 
-    public InsertMode InsertMode { get; set; }
+    public InsertMode InsertMode { get; set; } = InsertMode.Child;
 
-    public ProjectViewerWindow? CurrentProjectWindow;
     public Dictionary<string, Texture2D> EditorImages = [];
 
     public ProjectCollection Workspaces;
@@ -99,7 +92,7 @@ public sealed class MainWindow
 
     public MainWindow()
     {
-        NodeToolboxWin = new(this);
+        ToolboxWin = new(this);
         NodeAttributeWin = new(this);
         DefinitionsWin = new(this);
         MessagesWin = new(this);
@@ -119,6 +112,7 @@ public sealed class MainWindow
         Raylib.SetTargetFPS(60);
 
         LoadEditorImages();
+        NodeManager.RegisterDefinitionNodes();
 
         rlImGui.Setup(true, true);
         ImGui.GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
@@ -140,7 +134,7 @@ public sealed class MainWindow
                 ShortcutList.CheckKeybinds();
 
                 RenderMenu();
-                //ImGui.ShowDemoWindow();
+                ImGui.ShowDemoWindow();
                 Render();
 
                 rlImGui.End();
@@ -161,7 +155,7 @@ public sealed class MainWindow
 
     private void Render()
     {
-        NodeToolboxWin.Render();
+        ToolboxWin.Render();
         NodeAttributeWin.Render();
         lock (Workspaces) // uh.
         {
@@ -188,12 +182,12 @@ public sealed class MainWindow
                 if (ImGui.MenuItem("Open", "Ctrl+O"))
                     OpenProj();
                 ImGui.Separator();
-                if (ImGui.MenuItem("Save", "Ctrl+S", false, CurrentProjectWindow != null))
-                    return; //SaveActiveProject();
-                if (ImGui.MenuItem("Save As", string.Empty, false, CurrentProjectWindow != null))
-                    return; //SaveActiveProjectAs();
+                if (ImGui.MenuItem("Save", "Ctrl+S", false, Workspaces.Current?.CurrentProjectFile != null))
+                    SaveActiveProjectFile();
+                if (ImGui.MenuItem("Save As", string.Empty, false, Workspaces.Current?.CurrentProjectFile != null))
+                    SaveActiveProjectFileAs();
                 ImGui.Separator();
-                ImGui.MenuItem("Close");
+                ImGui.MenuItem("Close", "Ctrl+Q");
                 ImGui.EndMenu();
             }
             if (ImGui.BeginMenu("Edit"))
@@ -207,16 +201,9 @@ public sealed class MainWindow
                 ImGui.MenuItem("Copy");
                 ImGui.MenuItem("Paste");
                 ImGui.Separator();
-                ImGui.MenuItem("Delete");
-                ImGui.Separator();
                 ImGui.MenuItem("Ban");
                 ImGui.Separator();
-                ImGui.MenuItem("Fold Tree");
-                ImGui.MenuItem("Unfold Tree");
-                ImGui.Separator();
-                ImGui.MenuItem("Fold Region");
-                ImGui.MenuItem("Unfold as region");
-                ImGui.MenuItem("Go to Definition");
+                ImGui.MenuItem("Delete");
                 ImGui.EndMenu();
             }
             if (ImGui.BeginMenu("Insert"))
@@ -378,15 +365,33 @@ public sealed class MainWindow
 
     public bool CloseProject(LunaForgeProject proj)
     {
-        if (proj.IsUnsaved)
+        bool allClosed = true;
+        foreach (LunaProjectFile file in proj.ProjectFiles.ToList())
         {
-            switch (System.Windows.MessageBox.Show($"Do you want to save \"{proj.ProjectName}\"?",
+            if (!CloseProjectFile(file))
+                allClosed = false;
+        }
+        if (allClosed)
+        {
+            Workspaces.Remove(proj);
+            Workspaces.Current = null;
+            return true;
+        }
+        return false;
+    }
+
+    public bool CloseProjectFile(LunaProjectFile file)
+    {
+        if (file.IsUnsaved)
+        {
+            switch (System.Windows.MessageBox.Show($"Do you want to save \"{file.FileName}\"?",
                     LunaForgeName, MessageBoxButton.YesNoCancel, MessageBoxImage.Question))
             {
                 case MessageBoxResult.Yes:
-                    if (SaveProject(proj))
+                    if (SaveProject(file))
                     {
-                        Workspaces.Remove(proj);
+                        Workspaces.Current!.ProjectFiles.Remove(file);
+                        Workspaces.Current!.CurrentProjectFile = null;
                     }
                     return true;
                 case MessageBoxResult.No:
@@ -395,8 +400,11 @@ public sealed class MainWindow
                     return false;
             }
         }
-        Workspaces.Remove(proj);
-        Workspaces.Current = null;
+        else
+        {
+            Workspaces.Current!.ProjectFiles.Remove(file);
+            Workspaces.Current!.CurrentProjectFile = null;
+        }
         return true;
     }
 
@@ -426,11 +434,12 @@ public sealed class MainWindow
     #endregion
     #region Project Operation
 
-    //public bool SaveActiveProject() => SaveProject(TreeViewWin.CurrentWorkspace);
+    public bool SaveActiveProjectFile() => SaveProject(Workspaces.Current?.CurrentProjectFile);
+    public bool SaveActiveProjectFileAs() => SaveProject(Workspaces.Current?.CurrentProjectFile, true);
 
-    public bool SaveProject(LunaForgeProject proj)
+    public bool SaveProject(LunaProjectFile projFile, bool saveAs = false)
     {
-        return proj.Save();
+        return projFile.Save(saveAs);
     }
 
     public bool ProjectToTemplate()
@@ -455,7 +464,18 @@ public sealed class MainWindow
     #endregion
     #region Node Operation
 
-
+    public bool Insert(TreeNode node, bool doInvoke = true)
+    {
+        try
+        {
+            return (Workspaces.Current?.CurrentProjectFile as LunaDefinition).Insert(node, doInvoke);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+            return false;
+        }
+    }
 
     #endregion
     #region Configurations

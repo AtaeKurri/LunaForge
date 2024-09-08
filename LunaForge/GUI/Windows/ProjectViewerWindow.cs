@@ -50,6 +50,11 @@ public class ProjectViewerWindow : ImGuiWindow
                         flags |= ImGuiTabItemFlags.UnsavedDocument;
                     if (ImGui.BeginTabItem(file.FileName, ref isOpened, flags))
                     {
+                        if (ParentProject.CurrentProjectFile != file)
+                        {
+                            ParentProject.CurrentProjectFile = file;
+                            Console.WriteLine($"Current ProjectFile: {file.FileName}");
+                        }
                         file.Render();
 
                         ImGui.EndTabItem();
@@ -83,6 +88,7 @@ public class ProjectViewerWindow : ImGuiWindow
 
     public void CheckProjectSaveState()
     {
+        // TODO: check every opened files.
         ParentWindow.CloseProject(ParentProject);
     }
 }

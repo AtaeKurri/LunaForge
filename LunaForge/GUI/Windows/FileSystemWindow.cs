@@ -107,6 +107,9 @@ public class FileSystemWindow : ImGuiWindow
 
     public async Task OpenFile(string filePath)
     {
+        if (ParentWindow.Workspaces.Current!.IsFileOpened(filePath))
+            return; // File already opened, don't do anything.
+
         switch (Path.GetExtension(filePath))
         {
             case ".lfp":
