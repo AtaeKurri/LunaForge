@@ -86,6 +86,7 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
             Directory.CreateDirectory(PathToProjectRoot);
             Directory.CreateDirectory(Path.Combine(PathToProjectRoot, "Definitions"));
             Directory.CreateDirectory(Path.Combine(PathToProjectRoot, "Scripts"));
+            Directory.CreateDirectory(Path.Combine(PathToProjectRoot, "Assets"));
 
             // Create .lfp file
             Save();
@@ -157,6 +158,21 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
         LunaDefinition newDef = await LunaDefinition.CreateFromFile(this, filePath);
         newDef.AllocHash(ref ProjectFileMaxHash);
         ProjectFiles.Add(newDef);
+
+        return true;
+    }
+
+    #endregion
+    #region Scripts
+
+    public async Task<bool> OpenScriptFile(string filePath)
+    {
+        if (!File.Exists(filePath))
+            return false;
+
+        LunaScript newScript = await LunaScript.CreateFromFile(this, filePath);
+        newScript.AllocHash(ref ProjectFileMaxHash);
+        ProjectFiles.Add(newScript);
 
         return true;
     }

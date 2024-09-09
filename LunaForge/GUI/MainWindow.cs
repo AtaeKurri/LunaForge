@@ -18,6 +18,9 @@ using System.IO.Compression;
 using LunaForge.Plugins;
 using LunaForge.EditorData.Nodes;
 using TreeNode = LunaForge.EditorData.Nodes.TreeNode;
+using LunaForge.EditorData.Commands;
+using static System.ComponentModel.Design.ObjectSelectorEditor;
+using Image = Raylib_cs.Image;
 
 namespace LunaForge.GUI;
 
@@ -62,7 +65,7 @@ public enum InsertMode
     After,
 }
 
-public sealed class MainWindow
+public sealed class MainWindow : IDisposable
 {
     public static readonly string LunaForgeName = $"LunaForge Editor";
     public Version? VersionNumber = Assembly.GetEntryAssembly()?.GetName().Version;
@@ -103,6 +106,12 @@ public sealed class MainWindow
         Workspaces = new(this);
     }
 
+    public void Dispose()
+    {
+        foreach (Texture2D texture in EditorImages.Values)
+            Raylib.UnloadTexture(texture);
+    }
+
     public void Initialize()
     {
         Raylib.SetConfigFlags(ConfigFlags.Msaa4xHint | ConfigFlags.VSyncHint | ConfigFlags.ResizableWindow);
@@ -134,7 +143,7 @@ public sealed class MainWindow
                 ShortcutList.CheckKeybinds();
 
                 RenderMenu();
-                ImGui.ShowDemoWindow();
+                //ImGui.ShowDemoWindow();
                 Render();
 
                 rlImGui.End();
@@ -149,6 +158,8 @@ public sealed class MainWindow
 
         Properties.Settings.Default.Save();
 
+        Dispose();
+
         rlImGui.Shutdown();
         Raylib.CloseWindow();
     }
@@ -157,11 +168,8 @@ public sealed class MainWindow
     {
         ToolboxWin.Render();
         NodeAttributeWin.Render();
-        lock (Workspaces) // uh.
-        {
-            foreach (LunaForgeProject? proj in Workspaces.ToList())
-                proj?.Window?.Render();
-        }
+        foreach (LunaForgeProject? proj in Workspaces.ToList())
+            proj?.Window?.Render();
         DefinitionsWin.Render();
         MessagesWin.Render();
         DebugLogWin.Render();
@@ -182,14 +190,15 @@ public sealed class MainWindow
                 if (ImGui.MenuItem("Open", "Ctrl+O"))
                     OpenProj();
                 ImGui.Separator();
-                if (ImGui.MenuItem("Save", "Ctrl+S", false, Workspaces.Current?.CurrentProjectFile != null))
+                if (ImGui.MenuItem("Save", "Ctrl+S", false, SaveActiveProjectFile_CanExecute()))
                     SaveActiveProjectFile();
-                if (ImGui.MenuItem("Save As", string.Empty, false, Workspaces.Current?.CurrentProjectFile != null))
+                if (ImGui.MenuItem("Save As", string.Empty, false, SaveActiveProjectFile_CanExecute()))
                     SaveActiveProjectFileAs();
                 ImGui.Separator();
                 ImGui.MenuItem("Close", "Ctrl+Q");
                 ImGui.EndMenu();
             }
+            /*
             if (ImGui.BeginMenu("Edit"))
             {
                 ImGui.MenuItem("Edit");
@@ -206,12 +215,15 @@ public sealed class MainWindow
                 ImGui.MenuItem("Delete");
                 ImGui.EndMenu();
             }
+            */
             if (ImGui.BeginMenu("Insert"))
             {
-                ImGui.MenuItem("Parent");
-                ImGui.MenuItem("Before");
-                ImGui.MenuItem("After");
-                ImGui.MenuItem("Child");
+                if (ImGui.MenuItem("Before", "Alt+Up", InsertMode == InsertMode.Before))
+                    InsertMode = InsertMode.Before;
+                if (ImGui.MenuItem("Child", "Alt+Right", InsertMode == InsertMode.Child))
+                    InsertMode = InsertMode.Child;
+                if (ImGui.MenuItem("After", "Alt+Down", InsertMode == InsertMode.After))
+                    InsertMode = InsertMode.After;
                 ImGui.EndMenu();
             }
             if (ImGui.BeginMenu("Presets"))
@@ -222,9 +234,9 @@ public sealed class MainWindow
             }
             if (ImGui.BeginMenu("Compile"))
             {
-                ImGui.MenuItem("Run");
-                ImGui.MenuItem("Test spell card");
-                ImGui.MenuItem("Test from scene node");
+                ImGui.MenuItem("Run", "F5");
+                ImGui.MenuItem("Test spell card", "F6");
+                ImGui.MenuItem("Test from scene node", "F7");
                 ImGui.MenuItem("Pack project");
                 ImGui.EndMenu();
             }
@@ -259,13 +271,20 @@ public sealed class MainWindow
     public void LoadEditorImages()
     {
         EditorImages = [];
-        EditorImages.Add("Unknown", Raylib.LoadTexture(Path.Combine(Directory.GetCurrentDirectory(), "Images/Unknown.png")));
+        string rootDir = Path.Combine(Directory.GetCurrentDirectory(), "Images");
+
+        if (!Directory.Exists(rootDir))
+            return;
+
+        string[] images = Directory.GetFiles(rootDir, "*.png", SearchOption.AllDirectories);
+        foreach (string image in images)
+            EditorImages.Add(Path.GetFileNameWithoutExtension(image), Raylib.LoadTexture(image));
     }
 
     public Texture2D FindTexture(string name)
     {
-        if (EditorImages.ContainsKey(name))
-            return EditorImages[name];
+        if (EditorImages.TryGetValue(name, out Texture2D value))
+            return value;
         else
             return EditorImages["Unknown"];
     }
@@ -409,16 +428,45 @@ public sealed class MainWindow
     }
 
     #endregion
-    #region Events
+    #region Shortcuts
 
     public void NewProj()
     {
         NewProjWin.ResetAndShow();
     }
+    public bool NewProj_CanExecute() => true;
 
     public void OpenProj()
     {
         OpenProject();
+    }
+    public bool OpenProj_CanExecute() => true;
+
+    public bool SaveActiveProjectFile_CanExecute() => Workspaces.Current?.CurrentProjectFile != null;
+
+    public void Undo()
+    {
+        Workspaces.Current?.CurrentProjectFile?.Undo();
+    }
+    public bool Undo_CanExecute() => Workspaces.Current?.CurrentProjectFile?.CommandStack.Count > 0;
+
+    public void Redo()
+    {
+        Workspaces.Current?.CurrentProjectFile?.Redo();
+    }
+    public bool Redo_CanExecute() => Workspaces.Current?.CurrentProjectFile?.UndoCommandStack.Count > 0;
+
+    public void Delete()
+    {
+        if (Workspaces.Current?.CurrentProjectFile == null)
+            return;
+        Workspaces.Current.CurrentProjectFile!.Delete();
+    }
+    public bool Delete_CanExecute()
+    {
+        if (Workspaces.Current?.CurrentProjectFile == null)
+            return false;
+        return Workspaces.Current.CurrentProjectFile!.Delete_CanExecute();
     }
 
     #endregion
@@ -427,9 +475,9 @@ public sealed class MainWindow
 
 
     #endregion
-    #region TreeNode Infos
+    #region TreeNode Operation
 
-
+    
 
     #endregion
     #region Project Operation

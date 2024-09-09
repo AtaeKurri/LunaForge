@@ -29,7 +29,7 @@ public abstract class ImGuiWindow(MainWindow parentWin, bool showByDefault)
         return false;
     }
 
-    public bool BeginNoClose(string windowName, Vector2? windowSize = null)
+    public bool BeginNoClose(string windowName, Vector2? windowSize = null, ImGuiWindowFlags flags = ImGuiWindowFlags.None)
     {
         if (!ShowWindow)
             return false;
@@ -37,7 +37,7 @@ public abstract class ImGuiWindow(MainWindow parentWin, bool showByDefault)
             windowSize = new Vector2(200, 100);
 
         ImGui.SetNextWindowSize((Vector2)windowSize, ImGuiCond.FirstUseEver);
-        if (ImGui.Begin(windowName))
+        if (ImGui.Begin(windowName, flags))
         {
             return true;
         }

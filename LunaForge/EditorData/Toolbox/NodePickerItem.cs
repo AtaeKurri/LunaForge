@@ -24,7 +24,7 @@ public class NodePickerItem
         : this(false)
     {
         Tag = tag;
-        Icon = $"/LunaForge;component/Images/Nodes/{(string.IsNullOrEmpty(image) ? "Unknown.png" : image)}";
+        Icon = $"{(string.IsNullOrEmpty(image) ? "Unknown" : image)}";
         Tooltip = tooltip;
         AddNodeMethod = addNodeMethod;
     }

@@ -19,6 +19,7 @@ using LunaForge.EditorData.Nodes.NodeData;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using YamlDotNet.Core;
+using System.Collections;
 
 namespace LunaForge.EditorData.Nodes;
 
@@ -45,8 +46,11 @@ public abstract class TreeNode
     [JsonProperty, DefaultValue(false)]
     public bool IsBanned { get; set; }
 
-    /*[JsonProperty, DefaultValue(false)]
-    public bool IsExpanded { get; set; }*/
+    [JsonProperty, DefaultValue(false)]
+    public bool IsSelected { get; set; }
+
+    [JsonProperty, DefaultValue(false)]
+    public bool IsExpanded { get; set; }
 
     [JsonIgnore]
     private ObservableCollection<TreeNode> children = [];
@@ -141,14 +145,14 @@ public abstract class TreeNode
     public NodeAttribute GetAttr(int n)
     {
         if (Attributes.Count > n)
-            return Attributes[n];
+            return attributes[n];
         else
             return null;
     }
 
     public NodeAttribute GetAttr(string name)
     {
-        var attrs = from NodeAttribute na in Attributes
+        var attrs = from NodeAttribute na in attributes
                     where na != null && !string.IsNullOrEmpty(na.AttrName) && na.AttrName == name
                     select na;
         if (attrs != null && attrs.Any())
@@ -161,13 +165,13 @@ public abstract class TreeNode
         if (id >= Attributes.Count)
         {
             for (int i = Attributes.Count; i < id; i++)
-                Attributes.Add(null);
-            Attributes.Insert(id, target);
+                attributes.Add(null);
+            attributes.Insert(id, target);
         }
         else
         {
             target.AttrValue = Attributes[id]?.AttrValue ?? "";
-            Attributes[id] = target;
+            attributes[id] = target;
         }
     }
 
@@ -198,11 +202,11 @@ public abstract class TreeNode
     {
         if (id >= Attributes.Count)
             for (int i = Attributes.Count; i <= id; i++)
-                Attributes.Add(null);
-        int id2 = Attributes.IndexOf(na);
+                attributes.Add(null);
+        int id2 = attributes.IndexOf(na);
         NodeAttribute na2 = Attributes[id];
-        Attributes[id2] = na2;
-        Attributes[id] = na;
+        attributes[id2] = na2;
+        attributes[id] = na;
     }
 
     public virtual void ReflectAttr(NodeDependencyAttribute o, DependencyAttributeChangedEventArgs e) { }
@@ -220,19 +224,23 @@ public abstract class TreeNode
     {
         ImGui.MenuItem("Edit");
         ImGui.Separator();
-        if (ImGui.MenuItem("Undo", ParentDef.CommandStack.Count <= 0))
+        if (ImGui.MenuItem($"Undo - {((ParentDef.CommandStack.Count != 0) ? ParentDef.CommandStack.Peek() : "///")}", "Ctrl+Z", false, ParentDef.CommandStack.Count > 0))
             ParentDef.Undo();
-        if (ImGui.MenuItem("Redo", ParentDef.UndoCommandStack.Count <= 0))
+        if (ImGui.MenuItem($"Redo - {((ParentDef.UndoCommandStack.Count != 0) ? ParentDef.UndoCommandStack.Peek() : "///")}", "Ctrl+Y", false, ParentDef.UndoCommandStack.Count > 0))
             ParentDef.Redo();
         ImGui.Separator();
-        ImGui.MenuItem("Cut");
-        ImGui.MenuItem("Copy");
-        ImGui.MenuItem("Paste");
+        if (ImGui.MenuItem("Cut", "Ctrl+X", false, ParentDef.CutNode_CanExecute()))
+            ParentDef.CutNode();
+        if (ImGui.MenuItem("Copy", "Ctrl+C", false, ParentDef.CopyNode_CanExecute()))
+            ParentDef.CopyNode();
+        if (ImGui.MenuItem("Paste", "Ctrl+V", false, ParentDef.PasteNode_CanExecute()))
+            ParentDef.PasteNode();
         ImGui.Separator();
-        if (ImGui.MenuItem("Ban", string.Empty, IsBanned, true))
+        if (ImGui.MenuItem("Ban", string.Empty, IsBanned, !MetaData.CannotBeBanned))
             IsBanned = !IsBanned;
         ImGui.Separator();
-        ImGui.MenuItem("Delete", !MetaData.CannotBeDeleted);
+        if (ImGui.MenuItem("Delete", ParentDef.Delete_CanExecute()))
+            ParentDef.Delete();
     }
 
     #endregion
@@ -493,7 +501,7 @@ public abstract class TreeNode
 
     public void ClearChildSelection()
     {
-        //IsSelected = false;
+        IsSelected = false;
         foreach (TreeNode child in Children)
             child.ClearChildSelection();
     }
@@ -665,6 +673,47 @@ public abstract class TreeNode
             OnVirtualRemove?.Invoke(e);
             foreach (TreeNode node in Children)
                 node.RaiseVirtuallyRemove(e);
+        }
+    }
+
+    #endregion
+    #region Near
+
+    public IEnumerator<TreeNode> GetForwardNodes()
+    {
+        TreeNode node = this;
+        while (node.LinkedNext != null)
+        {
+            yield return node;
+            node = node.LinkedNext;
+        }
+    }
+
+    public IEnumerator<TreeNode> GetBackwardNodes()
+    {
+        TreeNode node = this;
+        while (node.LinkedPrevious != null)
+        {
+            yield return node;
+            node = node.LinkedPrevious;
+        }
+    }
+
+    public TreeNode GetNearestEdited()
+    {
+        TreeNode node = Parent;
+        if (node != null)
+        {
+            int id = node.children.IndexOf(this) - 1;
+            if (id >= 0)
+            {
+                node = node.children[id];
+            }
+            return node;
+        }
+        else
+        {
+            return this;
         }
     }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using ImGuiNET;
@@ -23,7 +24,7 @@ public class ToolboxWindow : ImGuiWindow
 
     public override void Render()
     {
-        if (BeginNoClose("Toolbox"))
+        if (BeginNoClose("Toolbox", flags: ImGuiWindowFlags.NoScrollbar))
         {
             if (ImGui.BeginTabBar("NodeToolbox"))
             {
@@ -37,13 +38,14 @@ public class ToolboxWindow : ImGuiWindow
 
                         foreach (NodePickerItem item in tab.Items)
                         {
-                            // TODO: Fix the Hash not being set properly when read from a file.
                             if (item.IsSeparator)
                                 VerticalSeparator(); //ImGui.NextColumn();
                             else
                             {
-                                if (ImGui.Button(item.Tooltip))
+                                if (rlImGui.ImageButtonSize(item.Tag, ParentWindow.FindTexture(item.Icon), new Vector2(24, 24)))
                                     item.AddNodeMethod();
+                                if (ImGui.IsItemHovered())
+                                    ImGui.SetTooltip(item.Tooltip);
                                 ImGui.SameLine();
                             }
                         }

@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 
 namespace LunaForge.EditorData.Nodes.NodeData.General;
 
-[IsFolder, NodeIcon("Folder")]
-public class Folder : TreeNode
+[IsFolder, NodeIcon("FolderGreen")]
+public class FolderGreen : TreeNode
 {
     [JsonConstructor]
-    private Folder() : base() { }
+    private FolderGreen() : base() { }
 
-    public Folder(LunaDefinition def) : this(def, "Folder") { }
-    public Folder(LunaDefinition def, string name) : base(def)
+    public FolderGreen(LunaDefinition def) : this(def, "Folder") { }
+    public FolderGreen(LunaDefinition def, string name) : base(def)
     {
         Name = name;
     }
@@ -41,7 +41,7 @@ public class Folder : TreeNode
 
     public override object Clone()
     {
-        Folder cloned = new(ParentDef);
+        FolderGreen cloned = new(ParentDef);
         cloned.CopyData(this);
         return cloned;
     }

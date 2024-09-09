@@ -27,17 +27,6 @@ public class NodeDependencyAttribute : NodeAttribute
     public NodeDependencyAttribute(string name, TreeNode parent, string editWindow, string value)
         : base(name, parent, editWindow, value) { }
 
-    [JsonIgnore]
-    public override string AttrValue
-    {
-        get => AttrValue;
-        set
-        {
-            string s = AttrValue;
-            AttrValue = value;
-        }
-    }
-
     public override object Clone()
     {
         return new NodeDependencyAttribute(AttrName, ParentNode, EditWindow, AttrValue);

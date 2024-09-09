@@ -1,6 +1,7 @@
 ﻿using LunaForge.EditorData.Commands;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ public abstract class LunaProjectFile
     public Stack<Command> UndoCommandStack { get; set; } = [];
     public Command? SavedCommand { get; set; } = null;
 
-    public bool IsUnsaved
+    public virtual bool IsUnsaved
     {
         get
         {
@@ -35,6 +36,15 @@ public abstract class LunaProjectFile
             }
         }
     }
+
+    public LunaProjectFile(LunaForgeProject parentProj, string path)
+    {
+        ParentProject = parentProj;
+        FullFilePath = path;
+        FileName = Path.GetFileName(path);
+    }
+
+    public override string ToString() => FileName;
 
     public void AllocHash(ref int maxHash)
     {
@@ -90,8 +100,14 @@ public abstract class LunaProjectFile
     public abstract bool Save(bool saveAs = false);
 
     #endregion
+    #region Abstract Impl
+
+    public abstract void Delete();
+    public abstract bool Delete_CanExecute();
 
     public abstract void Render();
 
     public abstract void Close();
+
+    #endregion
 }

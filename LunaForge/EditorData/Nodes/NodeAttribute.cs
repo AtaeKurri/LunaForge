@@ -1,10 +1,13 @@
-﻿using Newtonsoft.Json;
+﻿using LunaForge.EditorData.Commands;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using YamlDotNet.Core.Tokens;
 
 namespace LunaForge.EditorData.Nodes;
 
@@ -12,13 +15,24 @@ namespace LunaForge.EditorData.Nodes;
 public class NodeAttribute : ICloneable
 {
     [JsonProperty]
-    public string AttrName { get; set; }
-    [JsonProperty]
-    public virtual string AttrValue { get; set; }
-    [JsonProperty]
-    public string EditWindow { get; set; }
+    public string AttrName;
 
-    public TreeNode ParentNode { get; set; }
+    [JsonProperty]
+    public string AttrValue { get; set; }
+
+    [JsonIgnore]
+    public string TempAttrValue = string.Empty;
+    [JsonProperty]
+    public string EditWindow;
+
+    [JsonIgnore]
+    private TreeNode parentNode;
+    [JsonIgnore]
+    public TreeNode ParentNode
+    {
+        get => parentNode;
+        set => parentNode = value;
+    }
 
     public NodeAttribute() { }
 
@@ -53,6 +67,13 @@ public class NodeAttribute : ICloneable
         : this(name, value, parent)
     {
         EditWindow = editWin;
+    }
+
+    public void RaiseEdit(string value)
+    {
+        if (AttrValue == value)
+            return; // No need for edit if the values match.
+        ParentNode.ParentDef.AddAndExecuteCommand(new EditAttributeCommand(this, AttrValue, value));
     }
 
     public virtual object Clone()

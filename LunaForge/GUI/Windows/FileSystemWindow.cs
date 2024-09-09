@@ -117,6 +117,9 @@ public class FileSystemWindow : ImGuiWindow
             case ".lfd":
                 ParentWindow.Workspaces.Current!.OpenDefinitionFile(filePath);
                 break;
+            case ".lua":
+                ParentWindow.Workspaces.Current!.OpenScriptFile(filePath);
+                break;
             default:
                 return;
         }

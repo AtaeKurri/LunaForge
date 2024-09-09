@@ -16,13 +16,13 @@ public class TabGeneral : NodePickerRegister
 
     public override NodePickerTab RegisterTab()
     {
-        Tab.AddNode(new NodePickerItem("folder", "Folder.png", "Folder", new AddNode(AddNode_Folder)));
-        Tab.AddNode(new NodePickerItem("folderr", "FolderRed.png", "Red Folder", new AddNode(AddNode_FolderRed)));
-        Tab.AddNode(new NodePickerItem("folderg", "FolderGreen.png", "Green Folder", new AddNode(AddNode_FolderGreen)));
-        Tab.AddNode(new NodePickerItem("folderb", "FolderBlue.png", "Blue Folder", new AddNode(AddNode_FolderBlue)));
+        Tab.AddNode(new NodePickerItem("folder", "Folder", "Folder", new AddNode(AddNode_Folder)));
+        Tab.AddNode(new NodePickerItem("folderr", "FolderRed", "Red Folder", new AddNode(AddNode_FolderRed)));
+        Tab.AddNode(new NodePickerItem("folderg", "FolderGreen", "Green Folder", new AddNode(AddNode_FolderGreen)));
+        Tab.AddNode(new NodePickerItem("folderb", "FolderBlue", "Blue Folder", new AddNode(AddNode_FolderBlue)));
         Tab.AddNode(new NodePickerItem(true));
-        Tab.AddNode(new NodePickerItem("code", "Code.png", "Code", new AddNode(AddNode_Code)));
-        Tab.AddNode(new NodePickerItem("comment", "Comment.png", "Comment", new AddNode(AddNode_Comment)));
+        Tab.AddNode(new NodePickerItem("code", "Code", "Code", new AddNode(AddNode_Code)));
+        Tab.AddNode(new NodePickerItem("comment", "Comment", "Comment", new AddNode(AddNode_Comment)));
 
         return Tab;
     }
@@ -36,27 +36,27 @@ public class TabGeneral : NodePickerRegister
 
     private void AddNode_FolderRed()
     {
-        //MainApp.Insert(new FolderRed(Def));
+        MainApp.Insert(new FolderRed(Def));
     }
 
     private void AddNode_FolderGreen()
     {
-        //MainApp.Insert(new FolderGreen(Def));
+        MainApp.Insert(new FolderGreen(Def));
     }
 
     private void AddNode_FolderBlue()
     {
-        //MainApp.Insert(new FolderBlue(Def));
+        MainApp.Insert(new FolderBlue(Def));
     }
 
     private void AddNode_Code()
     {
-        //MainApp.Insert(new Code(Def));
+        MainApp.Insert(new Code(Def));
     }
 
     private void AddNode_Comment()
     {
-        //MainApp.Insert(new Comment(Def));
+        MainApp.Insert(new Comment(Def));
     }
 
     #endregion

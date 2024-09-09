@@ -13,6 +13,7 @@ using LunaForge.EditorData.Commands;
 using static System.ComponentModel.Design.ObjectSelectorEditor;
 using System.ComponentModel;
 using LunaForge.GUI;
+using TextCopy;
 
 namespace LunaForge.EditorData.Project;
 
@@ -24,13 +25,10 @@ public class LunaDefinition : LunaProjectFile
     public TreeNode? SelectedNode = null;
 
     public LunaDefinition(LunaForgeProject parentProj, string path)
+        : base(parentProj, path)
     {
-        ParentProject = parentProj;
-        FullFilePath = path;
-        FileName = Path.GetFileName(path);
-    }
 
-    public override string ToString() => FileName;
+    }
 
     #region Rendering
 
@@ -39,7 +37,11 @@ public class LunaDefinition : LunaProjectFile
         if (TreeNodes[0] == null)
             RenderRootTypeSelector();
         else
+        {
+            // TODO: Render the relevant node icons here. (insert mode, ...)
+            RenderNodeToolbar();
             RenderTreeView(TreeNodes[0], TreeNodes[0].IsBanned);
+        }
     }
 
     private void RenderRootTypeSelector()
@@ -59,9 +61,30 @@ public class LunaDefinition : LunaProjectFile
         }
     }
 
+    private void RenderNodeToolbar()
+    {
+        if (ImGui.RadioButton("Insert Before", ParentProject.Parent.MainWin.InsertMode == InsertMode.Before))
+        {
+            ParentProject.Parent.MainWin.InsertMode = InsertMode.Before;
+        }
+        ImGui.SameLine();
+        if (ImGui.RadioButton("Insert as Child", ParentProject.Parent.MainWin.InsertMode == InsertMode.Child))
+        {
+            ParentProject.Parent.MainWin.InsertMode = InsertMode.Child;
+        }
+        ImGui.SameLine();
+        if (ImGui.RadioButton("Insert After", ParentProject.Parent.MainWin.InsertMode == InsertMode.After))
+        {
+            ParentProject.Parent.MainWin.InsertMode = InsertMode.After;
+        }
+    }
+
     private void RenderTreeView(TreeNode node, bool parentBanned)
     {
-        ImGui.PushID($"{node.DisplayString}_{node.Hash}");
+        if (node.IsSelected && (SelectedNode != node || SelectedNode == null))
+            SelectedNode = node;
+
+        ImGui.PushID($"{node.Hash}");
 
         // Propagate color to the child if the parent is banned.
         ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32((node.IsBanned || parentBanned) ? ImGuiCol.TextDisabled : ImGuiCol.Text));
@@ -75,14 +98,16 @@ public class LunaDefinition : LunaProjectFile
             flags |= ImGuiTreeNodeFlags.Selected;
         if (node.HasNoChildren)
             flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.Bullet;
+        if (node.IsExpanded)
+            flags |= ImGuiTreeNodeFlags.DefaultOpen;
 
         bool isOpen = ImGui.TreeNodeEx(node.DisplayString, flags);
         ImGui.PopStyleColor();
         if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
-            SelectedNode = node;
-        if (ImGui.BeginPopupContextItem($"{node.DisplayString}_{node.Hash}_context"))
+            SelectNode(node);
+        if (ImGui.BeginPopupContextItem($"{node.Hash}_context"))
         {
-            SelectedNode = node;
+            SelectNode(node);
             node.RenderNodeContext();
             ImGui.EndPopup();
         }
@@ -95,6 +120,7 @@ public class LunaDefinition : LunaProjectFile
 
         if (isOpen)
         {
+            node.IsExpanded = true;
             if (!node.HasNoChildren)
             {
                 foreach (TreeNode child in node.Children)
@@ -104,6 +130,36 @@ public class LunaDefinition : LunaProjectFile
             }
             ImGui.TreePop();
         }
+        else
+        {
+            node.IsExpanded = false;
+        }
+    }
+
+    private void SelectNode(TreeNode node)
+    {
+        if (SelectedNode != null)
+            SelectedNode!.IsSelected = false;
+        SelectedNode = node;
+        node.IsSelected = true;
+    }
+
+    public void RevealNode(TreeNode node)
+    {
+        if (node == null)
+            return;
+        TreeNode temp = node.Parent;
+        TreeNodes[0].ClearChildSelection();
+        Stack<TreeNode> stack = [];
+        while (temp != null)
+        {
+            stack.Push(temp);
+            temp = temp.Parent;
+        }
+        while (stack.Count > 0)
+            stack.Pop().IsExpanded = true;
+        SelectedNode = node;
+        node.IsSelected = true;
     }
 
     #endregion
@@ -238,6 +294,7 @@ public class LunaDefinition : LunaProjectFile
 
     public override void Close()
     {
+        SelectedNode = null;
         ParentProject.ProjectFiles.Remove(this);
     }
 
@@ -286,6 +343,7 @@ public class LunaDefinition : LunaProjectFile
                 return false;
             if (AddAndExecuteCommand(cmd))
             {
+                RevealNode(node);
                 if (doInvoke)
                 {
                     //node.CheckTrace(null, new PropertyChangedEventArgs(""));
@@ -297,16 +355,83 @@ public class LunaDefinition : LunaProjectFile
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message);
+            MessageBox.Show(ex.ToString());
             return false;
         }
     }
 
     public void CreateInvoke(TreeNode node)
     {
-        //NodePropertiesDataGrid.CommitEdit();
         NodeAttribute attr = node.GetCreateInvoke();
         // TODO: inputwindow invoke.
+    }
+
+    public void CutNode()
+    {
+        try
+        {
+            ClipboardService.SetText(TreeSerializer.SerializeTreeNode((TreeNode)SelectedNode.Clone()));
+            TreeNode prev = SelectedNode.GetNearestEdited();
+            AddAndExecuteCommand(new DeleteCommand(SelectedNode));
+            if (prev != null)
+                RevealNode(prev);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+    }
+    public bool CutNode_CanExecute()
+    {
+        if (SelectedNode != null)
+            return SelectedNode.CanLogicallyDelete();
+        return false;
+    }
+
+    public void CopyNode()
+    {
+        try
+        {
+            ClipboardService.SetText(TreeSerializer.SerializeTreeNode((TreeNode)SelectedNode.Clone()));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+    }
+    public bool CopyNode_CanExecute() => SelectedNode != null;
+
+    public void PasteNode()
+    {
+        try
+        {
+            TreeNode node = TreeSerializer.DeserializeTreeNode(ClipboardService.GetText());
+            node.ParentDef = this;
+            TreeNode newNode = (TreeNode)node.Clone();
+            Insert(newNode, false);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+    }
+    public bool PasteNode_CanExecute() => SelectedNode != null && !string.IsNullOrEmpty(ClipboardService.GetText());
+
+    public override void Delete()
+    {
+        TreeNode? prev = SelectedNode?.GetNearestEdited();
+        if (SelectedNode == null) return;
+        AddAndExecuteCommand(new DeleteCommand(SelectedNode));
+        if (prev != null)
+            RevealNode(prev);
+    }
+    public override bool Delete_CanExecute()
+    {
+        if (SelectedNode == null)
+            return false;
+        if (!SelectedNode.MetaData.CannotBeDeleted)
+            return false;
+        return true;
     }
 
     #endregion
