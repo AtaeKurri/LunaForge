@@ -1,5 +1,5 @@
 <p align="center" width="50%">
-    <img width="30%" src="https://raw.githubusercontent.com/AtaeKurri/LunaForge/main/LunaForge/Images/Icon.png">
+    <img width="20%" src="https://raw.githubusercontent.com/AtaeKurri/LunaForge/main/LunaForge/Images/Icon.png">
 </p><h1 align="center">LunaForge</h1>
 <h4 align="center">
 
