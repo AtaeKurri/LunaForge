@@ -20,6 +20,7 @@ using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using YamlDotNet.Core;
 using System.Collections;
+using LunaForge.EditorData.Commands;
 
 namespace LunaForge.EditorData.Nodes;
 
@@ -237,7 +238,7 @@ public abstract class TreeNode
             ParentDef.PasteNode();
         ImGui.Separator();
         if (ImGui.MenuItem("Ban", string.Empty, IsBanned, !MetaData.CannotBeBanned))
-            IsBanned = !IsBanned;
+            ParentDef.AddAndExecuteCommand(new SwitchBanCommand(this, !IsBanned));
         ImGui.Separator();
         if (ImGui.MenuItem("Delete", "Del", false, ParentDef.Delete_CanExecute()))
             ParentDef.Delete();

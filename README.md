@@ -3,7 +3,7 @@
 </p><h1 align="center">LunaForge</h1>
 <h4 align="center">
 
-([Current in Alpha](https://github.com/RyannThi/LuaSTG-Editor-Sharp-X/releases))
+([Currently in Alpha](https://github.com/RyannThi/LuaSTG-Editor-Sharp-X/releases))
 
 </h4>
 
