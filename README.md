@@ -9,7 +9,8 @@
 
 <div align="center">
     
-[![.github/workflows/docfx-build-publish.yml](https://github.com/RulHolos/LunaForge/actions/workflows/docfx-build-publish.yml/badge.svg)](https://github.com/AtaeKurri/LunaForge/actions/workflows/docfx-build-publish.yml)
+[![Build Docs](https://github.com/RulHolos/LunaForge/actions/workflows/docfx-build-publish.yml/badge.svg)](https://github.com/AtaeKurri/LunaForge/actions/workflows/docfx-build-publish.yml)
+[![Build Editor](https://github.com/RulHolos/LunaForge/actions/workflows/build.yml/badge.svg)](https://github.com/RulHolos/LunaForge/actions/workflows/build.yml)
 
 </div>
 
