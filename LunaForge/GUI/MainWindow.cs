@@ -63,19 +63,30 @@ namespace LunaForge.GUI;
  * Pure lua scripts. Can be opened by the editor as code.
  */
 
+/// <summary>
+/// How should a new <see cref="TreeNode"/> be inserted into the tree.
+/// </summary>
 public enum InsertMode
 {
-    Parent,
     Before,
     Child,
     After,
 }
 
+/// <summary>
+/// Entry point of the editor. Must not be instancied more than once.
+/// </summary>
 public sealed class MainWindow : IDisposable
 {
+    /// <summary>
+    /// Static string to be inserted into the window titles.
+    /// </summary>
     public static readonly string LunaForgeName = $"LunaForge Editor";
     public Version? VersionNumber = Assembly.GetEntryAssembly()?.GetName().Version;
 
+    /// <summary>
+    /// The plugin manager. Currently not active in alpha. See the API documentation to see how to use plugins.
+    /// </summary>
     public PluginManager Plugins { get; private set; } = new();
 
     #region Windows
@@ -96,6 +107,9 @@ public sealed class MainWindow : IDisposable
     public Dictionary<string, Texture2D> EditorImages = [];
     public Image EditorIcon = Raylib.LoadImage(Path.Combine(Directory.GetCurrentDirectory(), "Images/Icon.png"));
 
+    /// <summary>
+    /// The list of currently opened <see cref="LunaForgeProject"/>s.
+    /// </summary>
     public ProjectCollection Workspaces;
 
     #endregion
@@ -113,6 +127,9 @@ public sealed class MainWindow : IDisposable
         Workspaces = new(this);
     }
 
+    /// <summary>
+    /// Get rid of the loaded <see cref="Texture2D"/> since Raylib is not resource managed.
+    /// </summary>
     public void Dispose()
     {
         foreach (Texture2D texture in EditorImages.Values)
@@ -120,6 +137,9 @@ public sealed class MainWindow : IDisposable
         Raylib.UnloadImage(EditorIcon);
     }
 
+    /// <summary>
+    /// Raylib/ImGui window initialization and main rendering loop of the editor.
+    /// </summary>
     public void Initialize()
     {
         Raylib.SetConfigFlags(ConfigFlags.Msaa4xHint | ConfigFlags.HighDpiWindow | ConfigFlags.VSyncHint | ConfigFlags.ResizableWindow);

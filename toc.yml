@@ -1,2 +1,4 @@
+- name: Editor
+  href: editor/
 - name: API
   href: api/

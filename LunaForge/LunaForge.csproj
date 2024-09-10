@@ -8,6 +8,7 @@
 	<UseWindowsForms>True</UseWindowsForms>
 	<UseWPF>True</UseWPF>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	<BaseOutputPath>..\bin</BaseOutputPath>
   </PropertyGroup>
 

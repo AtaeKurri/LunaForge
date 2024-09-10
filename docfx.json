@@ -10,6 +10,17 @@
         }
       ],
       "dest": "api"
+    },
+    {
+      "src": [
+        {
+          "src": "LunaForge",
+          "files": [
+            "LunaForge.csproj"
+          ]
+        }
+      ],
+      "dest": "editor"
     }
   ],
   "build": {
@@ -36,8 +47,8 @@
       "modern"
     ],
     "globalMetadata": {
-      "_appName": "LunaForge API",
-      "_appTitle": "LunaForge API",
+      "_appName": "LunaForge",
+      "_appTitle": "LunaForge",
       "_enableSearch": true,
       "pdf": true
     }

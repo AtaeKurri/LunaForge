@@ -126,10 +126,7 @@ public abstract class TreeNode : ITraceThrowable
         ParentDef.TreeNodeMaxHash++;
     }
 
-    public override string ToString()
-    {
-        return $"You're not supposed to see that. If you do, please report to 'tania_anehina' on discord or create an issue on the git repo.\nNode: {GetType()}";
-    }
+    public abstract new string ToString();
 
     #region Attributes
 
