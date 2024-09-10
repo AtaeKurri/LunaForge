@@ -14,6 +14,9 @@ using static System.ComponentModel.Design.ObjectSelectorEditor;
 using System.ComponentModel;
 using LunaForge.GUI;
 using TextCopy;
+using Raylib_cs;
+using System.Numerics;
+using rlImGui_cs;
 
 namespace LunaForge.EditorData.Project;
 
@@ -101,7 +104,12 @@ public class LunaDefinition : LunaProjectFile
         if (node.IsExpanded)
             flags |= ImGuiTreeNodeFlags.DefaultOpen;
 
+        /*
+        rlImGui.ImageSize(ParentProject.Parent.MainWin.FindTexture(node.MetaData.Icon), 16, 16);
+        ImGui.SameLine();
+        */
         bool isOpen = ImGui.TreeNodeEx(node.DisplayString, flags);
+
         ImGui.PopStyleColor();
         if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
             SelectNode(node);
@@ -123,7 +131,7 @@ public class LunaDefinition : LunaProjectFile
             node.IsExpanded = true;
             if (!node.HasNoChildren)
             {
-                foreach (TreeNode child in node.Children)
+                foreach (TreeNode child in node.Children.ToList())
                 {
                     RenderTreeView(child, node.IsBanned || parentBanned);
                 }
@@ -142,6 +150,12 @@ public class LunaDefinition : LunaProjectFile
             SelectedNode!.IsSelected = false;
         SelectedNode = node;
         node.IsSelected = true;
+    }
+
+    public void DeselectAllNodes()
+    {
+        SelectedNode = null;
+        TreeNodes[0].ClearChildSelection();
     }
 
     public void RevealNode(TreeNode node)
@@ -429,9 +443,7 @@ public class LunaDefinition : LunaProjectFile
     {
         if (SelectedNode == null)
             return false;
-        if (!SelectedNode.MetaData.CannotBeDeleted)
-            return false;
-        return true;
+        return SelectedNode.CanLogicallyDelete();
     }
 
     #endregion

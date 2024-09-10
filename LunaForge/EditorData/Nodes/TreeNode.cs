@@ -239,7 +239,7 @@ public abstract class TreeNode
         if (ImGui.MenuItem("Ban", string.Empty, IsBanned, !MetaData.CannotBeBanned))
             IsBanned = !IsBanned;
         ImGui.Separator();
-        if (ImGui.MenuItem("Delete", ParentDef.Delete_CanExecute()))
+        if (ImGui.MenuItem("Delete", "Del", false, ParentDef.Delete_CanExecute()))
             ParentDef.Delete();
     }
 

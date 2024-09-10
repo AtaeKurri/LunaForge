@@ -20,11 +20,16 @@ public class DeleteCommand : Command
 
     public override void Execute()
     {
+        toOperate.ParentDef.DeselectAllNodes();
         toOperate.Parent.RemoveChild(toOperate);
     }
 
     public override void Undo()
     {
+        toOperate.ParentDef.DeselectAllNodes();
         toOperate.Parent.InsertChild(toOperate, index);
+        toOperate.IsSelected = true;
     }
+
+    public override string ToString() => $"Delete node {toOperate.DisplayString}";
 }

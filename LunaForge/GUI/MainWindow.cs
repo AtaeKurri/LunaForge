@@ -88,6 +88,7 @@ public sealed class MainWindow : IDisposable
     public InsertMode InsertMode { get; set; } = InsertMode.Child;
 
     public Dictionary<string, Texture2D> EditorImages = [];
+    public Image EditorIcon = Raylib.LoadImage(Path.Combine(Directory.GetCurrentDirectory(), "Images/Icon.png"));
 
     public ProjectCollection Workspaces;
 
@@ -110,12 +111,14 @@ public sealed class MainWindow : IDisposable
     {
         foreach (Texture2D texture in EditorImages.Values)
             Raylib.UnloadTexture(texture);
+        Raylib.UnloadImage(EditorIcon);
     }
 
     public void Initialize()
     {
         Raylib.SetConfigFlags(ConfigFlags.Msaa4xHint | ConfigFlags.VSyncHint | ConfigFlags.ResizableWindow);
         Raylib.InitWindow(1280, 800, $"{LunaForgeName} v{VersionNumber}");
+        Raylib.SetWindowIcon(EditorIcon);
         Raylib.SetExitKey(KeyboardKey.Null);
         Raylib.MaximizeWindow();
         Raylib.SetTargetFPS(60);
@@ -128,7 +131,8 @@ public sealed class MainWindow : IDisposable
 
         ShortcutList.RegisterShortcuts(this);
 
-        Plugins.LoadPlugins();
+        // Plugins disabled for the moment.
+        //Plugins.LoadPlugins();
 
         while (!Raylib.WindowShouldClose())
         {

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace LunaForge.GUI.Helpers;
 
@@ -38,7 +39,7 @@ public static class ShortcutList
 
     public static Shortcut UndoShortcut = new(
         () => ImGui.GetIO().KeyCtrl,
-        ImGuiKey.Z,
+        [ImGuiKey.Z, ImGuiKey.W],
         (obj) => { MainWin.Undo(); },
         () => { return MainWin.Undo_CanExecute(); }
     );
@@ -71,6 +72,13 @@ public static class ShortcutList
         () => true
     );
 
+    public static Shortcut DeleteShortcut = new(
+        () => true,
+        ImGuiKey.Delete,
+        (opj) => { MainWin.Delete(); },
+        () => { return MainWin.Delete_CanExecute(); }
+    );
+
     #endregion
 
     public static void RegisterShortcuts(MainWindow mainWin)
@@ -84,6 +92,7 @@ public static class ShortcutList
         Shortcuts.Add(InsertBeforeShortcut);
         Shortcuts.Add(InsertChildShortcut);
         Shortcuts.Add(InsertAfterShortcut);
+        Shortcuts.Add(DeleteShortcut);
     }
 
     public static void CheckKeybinds()
@@ -98,20 +107,38 @@ public static class ShortcutList
 public delegate void ParamsAction(params object[] oArgs);
 public delegate bool CanBeExecutedAction();
 
-public class Shortcut(Func<bool> mod, ImGuiKey key, ParamsAction oCallback, CanBeExecutedAction canExecute)
+public class Shortcut
 {
-    public readonly Func<bool> ModifierCheck = mod;
-    public ImGuiKey Key = key;
-    public ParamsAction Callback = oCallback;
-    public CanBeExecutedAction CanExecuteCallback = canExecute;
+    public readonly Func<bool> ModifierCheck;
+    public ImGuiKey[] Keys;
+    public ParamsAction Callback;
+    public CanBeExecutedAction CanExecuteCallback;
 
     private bool WasPressedLastFrame = false;
+
+    public Shortcut(Func<bool> mod, ImGuiKey key, ParamsAction oCallback, CanBeExecutedAction canExecute)
+    {
+        ModifierCheck = mod;
+        Keys = [key];
+        Callback = oCallback;
+        CanExecuteCallback = canExecute;
+    }
+
+    public Shortcut(Func<bool> mod, ImGuiKey[] keys, ParamsAction oCallback, CanBeExecutedAction canExecute)
+    {
+        ModifierCheck = mod;
+        Keys = keys;
+        Callback = oCallback;
+        CanExecuteCallback = canExecute;
+    }
 
     public bool CanExecute() => CanExecuteCallback();
 
     public void Check()
     {
-        bool isPressed = ModifierCheck() && ImGui.IsKeyDown(Key);
+        bool isPressed = false;
+        foreach (ImGuiKey key in Keys)
+            isPressed = ModifierCheck() && ImGui.IsKeyDown(key);
 
         if (isPressed && !WasPressedLastFrame && CanExecute())
         {

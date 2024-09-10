@@ -31,4 +31,6 @@ public class EditAttributeCommand : Command
         toEdit.AttrValue = originalValue;
         toEdit.TempAttrValue = originalValue;
     }
+
+    public override string ToString() => $"Change Attribute \"{toEdit.AttrName}\" -> \"{newValue}\"";
 }

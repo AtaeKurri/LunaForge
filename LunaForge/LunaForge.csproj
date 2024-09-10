@@ -14,11 +14,11 @@
   <PropertyGroup>
 	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <PackageIcon>Icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Images\Error.png" />
-    <None Remove="Images\Icon.png" />
     <None Remove="Images\Info.png" />
     <None Remove="Images\Nodes\Code.png" />
     <None Remove="Images\Nodes\Cog.png" />
@@ -100,6 +100,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Images\Icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

@@ -41,7 +41,7 @@ public class LunaScript : LunaProjectFile
 
         Vector2 availableSize = ImGui.GetContentRegionAvail();
         Vector2 textSize = ImGui.CalcTextSize(availableText);
-        Vector2 inputSize = new Vector2(availableSize.X, availableSize.Y - textSize.Y - ImGui.GetStyle().ItemSpacing.Y);
+        Vector2 inputSize = new(availableSize.X, availableSize.Y - textSize.Y - ImGui.GetStyle().ItemSpacing.Y);
 
         ImGui.InputTextMultiline($"##{FileName}_editor", ref FileContent, MaxSize, inputSize, flags);
         ImGui.Text(availableText);
