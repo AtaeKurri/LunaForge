@@ -1,5 +1,7 @@
 ﻿using LunaForge.EditorData.Nodes.Attributes;
 using LunaForge.EditorData.Project;
+using LunaForge.EditorData.Traces;
+using LunaForge.EditorData.Traces.EditorTraces;
 using Newtonsoft.Json;
 using System;
 using System.CodeDom;
@@ -50,5 +52,13 @@ public class LoadDefinition : TreeNode
         LoadDefinition cloned = new(ParentDef);
         cloned.CopyData(this);
         return cloned;
+    }
+
+    public override List<EditorTrace> GetTraces()
+    {
+        List<EditorTrace> traces = [];
+        if (string.IsNullOrEmpty(NonMacrolize(0)))
+            traces.Add(new ArgNotNullTrace(this, GetAttr(0).AttrName));
+        return traces;
     }
 }

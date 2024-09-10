@@ -24,12 +24,14 @@ public class EditAttributeCommand : Command
     {
         toEdit.AttrValue = newValue;
         toEdit.TempAttrValue = newValue;
+        toEdit.ParentNode.CheckTrace();
     }
 
     public override void Undo()
     {
         toEdit.AttrValue = originalValue;
         toEdit.TempAttrValue = originalValue;
+        toEdit.ParentNode.CheckTrace();
     }
 
     public override string ToString() => $"Change Attribute \"{toEdit.AttrName}\" -> \"{newValue}\"";

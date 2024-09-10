@@ -1,4 +1,5 @@
 ﻿using LunaForge.EditorData.Commands;
+using LunaForge.EditorData.Traces;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace LunaForge.EditorData.Project;
 
-public abstract class LunaProjectFile
+public abstract class LunaProjectFile : ITraceThrowable
 {
     public LunaForgeProject ParentProject { get; set; }
 
@@ -36,6 +37,8 @@ public abstract class LunaProjectFile
             }
         }
     }
+
+    public List<EditorTrace> Traces { get; private set; } = [];
 
     public LunaProjectFile(LunaForgeProject parentProj, string path)
     {
@@ -100,6 +103,19 @@ public abstract class LunaProjectFile
     public abstract bool Save(bool saveAs = false);
 
     #endregion
+    #region Traces
+
+    public void CheckTrace()
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<EditorTrace> GetTraces()
+    {
+        throw new NotImplementedException();
+    }
+
+    #endregion
     #region Abstract Impl
 
     public abstract void Delete();
@@ -108,6 +124,8 @@ public abstract class LunaProjectFile
     public abstract void Render();
 
     public abstract void Close();
+
+    
 
     #endregion
 }

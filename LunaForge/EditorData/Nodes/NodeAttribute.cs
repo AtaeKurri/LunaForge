@@ -74,6 +74,7 @@ public class NodeAttribute : ICloneable
         if (AttrValue == value)
             return; // No need for edit if the values match.
         ParentNode.ParentDef.AddAndExecuteCommand(new EditAttributeCommand(this, AttrValue, value));
+        ParentNode.CheckTrace();
     }
 
     public virtual object Clone()

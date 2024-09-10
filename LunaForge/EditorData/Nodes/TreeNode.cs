@@ -21,11 +21,12 @@ using System.Collections.ObjectModel;
 using YamlDotNet.Core;
 using System.Collections;
 using LunaForge.EditorData.Commands;
+using LunaForge.EditorData.Traces;
 
 namespace LunaForge.EditorData.Nodes;
 
 [Serializable]
-public abstract class TreeNode
+public abstract class TreeNode : ITraceThrowable
 {
     #region Properties
 
@@ -52,6 +53,9 @@ public abstract class TreeNode
 
     [JsonProperty, DefaultValue(false)]
     public bool IsExpanded { get; set; }
+
+    [JsonIgnore]
+    public List<EditorTrace> Traces { get; private set; } = [];
 
     [JsonIgnore]
     private ObservableCollection<TreeNode> children = [];
@@ -716,6 +720,26 @@ public abstract class TreeNode
         {
             return this;
         }
+    }
+
+    #endregion
+    #region Traces
+
+    public virtual List<EditorTrace> GetTraces()
+    {
+        return [];
+    }
+
+    public void CheckTrace()
+    {
+        List<EditorTrace> traces = [];
+        if (!IsBanned)
+            traces = GetTraces();
+        Traces.Clear();
+
+        foreach (EditorTrace trace in traces)
+            Traces.Add(trace);
+        EditorTraceContainer.UpdateTraces(this);
     }
 
     #endregion

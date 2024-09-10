@@ -83,7 +83,7 @@ public sealed class MainWindow : IDisposable
     public ToolboxWindow ToolboxWin;
     public NodeAttributeWindow NodeAttributeWin;
     public DefinitionsWindow DefinitionsWin;
-    public MessagesWindow MessagesWin;
+    public TracesWindow TracesWin;
     public DebugLogWindow DebugLogWin;
     public NewProjWindow NewProjWin;
     public FileSystemWindow FSWin;
@@ -105,7 +105,7 @@ public sealed class MainWindow : IDisposable
         ToolboxWin = new(this);
         NodeAttributeWin = new(this);
         DefinitionsWin = new(this);
-        MessagesWin = new(this);
+        TracesWin = new(this);
         DebugLogWin = new(this);
         NewProjWin = new(this);
         FSWin = new(this);
@@ -181,7 +181,7 @@ public sealed class MainWindow : IDisposable
         foreach (LunaForgeProject? proj in Workspaces.ToList())
             proj?.Window?.Render();
         DefinitionsWin.Render();
-        MessagesWin.Render();
+        TracesWin.Render();
         DebugLogWin.Render();
         NewProjWin.Render();
         FSWin.Render();
