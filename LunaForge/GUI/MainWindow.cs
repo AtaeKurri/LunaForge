@@ -40,6 +40,12 @@ namespace LunaForge.GUI;
  * Templates are in a zip format and unzipped at creation.
  * Have a single file for the entry point (main menu? (with an option to hijack the launcher.lua?))
  * 
+ * Definitions:
+ * Each .lfd is a different definition.
+ * There is a node to instanciate the ones who can be accessed and another one to load the definition file.
+ * The packed "mod" has the same format and file tree as the actual project. Every .lfd are replaced by its lua counterpart.
+ * (so it can be loaded by LoadDefinition by just replacing the extension)
+ * 
  * 
  * Plugin system:
  * Plugin manager, loaded at startup. Can add nodes or other features.
@@ -116,7 +122,7 @@ public sealed class MainWindow : IDisposable
 
     public void Initialize()
     {
-        Raylib.SetConfigFlags(ConfigFlags.Msaa4xHint | ConfigFlags.VSyncHint | ConfigFlags.ResizableWindow);
+        Raylib.SetConfigFlags(ConfigFlags.Msaa4xHint | ConfigFlags.HighDpiWindow | ConfigFlags.VSyncHint | ConfigFlags.ResizableWindow);
         Raylib.InitWindow(1280, 800, $"{LunaForgeName} v{VersionNumber}");
         Raylib.SetWindowIcon(EditorIcon);
         Raylib.SetExitKey(KeyboardKey.Null);

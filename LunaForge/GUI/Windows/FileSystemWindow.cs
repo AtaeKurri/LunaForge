@@ -12,6 +12,12 @@ namespace LunaForge.GUI.Windows;
 
 public class FileSystemWindow : ImGuiWindow
 {
+    string newFolderName = string.Empty;
+    string newFileName = string.Empty;
+
+    bool NewFolderPopupOpen = false;
+    bool NewFilePopupOpen = false;
+
     public FileSystemWindow(MainWindow parent)
         : base(parent, true)
     {
@@ -47,14 +53,14 @@ public class FileSystemWindow : ImGuiWindow
 
             ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.OpenOnDoubleClick | ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.SpanAvailWidth;
 
-            if (ImGui.TreeNodeEx($"{folderName}", flags))
+            bool isOpen = ImGui.TreeNodeEx($"{folderName}", flags);
+            TreeNodeContextMenu(dir);
+            
+            if (isOpen)
             {
-                TreeNodeContextMenu(folderName);
-
                 RenderFileTree(dir);
                 ImGui.TreePop();
             }
-            TreeNodeContextMenu(folderName);
         }
 
         foreach (string file in files)
@@ -76,11 +82,12 @@ public class FileSystemWindow : ImGuiWindow
                 ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ImGui.GetIO().KeyShift ? ImGuiCol.Text : ImGuiCol.TextDisabled));
                 if (ImGui.Selectable("Delete file") && ImGui.GetIO().KeyShift)
                 {
-                    Console.WriteLine($"Deleting file: {file}");
+                    FileInfo fi = new(file);
+                    fi.Delete();
                 }
                 ImGui.PopStyleColor();
                 if (!ImGui.GetIO().KeyShift && ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Hold SHIFT to delete.");
+                    ImGui.SetTooltip("Warning: This will delete the file.\nTHIS IS NOT REVERSIBLE.\nHold SHIFT to delete.");
                 ImGui.EndPopup();
             }
             if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
@@ -90,17 +97,45 @@ public class FileSystemWindow : ImGuiWindow
         }
     }
 
-    public void TreeNodeContextMenu(string folderName)
+    public void TreeNodeContextMenu(string folderPath)
     {
         if (ImGui.BeginPopupContextItem())
         {
-            ImGui.Text(folderName);
+            ImGui.Text(Path.GetFileName(folderPath));
             ImGui.Separator();
 
-            if (ImGui.Selectable("New file"))
+            if (ImGui.BeginMenu("New Folder"))
             {
-
+                ImGui.Text("Enter folder name:");
+                if (ImGui.InputText("##newFolderName", ref newFolderName, 100, ImGuiInputTextFlags.EnterReturnsTrue))
+                {
+                    Directory.CreateDirectory(Path.Combine(folderPath, newFolderName));
+                    newFolderName = string.Empty;
+                    ImGui.CloseCurrentPopup();
+                }
+                ImGui.EndMenu();
             }
+            if (ImGui.BeginMenu("New File"))
+            {
+                ImGui.Text("Enter file name (with extension):");
+                if (ImGui.InputText("##newFileName", ref newFileName, 100, ImGuiInputTextFlags.EnterReturnsTrue))
+                {
+                    File.Create(Path.Combine(folderPath, newFileName));
+                    newFileName = string.Empty;
+                    ImGui.CloseCurrentPopup();
+                }
+                ImGui.EndMenu();
+            }
+            ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ImGui.GetIO().KeyShift ? ImGuiCol.Text : ImGuiCol.TextDisabled));
+            if (ImGui.Selectable("Delete") && ImGui.GetIO().KeyShift)
+            {
+                DirectoryInfo dir = new(folderPath);
+                dir.Delete(true);
+            }
+            ImGui.PopStyleColor();
+            if (!ImGui.GetIO().KeyShift && ImGui.IsItemHovered())
+                ImGui.SetTooltip("Warning: this will delete the folder and its ENTIRE content.\nTHIS IS NOT REVERSIBLE.\nHold SHIFT to delete.");
+
             ImGui.EndPopup();
         }
     }

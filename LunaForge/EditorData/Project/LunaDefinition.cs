@@ -17,6 +17,7 @@ using TextCopy;
 using Raylib_cs;
 using System.Numerics;
 using rlImGui_cs;
+using LunaForge.GUI.Helpers;
 
 namespace LunaForge.EditorData.Project;
 
@@ -43,6 +44,7 @@ public class LunaDefinition : LunaProjectFile
         {
             // TODO: Render the relevant node icons here. (insert mode, ...)
             RenderNodeToolbar();
+            ImGui.Separator();
             RenderTreeView(TreeNodes[0], TreeNodes[0].IsBanned);
         }
     }
@@ -51,16 +53,18 @@ public class LunaDefinition : LunaProjectFile
     {
         ImGui.Text("This file is currently empty. Please choose the Definition Type to start editing:");
 
-        if (ImGui.BeginListBox(string.Empty))
+        using (var listbox = ImRaii.ListBox(string.Empty))
         {
-            foreach (var type in NodeManager.DefinitionNodes)
+            if (listbox)
             {
-                if (ImGui.Selectable($"{type.Value}"))
+                foreach (var type in NodeManager.DefinitionNodes)
                 {
-                    SelectDefinition(type.Key);
+                    if (ImGui.Selectable($"{type.Value}"))
+                    {
+                        SelectDefinition(type.Key);
+                    }
                 }
             }
-            ImGui.EndListBox();
         }
     }
 
@@ -104,11 +108,15 @@ public class LunaDefinition : LunaProjectFile
         if (node.IsExpanded)
             flags |= ImGuiTreeNodeFlags.DefaultOpen;
 
-        /*
-        rlImGui.ImageSize(ParentProject.Parent.MainWin.FindTexture(node.MetaData.Icon), 16, 16);
-        ImGui.SameLine();
-        */
-        bool isOpen = ImGui.TreeNodeEx(node.DisplayString, flags);
+        
+        rlImGui.ImageSize(ParentProject.Parent.MainWin.FindTexture(node.MetaData.Icon), 18, 18);
+        ImGui.SameLine(0, 1.5f);
+
+#if DEBUG
+        bool isOpen = ImGui.TreeNodeEx($"{node.DisplayString} | Hash={node.Hash}", flags);
+#else
+    bool isOpen = ImGui.TreeNodeEx(node.DisplayString, flags);
+#endif
 
         ImGui.PopStyleColor();
         if (ImGui.IsItemClicked(ImGuiMouseButton.Left))

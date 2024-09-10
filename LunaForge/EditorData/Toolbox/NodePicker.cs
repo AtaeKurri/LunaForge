@@ -30,6 +30,7 @@ public class NodePicker : IEnumerable<NodePickerTab>
     {
         AddRegister(new TabGeneral(new("General"), MainApp));
         AddRegister(new TabStages(new("Stages"), MainApp));
+        AddRegister(new TabProject(new("Project"), MainApp));
     }
 
     public void InitializeData()
