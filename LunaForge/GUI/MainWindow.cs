@@ -68,8 +68,17 @@ namespace LunaForge.GUI;
 /// </summary>
 public enum InsertMode
 {
+    /// <summary>
+    /// Insert node before the selected one.
+    /// </summary>
     Before,
+    /// <summary>
+    /// Insert node as a child of the currently selected node.
+    /// </summary>
     Child,
+    /// <summary>
+    /// Insert node after the selected one.
+    /// </summary>
     After,
 }
 
@@ -82,7 +91,7 @@ public sealed class MainWindow : IDisposable
     /// Static string to be inserted into the window titles.
     /// </summary>
     public static readonly string LunaForgeName = $"LunaForge Editor";
-    public Version? VersionNumber = Assembly.GetEntryAssembly()?.GetName().Version;
+    private Version? VersionNumber = Assembly.GetEntryAssembly()?.GetName().Version;
 
     /// <summary>
     /// The plugin manager. Currently not active in alpha. See the API documentation to see how to use plugins.
@@ -104,7 +113,13 @@ public sealed class MainWindow : IDisposable
 
     public InsertMode InsertMode { get; set; } = InsertMode.Child;
 
+    /// <summary>
+    /// The images loaded by <see cref="LoadEditorImages"/>. Must be disposed.
+    /// </summary>
     public Dictionary<string, Texture2D> EditorImages = [];
+    /// <summary>
+    /// The LunaForge icon <see cref="Image"/>.
+    /// </summary>
     public Image EditorIcon = Raylib.LoadImage(Path.Combine(Directory.GetCurrentDirectory(), "Images/Icon.png"));
 
     /// <summary>
@@ -114,6 +129,10 @@ public sealed class MainWindow : IDisposable
 
     #endregion
 
+    /// <summary>
+    /// Initialize all ImGui windows with the corresponding context.<br/>
+    /// Initialize the Workspaces.
+    /// </summary>
     public MainWindow()
     {
         ToolboxWin = new(this);
@@ -298,6 +317,9 @@ public sealed class MainWindow : IDisposable
     #endregion
     #region Editor Exec
 
+    /// <summary>
+    /// Loads all images inside the "Image" directorys to a <see cref="Texture2D"/> and adds them to <see cref="EditorImages"/>.
+    /// </summary>
     public void LoadEditorImages()
     {
         EditorImages = [];
@@ -311,6 +333,11 @@ public sealed class MainWindow : IDisposable
             EditorImages.Add(Path.GetFileNameWithoutExtension(image), Raylib.LoadTexture(image));
     }
 
+    /// <summary>
+    /// Tried to find a <see cref="Texture2D"/> with the corresponding name.
+    /// </summary>
+    /// <param name="name">The name of the texture to find in <see cref="EditorImages"/>.</param>
+    /// <returns>A <see cref="Texture2D"/> object if it's found; otherwise, the default value, which is an "Unknown" image.</returns>
     public Texture2D FindTexture(string name)
     {
         if (EditorImages.TryGetValue(name, out Texture2D value))
@@ -319,6 +346,9 @@ public sealed class MainWindow : IDisposable
             return EditorImages["Unknown"];
     }
 
+    /// <summary>
+    /// Prompts the user to choose a directory and creates a new project at the given location.<br/>
+    /// </summary>
     public void CreateNewProject()
     {
         string pathToTemplate = Path.GetFullPath(NewProjWin.SelectedPath);
@@ -341,6 +371,11 @@ public sealed class MainWindow : IDisposable
         dialogThread.Start();
     }
 
+    /// <summary>
+    /// Tried to find a template "*.zip" and extract its content to the specified path.
+    /// </summary>
+    /// <param name="pathToTemplate">The path to the *.zip template file.</param>
+    /// <param name="pathToFolder">The path in which to extract the template.</param>
     public async void CloneTemplate(string pathToTemplate, string pathToFolder)
     {
         try
@@ -372,6 +407,9 @@ public sealed class MainWindow : IDisposable
         }
     }
 
+    /// <summary>
+    /// Prompts the used to select a ".lfp" project file and creates a new ImGui window context to open it.
+    /// </summary>
     public void OpenProject()
     {
         Thread dialogThread = new(() =>
@@ -387,7 +425,7 @@ public sealed class MainWindow : IDisposable
             for (int i = 0; i < openFileDialog.FileNames.Length; i++)
             {
                 if (!IsProjectOpened(openFileDialog.FileNames[i]))
-                    OpenProjectFromPath(openFileDialog.SafeFileNames[i], openFileDialog.FileNames[i]);
+                    OpenProjectFromPath(openFileDialog.FileNames[i]);
                 Properties.Settings.Default.LastUsedPath = Path.GetDirectoryName(openFileDialog.FileNames[i]);
             }
         });
@@ -395,9 +433,19 @@ public sealed class MainWindow : IDisposable
         dialogThread.Start();
     }
 
+    /// <summary>
+    /// Tries to detect if a project is already opened within the editor.
+    /// </summary>
+    /// <param name="path">Path to the project .lfp file.</param>
+    /// <returns>True if the project is opened in the editor; otherwise, false.</returns>
     public bool IsProjectOpened(string path) => Workspaces.Any(x => x.PathToLFP == path);
 
-    public LunaForgeProject? OpenProjectFromPath(string name, string path)
+    /// <summary>
+    /// Tries to load a project .lfp file.
+    /// </summary>
+    /// <param name="path">The path to the .lfp file.</param>
+    /// <returns>A <see cref="LunaForgeProject"/> instance.</returns>
+    public LunaForgeProject? OpenProjectFromPath(string path)
     {
         try
         {
@@ -412,6 +460,12 @@ public sealed class MainWindow : IDisposable
         }
     }
 
+    /// <summary>
+    /// Handle the disposing of a given project.
+    /// </summary>
+    /// <param name="proj">The project to close.</param>
+    /// <returns>True if all opened files were closed; false if some weren't closed.</returns>
+    /// <seealso cref="CloseProjectFile(LunaProjectFile)">This method is called to close individual opened files in the project window.</seealso>
     public bool CloseProject(LunaForgeProject proj)
     {
         bool allClosed = true;
@@ -429,6 +483,11 @@ public sealed class MainWindow : IDisposable
         return false;
     }
 
+    /// <summary>
+    /// Close a single opened <see cref="LunaProjectFile"/> instance.
+    /// </summary>
+    /// <param name="file">The project file instance.</param>
+    /// <returns>True if the file was saved/closed; otherwise, false.</returns>
     public bool CloseProjectFile(LunaProjectFile file)
     {
         if (file.IsUnsaved)
@@ -512,14 +571,36 @@ public sealed class MainWindow : IDisposable
     #endregion
     #region Project Operation
 
+    /// <summary>
+    /// Saves the currently selected <see cref="LunaProjectFile"/>.
+    /// </summary>
+    /// <returns>True if the save went without problem; otherwise, false.</returns>
+    /// <seealso cref="SaveActiveProjectFileAs">Saves the project file but as a new file.</seealso>
     public bool SaveActiveProjectFile() => SaveProject(Workspaces.Current?.CurrentProjectFile);
+    /// <summary>
+    /// Saves the currently selected <see cref="LunaProjectFile"/> as new file.
+    /// </summary>
+    /// <returns>True if the save went without problem; otherwise, false.</returns>
+    /// <seealso cref="SaveActiveProjectFile">Saves the project file normally.</seealso>
     public bool SaveActiveProjectFileAs() => SaveProject(Workspaces.Current?.CurrentProjectFile, true);
 
+    /// <summary>
+    /// Saves the given <see cref="LunaProjectFile"/> normally or as a new file.
+    /// </summary>
+    /// <param name="projFile">The project file to save.</param>
+    /// <param name="saveAs">Tells the editor to save the file as a new file.</param>
+    /// <returns>True if the save went without problem; otherwise, false.</returns>
+    /// <seealso cref="SaveActiveProjectFile">Saves the project file normally.</seealso>
+    /// <seealso cref="SaveActiveProjectFileAs">Saves the project file but as a new file.</seealso>
     public bool SaveProject(LunaProjectFile projFile, bool saveAs = false)
     {
         return projFile.Save(saveAs);
     }
 
+    /// <summary>
+    /// Tries to pack the currently selected project into a .zip template being able to be used by <see cref="CreateNewProject"/>.
+    /// </summary>
+    /// <returns>True if the .zip was created successfuly; otherwise, false.</returns>
     public bool ProjectToTemplate()
     {
         LunaForgeProject? currentProj = Workspaces.Current;
@@ -542,6 +623,12 @@ public sealed class MainWindow : IDisposable
     #endregion
     #region Node Operation
 
+    /// <summary>
+    /// Inserts a new node into the selected <see cref="LunaDefinition"/>'s tree.
+    /// </summary>
+    /// <param name="node">The new node to insert into the tree.</param>
+    /// <param name="doInvoke">Tells the editor to execute the <see cref="TreeNode.GetCreateInvoke"/> attribute.</param>
+    /// <returns></returns>
     public bool Insert(TreeNode node, bool doInvoke = true)
     {
         try
@@ -558,18 +645,27 @@ public sealed class MainWindow : IDisposable
     #endregion
     #region Configurations
 
+    /// <summary>
+    /// Should the <see cref="DefinitionsWindow"/> be opened.
+    /// </summary>
     public bool DefinitionsWindowOpen
     {
         get => Properties.Settings.Default.DefinitionsWindowOpen;
         set => Properties.Settings.Default.DefinitionsWindowOpen = value;
     }
 
+    /// <summary>
+    /// The default AuthorName for this LunaForge installation.
+    /// </summary>
     public string AuthorName
     {
         get => Properties.Settings.Default.AuthorName;
         set => Properties.Settings.Default.AuthorName = value;
     }
 
+    /// <summary>
+    /// The last used path for folder searching in Open, Save, ...
+    /// </summary>
     public string LastUsedPath
     {
         get => Properties.Settings.Default.LastUsedPath;

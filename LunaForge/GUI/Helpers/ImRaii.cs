@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 
 namespace LunaForge.GUI.Helpers;
 
+#pragma warning disable CS1591 // Commentaire XML manquant pour le type ou le membre visible publiquement
+
 /// <summary>
 /// Implementation of ImRaii courtesy of https://github.com/goatcorp/Dalamud
 /// All rights belongs to ImGui and Dalamud for the entire code contained in this file.
@@ -742,3 +744,5 @@ public static class ImRaii
         return style;
     }
 }
+
+#pragma warning restore CS1591 // Commentaire XML manquant pour le type ou le membre visible publiquement
