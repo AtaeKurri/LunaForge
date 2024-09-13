@@ -7,6 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LunaForge.EditorData.Project;
+using System.Numerics;
+using Raylib_cs;
+using System.IO;
+using System.Diagnostics;
 
 namespace LunaForge.GUI.Windows;
 
@@ -17,10 +21,12 @@ public class ProjectViewerWindow : ImGuiWindow
     public LunaProjectFile? fileToClose = null;
     public LunaProjectFile? filePendingModal = null;
 
+    private bool SettingsModalClosed = true;
+
     public ProjectViewerWindow(MainWindow parent)
         : base(parent, true)
     {
-
+        
     }
 
     public override void Render()
@@ -144,18 +150,160 @@ public class ProjectViewerWindow : ImGuiWindow
         ParentWindow.CloseProject(ParentProject);
     }
 
+    #region Project Settings
+
+    public string TempPathToLuaSTGExecutable;
+    public bool TempUseMD5Files;
+    public bool TempCheckUpdatesOnStartup;
+
     public void RenderProjectSettings()
     {
+        Vector2 modalSize = new Vector2(700, 500);
+        Vector2 renderSize = new Vector2(Raylib.GetRenderWidth(), Raylib.GetRenderHeight());
+        ImGui.SetNextWindowSize(modalSize);
+        ImGui.SetNextWindowPos(renderSize/2 - (modalSize/2));
         if (ImGui.BeginPopupModal("Project Settings", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoDocking))
         {
-            ImGui.Button("Ok");
+            if (SettingsModalClosed)
+                GetSettings();
+
+            if (ImGui.BeginTabBar($"{ParentProject.ProjectName}_ProjectSettings"))
+            {
+                if (ImGui.BeginTabItem("General"))
+                {
+                    RenderLuaSTGPath();
+                    RenderUseMD5();
+                    RenderCheckUpdatesOnStartup();
+
+                    ImGui.EndTabItem();
+                }
+                if (ImGui.BeginTabItem("Debug"))
+                {
+                    ImGui.EndTabItem();
+                }
+
+                ImGui.EndTabBar();
+            }
+
+            // Set buttons at the bottom.
+            float availableHeight = ImGui.GetWindowHeight() - ImGui.GetCursorPosY();
+            float buttonHeight = ImGui.CalcTextSize("Ok").Y + ImGui.GetStyle().FramePadding.Y * 2;
+            float spacing = ImGui.GetStyle().ItemSpacing.Y + 4;
+            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + availableHeight - buttonHeight - spacing);
+
+            if (ImGui.Button("Ok"))
+                ApplySettings();
             ImGui.SameLine();
-            ImGui.Button("Apply");
+            if (ImGui.Button("Apply"))
+                ApplySettings(true);
             ImGui.SameLine();
             if (ImGui.Button("Cancel"))
+            {
                 ImGui.CloseCurrentPopup();
+                SettingsModalClosed = true;
+            }
 
             ImGui.EndPopup();
         }
     }
+
+    #region Draw Options
+
+    public void RenderLuaSTGPath()
+    {
+
+        bool validPath = File.Exists(TempPathToLuaSTGExecutable) && TempPathToLuaSTGExecutable.EndsWith(".exe");
+        ImGui.PushStyleColor(ImGuiCol.Text, validPath ? ImGui.GetColorU32(ImGuiCol.Text) : 0xFF0000FFu);
+        ImGui.Text("Path to LuaSTG Executable");
+        if (!validPath && ImGui.IsItemHovered())
+            ImGui.SetTooltip("This path is invalid.\nCheck that it redirects to an executable file.");
+        ImGui.PopStyleColor();
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(450);
+        ImGui.InputText("##PathToLuaSTGExecutable", ref TempPathToLuaSTGExecutable, 1024);
+        ImGui.SameLine();
+        if (ImGui.Button("..."))
+            PromptLuaSTGPath();
+
+        ImGui.Text($"Target version: {GetTargetVersion()}");
+
+        ImGui.Spacing();
+        ImGui.Separator();
+    }
+
+    private string GetTargetVersion()
+    {
+        if (!File.Exists(TempPathToLuaSTGExecutable))
+        {
+            return "No LuaSTG exectuable set.";
+        }
+        FileVersionInfo LuaSTGExecutableInfos = FileVersionInfo.GetVersionInfo(TempPathToLuaSTGExecutable);
+        return $"{LuaSTGExecutableInfos.ProductName} v{LuaSTGExecutableInfos.ProductVersion}";
+    }
+
+    private void RenderUseMD5()
+    {
+        ImGui.Checkbox("Use MD5 hash file check during packing project.", ref TempUseMD5Files);
+
+        ImGui.Spacing();
+        ImGui.Separator();
+    }
+
+    private void RenderCheckUpdatesOnStartup()
+    {
+        ImGui.Checkbox("Check for updates on startup.", ref TempCheckUpdatesOnStartup);
+
+        ImGui.Spacing();
+    }
+
+    #endregion
+
+    public void GetSettings()
+    {
+        TempPathToLuaSTGExecutable = ParentProject.PathToLuaSTGExecutable;
+        TempUseMD5Files = ParentProject.UseMD5Files;
+        TempCheckUpdatesOnStartup = ParentProject.CheckUpdatesOnStartup;
+
+        SettingsModalClosed = false;
+    }
+
+    public void ApplySettings(bool quitPopup = false)
+    {
+        ParentProject.PathToLuaSTGExecutable = TempPathToLuaSTGExecutable;
+        ParentProject.UseMD5Files = TempUseMD5Files;
+        ParentProject.CheckUpdatesOnStartup = TempCheckUpdatesOnStartup;
+
+        ParentProject.Save();
+
+        if (quitPopup)
+        {
+            ImGui.CloseCurrentPopup();
+            SettingsModalClosed = true;
+        }
+    }
+
+    /// <summary>
+    /// Let the user choose the LuaSTG Executable Path.
+    /// </summary>
+    public void PromptLuaSTGPath()
+    {
+        Thread dialogThread = new(() =>
+        {
+            Microsoft.Win32.OpenFileDialog openFileDialog = new()
+            {
+                Multiselect = false,
+                Filter = "LuaSTG Executable (*.exe)|*.exe",
+                InitialDirectory = string.IsNullOrEmpty(ParentProject.PathToLuaSTGExecutable)
+                ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+                : Path.GetDirectoryName(ParentProject.PathToLuaSTGExecutable) 
+            };
+            if (openFileDialog.ShowDialog() != true) return;
+            TempPathToLuaSTGExecutable = openFileDialog.FileName;
+        });
+        dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
+        dialogThread.Start();
+        dialogThread.Join();
+    }
+
+    #endregion
 }

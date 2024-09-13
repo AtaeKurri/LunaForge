@@ -238,11 +238,24 @@ public abstract class TreeNode : ITraceThrowable
         if (ImGui.MenuItem("Paste", "Ctrl+V", false, ParentDef.PasteNode_CanExecute()))
             ParentDef.PasteNode();
         ImGui.Separator();
+        if (ImGui.MenuItem("Delete", "Del", false, ParentDef.Delete_CanExecute()))
+            ParentDef.Delete();
+        ImGui.Separator();
         if (ImGui.MenuItem("Ban", string.Empty, IsBanned, !MetaData.CannotBeBanned))
             ParentDef.AddAndExecuteCommand(new SwitchBanCommand(this, !IsBanned));
         ImGui.Separator();
-        if (ImGui.MenuItem("Delete", "Del", false, ParentDef.Delete_CanExecute()))
-            ParentDef.Delete();
+        if (ImGui.MenuItem("View Code"))
+        {
+            StringBuilder code = new();
+            foreach (string codeLine in ToLua(0))
+                code.Append(codeLine);
+            ParentDef.ParentProject.Parent.MainWin.ViewCodeWin.ResetAndShow(code.ToString());
+        }
+        ImGui.Separator();
+        if (ImGui.MenuItem("Save as Preset"))
+        {
+
+        }
     }
 
     #endregion

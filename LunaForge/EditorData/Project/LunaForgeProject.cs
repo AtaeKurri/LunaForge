@@ -19,12 +19,28 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
 
     [DefaultValue("")]
     public string AuthorName { get; set; } = newProjWin?.Author;
+
     [DefaultValue("")]
     public string ProjectName { get; set; } = newProjWin?.ProjectName;
+
     [DefaultValue(false)]
     public bool AllowPr { get; set; } = newProjWin?.AllowPr ?? false;
+
     [DefaultValue(false)]
     public bool AllowScPr { get; set; } = newProjWin?.AllowScPr ?? false;
+
+    [DefaultValue("")]
+    public string PathToLuaSTGExecutable = string.Empty;
+
+    [DefaultValue(true)]
+    public bool CheckUpdatesOnStartup = true;
+
+    /// <summary>
+    /// Replace files in the zip only if the MD5 hash signature doesn't match.<br/>
+    /// TODO: Will require the lfp.meta file.
+    /// </summary>
+    [DefaultValue(true)]
+    public bool UseMD5Files = true;
 
     #endregion
 
@@ -51,6 +67,9 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
     public List<LunaProjectFile> ProjectFiles { get; set; } = [];
     [YamlIgnore]
     public LunaProjectFile? CurrentProjectFile = null;
+
+    [YamlIgnore]
+    public CompileProcess CompileProcess { get; set; }
 
     /* This fucking line took 1 hour of my life for nothing.
      * YamlDotNet, please make your fucking Exceptions more precise. How the fuck was I supposed to know that
@@ -101,6 +120,48 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
     }
 
     public bool IsFileOpened(string path) => ProjectFiles.Any(x => x.FullFilePath == path);
+
+    #endregion
+    #region Compilation
+
+    public void GatherCompileInfo()
+    {
+        CompileProcess c = new();
+        string tempPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "LunaForge Editor"));
+        if (!Directory.Exists(tempPath))
+            Directory.CreateDirectory(tempPath);
+
+        c.CurrentTempPath = tempPath;
+        c.Source = this;
+        c.RootCode = $"Include\'THlib.lua\'\nInclude\'{"Temp Entry point."}\'"; // TODO: Replace this with the actual entry point.
+
+        CompileProcess = c;
+    }
+
+    public async void SaveCode()
+    {
+        // TODO: Go to every definition file in the temp folders recursively.
+        string[] listOfDefinitions = Directory.GetFiles(CompileProcess.CurrentTempPath, "*.lfd", SearchOption.AllDirectories);
+        foreach (string definitionPath in listOfDefinitions)
+        {
+            try
+            {
+                LunaDefinition def = await LunaDefinition.CreateFromFile(this, definitionPath);
+                string pathToTemp = Path.GetRelativePath(PathToProjectRoot, definitionPath);
+                using FileStream fs = new(Path.Combine(CompileProcess.CurrentTempPath, Path.ChangeExtension(pathToTemp, ".lua")), FileMode.Create, FileAccess.Write);
+                using (StreamWriter sw = new(fs))
+                {
+                    foreach (string code in def.TreeNodes[0].ToLua(0))
+                        sw.Write(code);
+                }
+                File.Delete(definitionPath);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+    }
 
     #endregion
     #region Serialization

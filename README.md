@@ -14,6 +14,21 @@
 
 </div>
 
-## Linux
+**LunaForge** is a code editor and generator targeting the LuaSTG engine (all main branches) based on THlib.
+
+## Usage
+
+Placeholder
+
+## Differences with SharpX
+
+The main "why" point with LunaForge is "[SharpX](https://github.com/Sharp-X-Team/LuaSTG-Editor-Sharp-X) already exists, so why?"
+- LunaForge uses a folder-based approach for projects instead of a single-file based approach.
+- LunaForge uses ImGui instead of WPF.
+- LunaForge allows you to set an entry point for your project, making it easier to structure your project.
+- Projects are sharable by defaullt since all files are relative to the root of the project.
+- LunaForge is meant to be cross-platform for Windows, Mac and Linux. (not the case yet)
+
+## For Linux
 
 Please install [xsel](https://github.com/kfish/xsel) and make it callable.

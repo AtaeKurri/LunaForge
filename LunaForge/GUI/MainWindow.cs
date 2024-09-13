@@ -21,6 +21,9 @@ using TreeNode = LunaForge.EditorData.Nodes.TreeNode;
 using LunaForge.EditorData.Commands;
 using static System.ComponentModel.Design.ObjectSelectorEditor;
 using Image = Raylib_cs.Image;
+using LunaForge.EditorData.Traces;
+using System.Windows.Shapes;
+using Path = System.IO.Path;
 
 namespace LunaForge.GUI;
 
@@ -107,6 +110,7 @@ public sealed class MainWindow : IDisposable
     public DebugLogWindow DebugLogWin;
     public NewProjWindow NewProjWin;
     public FileSystemWindow FSWin;
+    public ViewCodeWindow ViewCodeWin;
 
     #endregion
     #region Properties
@@ -127,6 +131,8 @@ public sealed class MainWindow : IDisposable
     /// </summary>
     public ProjectCollection Workspaces;
 
+    public List<PresetListInfo> PresetsList { get; set; } = [];
+
     #endregion
 
     /// <summary>
@@ -142,6 +148,7 @@ public sealed class MainWindow : IDisposable
         DebugLogWin = new(this);
         NewProjWin = new(this);
         FSWin = new(this);
+        ViewCodeWin = new(this);
 
         Workspaces = new(this);
     }
@@ -175,6 +182,7 @@ public sealed class MainWindow : IDisposable
         ImGui.GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
 
         ShortcutList.RegisterShortcuts(this);
+        GetPresets();
 
         // Plugins disabled for the moment.
         //Plugins.LoadPlugins();
@@ -224,6 +232,7 @@ public sealed class MainWindow : IDisposable
         DebugLogWin.Render();
         NewProjWin.Render();
         FSWin.Render();
+        ViewCodeWin.Render();
     }
 
     #region RenderMenu
@@ -279,6 +288,16 @@ public sealed class MainWindow : IDisposable
             {
                 if (ImGui.MenuItem("Create template from project"))
                     ProjectToTemplate();
+                ImGui.Separator();
+                if (ImGui.BeginMenu("Presets..."))
+                {
+                    RenderPresetList();
+                    ImGui.EndMenu();
+                }
+                if (ImGui.MenuItem("Save Preset", string.Empty, false, NodeToPreset_CanExecute()))
+                    NodeToPreset();
+                if (ImGui.MenuItem("Refresh preset list"))
+                    GetPresets();
                 ImGui.EndMenu();
             }
             if (ImGui.BeginMenu("Compile"))
@@ -313,6 +332,92 @@ public sealed class MainWindow : IDisposable
             ImGui.EndMainMenuBar();
         }
     }
+
+    #endregion
+    #region Presets
+
+    public void GetPresets()
+    {
+        PresetsList.Clear();
+        string path = Path.GetFullPath(Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            "LunaForge Definition Presets"));
+        if (!Directory.Exists(path))
+            Directory.CreateDirectory(path);
+
+        foreach (string dirPath in Directory.GetDirectories(path))
+        {
+            PresetsList.Add(new PresetListInfo(dirPath));
+        }
+    }
+
+    public void RenderPresetList()
+    {
+        int i = 0;
+        foreach (PresetListInfo presetDir in  PresetsList)
+        {
+            ImGui.PushID($"PresetDir{i}");
+            if (ImGui.BeginMenu(presetDir.DirName))
+            {
+                foreach (KeyValuePair<string, string> pair in presetDir.PresetList)
+                {
+                    if (ImGui.MenuItem(pair.Value, string.Empty, false, InsertPreset_CanExecute()))
+                        InsertPreset(pair.Key); // Send the file path.
+                    if (ImGui.IsItemHovered() && !InsertPreset_CanExecute())
+                        ImGui.SetTooltip("Cannot insert preset without an opened definition file.");
+                }
+                ImGui.EndMenu();
+            }
+            ImGui.PopID();
+            i++;
+        }
+    }
+
+    public void NodeToPreset()
+    {
+        TreeNode node = (Workspaces.Current?.CurrentProjectFile as LunaDefinition).SelectedNode.Clone() as TreeNode;
+        Thread dialogThread = new(() =>
+        {
+            Microsoft.Win32.SaveFileDialog dialog = new()
+            {
+                Filter = "LunaForge Preset (*.lfdpreset)|*.lfdpreset",
+                InitialDirectory = Path.GetFullPath(Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "LunaForge Definition Presets"))
+            };
+            if (dialog.ShowDialog() == false)
+                return;
+            string path = dialog.FileName;
+            try
+            {
+                using FileStream fs = new(path, FileMode.Create, FileAccess.Write);
+                using StreamWriter sw = new(fs);
+                node.SerializeToFile(sw, 0);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        });
+        dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
+        dialogThread.Start();
+    }
+    public bool NodeToPreset_CanExecute() => (Workspaces.Current?.CurrentProjectFile as LunaDefinition) != null;
+
+    public async Task InsertPreset(string path)
+    {
+        try
+        {
+            LunaDefinition def = await LunaDefinition.CreateFromFile(Workspaces.Current, path);
+            TreeNode node = def.TreeNodes[0] ?? throw new Exception();
+            Insert(node, false);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+    }
+    public bool InsertPreset_CanExecute() => (Workspaces.Current?.CurrentProjectFile as LunaDefinition) != null;
 
     #endregion
     #region Editor Exec
@@ -561,7 +666,47 @@ public sealed class MainWindow : IDisposable
     #endregion
     #region Compile
 
+    /// <summary>
+    /// Calls <see cref="BeginPacking(LunaForgeProject, object[])"/> with the currently active project.
+    /// </summary>
+    /// <param name="args"></param>
+    public void BeginPackingCurrentProject(params object[] args) => BeginPacking(Workspaces.Current, args);
 
+    /// <summary>
+    /// Starts the compilation process of the project to pack it inside a .zip in the mod folder of the LuaSTG installation folder.
+    /// </summary>
+    /// <param name="projectToCompile"></param>
+    /// <param name="args"></param>
+    public void BeginPacking(LunaForgeProject projectToCompile, params object[] args)
+    {
+        if (projectToCompile == null)
+            return; // This shouldn't happen, but just in case.
+
+        if (EditorTraceContainer.ContainSeverity(TraceSeverity.Error))
+            return; // TODO: Display a compilation error and abort the compile process.
+
+        TreeNode SCDebugger = args[0] as TreeNode;
+        TreeNode StageDebugger = args[1] as TreeNode;
+
+        Thread packingThread = new(() =>
+        {
+            projectToCompile.GatherCompileInfo();
+            projectToCompile.CompileProcess.ExecuteProcess(SCDebugger != null, StageDebugger != null);
+        });
+        packingThread.SetApartmentState(ApartmentState.STA);
+        packingThread.Start();
+    }
+    public bool BeginPacking_CanExecute() => Workspaces.Current != null;
+
+    public void FinishPacking()
+    {
+
+    }
+
+    public void RunLuaSTG()
+    {
+
+    }
 
     #endregion
     #region TreeNode Operation
