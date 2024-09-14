@@ -28,6 +28,9 @@ public class LunaDefinition : LunaProjectFile
 
     public TreeNode? SelectedNode = null;
 
+    public bool JustOpened = true;
+    public bool JustInserted = false;
+
     public LunaDefinition(LunaForgeProject parentProj, string path)
         : base(parentProj, path)
     {
@@ -90,6 +93,13 @@ public class LunaDefinition : LunaProjectFile
     {
         if (node.IsSelected && (SelectedNode != node || SelectedNode == null))
             SelectedNode = node;
+
+        if ((JustOpened || JustInserted) && node.IsSelected)
+        {
+            ImGui.SetScrollHereY();
+            JustOpened = false;
+            JustInserted = false;
+        }
 
         ImGui.PushID($"{node.Hash}");
 
@@ -158,6 +168,7 @@ public class LunaDefinition : LunaProjectFile
             SelectedNode!.IsSelected = false;
         SelectedNode = node;
         node.IsSelected = true;
+        ImGui.SetScrollHereY();
     }
 
     public void DeselectAllNodes()
@@ -182,6 +193,7 @@ public class LunaDefinition : LunaProjectFile
             stack.Pop().IsExpanded = true;
         SelectedNode = node;
         node.IsSelected = true;
+        JustInserted = true;
     }
 
     #endregion

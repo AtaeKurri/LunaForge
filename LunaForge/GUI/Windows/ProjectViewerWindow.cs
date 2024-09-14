@@ -152,14 +152,28 @@ public class ProjectViewerWindow : ImGuiWindow
 
     #region Project Settings
 
+    public readonly List<Vector2> ListOfRes = [
+        new(640, 480),
+        new(800, 600),
+        new(960, 720),
+        new(1024, 768),
+        new(1280, 960)
+    ];
+
     public string TempPathToLuaSTGExecutable;
     public bool TempUseMD5Files;
     public bool TempCheckUpdatesOnStartup;
+    public bool TempUseFolderPacking;
+    public bool TempWindowed;
+    public bool TempCheat;
+    public bool TempLogWindowSub;
+    public Vector2 TempDebugRes;
+    public int TempSelectedRes;
 
     public void RenderProjectSettings()
     {
-        Vector2 modalSize = new Vector2(700, 500);
-        Vector2 renderSize = new Vector2(Raylib.GetRenderWidth(), Raylib.GetRenderHeight());
+        Vector2 modalSize = new(700, 500);
+        Vector2 renderSize = new(Raylib.GetRenderWidth(), Raylib.GetRenderHeight());
         ImGui.SetNextWindowSize(modalSize);
         ImGui.SetNextWindowPos(renderSize/2 - (modalSize/2));
         if (ImGui.BeginPopupModal("Project Settings", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoDocking))
@@ -173,12 +187,20 @@ public class ProjectViewerWindow : ImGuiWindow
                 {
                     RenderLuaSTGPath();
                     RenderUseMD5();
+                    RenderUseFolderPacking();
                     RenderCheckUpdatesOnStartup();
 
                     ImGui.EndTabItem();
                 }
                 if (ImGui.BeginTabItem("Debug"))
                 {
+                    RenderDebugRes();
+                    ImGui.Checkbox("Windowed", ref TempWindowed);
+                    ImGui.Spacing();
+                    ImGui.Checkbox("Cheat mode", ref TempCheat);
+                    ImGui.Spacing();
+                    ImGui.Checkbox("Enable log window (LuaSTG Sub only)", ref TempLogWindowSub);
+                    ImGui.Separator();
                     ImGui.EndTabItem();
                 }
 
@@ -238,12 +260,20 @@ public class ProjectViewerWindow : ImGuiWindow
             return "No LuaSTG exectuable set.";
         }
         FileVersionInfo LuaSTGExecutableInfos = FileVersionInfo.GetVersionInfo(TempPathToLuaSTGExecutable);
+        ParentProject.SetTargetVersion();
         return $"{LuaSTGExecutableInfos.ProductName} v{LuaSTGExecutableInfos.ProductVersion}";
     }
 
     private void RenderUseMD5()
     {
         ImGui.Checkbox("Use MD5 hash file check during packing project.", ref TempUseMD5Files);
+
+        ImGui.Spacing();
+    }
+
+    private void RenderUseFolderPacking()
+    {
+        ImGui.Checkbox("Use Folder Packing.", ref TempUseFolderPacking);
 
         ImGui.Spacing();
         ImGui.Separator();
@@ -256,6 +286,22 @@ public class ProjectViewerWindow : ImGuiWindow
         ImGui.Spacing();
     }
 
+    private void RenderDebugRes()
+    {
+        List<string> itemStrings = [];
+        foreach (var item in ListOfRes)
+        {
+            itemStrings.Add($"{item.X} x {item.Y}");
+        }
+
+        string[] itemArray = itemStrings.ToArray();
+
+        if (ImGui.Combo("Debug Resolution", ref TempSelectedRes, itemArray, itemArray.Length))
+        {
+            TempDebugRes = ListOfRes[TempSelectedRes];
+        }
+    }
+
     #endregion
 
     public void GetSettings()
@@ -263,6 +309,12 @@ public class ProjectViewerWindow : ImGuiWindow
         TempPathToLuaSTGExecutable = ParentProject.PathToLuaSTGExecutable;
         TempUseMD5Files = ParentProject.UseMD5Files;
         TempCheckUpdatesOnStartup = ParentProject.CheckUpdatesOnStartup;
+        TempUseFolderPacking = ParentProject.UseFolderPacking;
+        TempWindowed = ParentProject.Windowed;
+        TempCheat = ParentProject.Cheat;
+        TempLogWindowSub = ParentProject.LogWindowSub;
+        TempDebugRes = ParentProject.DebugRes;
+        TempSelectedRes = ListOfRes.IndexOf(ParentProject.DebugRes);
 
         SettingsModalClosed = false;
     }
@@ -272,6 +324,11 @@ public class ProjectViewerWindow : ImGuiWindow
         ParentProject.PathToLuaSTGExecutable = TempPathToLuaSTGExecutable;
         ParentProject.UseMD5Files = TempUseMD5Files;
         ParentProject.CheckUpdatesOnStartup = TempCheckUpdatesOnStartup;
+        ParentProject.UseFolderPacking = TempUseFolderPacking;
+        ParentProject.Windowed = TempWindowed;
+        ParentProject.Cheat = TempCheat;
+        ParentProject.LogWindowSub = TempLogWindowSub;
+        ParentProject.DebugRes = TempDebugRes;
 
         ParentProject.Save();
 

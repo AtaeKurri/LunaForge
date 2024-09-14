@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,12 +20,17 @@ public sealed class NodeMeta
 
     public bool CannotBeBanned { get; }
 
+    public bool IgnoreValidation { get; }
+
+    public bool Unique { get; }
+
     public string Icon { get; }
 
     public Type[] RequireParent { get; } = null;
     public Type[][] RequireAncestor { get; } = null;
 
     public int? CreateInvokeId { get; } = null;
+    public int? RCInvokeId { get; } = null;
 
     public NodeMeta(TreeNode node)
     {
@@ -35,9 +41,22 @@ public sealed class NodeMeta
         IsLeafNode = type.IsDefined(typeof(LeafNodeAttribute), true);
         CannotBeDeleted = type.IsDefined(typeof(CannotBeDeletedAttribute), false);
         CannotBeBanned = type.IsDefined(typeof(CannotBeBannedAttribute), false);
+        IgnoreValidation = type.IsDefined(typeof(IgnoreValidationAttribute), false);
+        Unique = type.IsDefined(typeof(UniqueAttribute), false);
 
         string pathToImage = type.GetAttributeValue((NodeIconAttribute img) => img.Path);
         Icon = $"{(string.IsNullOrEmpty(pathToImage) ? "Unknown" : pathToImage)}";
+
+        RequireParent = GetTypes(type.GetCustomAttribute<RequireParentAttribute>()?.ParentType);
+        var attrs = type.GetCustomAttributes<RequireAncestorAttribute>();
+        if (attrs.Count() != 0)
+        {
+            RequireAncestor = (from RequireAncestorAttribute at in attrs
+                               select GetTypes(at.RequiredTypes)).ToArray();
+        }
+
+        CreateInvokeId = type.GetCustomAttribute<CreateInvokeAttribute>()?.ID;
+        RCInvokeId = type.GetCustomAttribute<RCInvokeAttribute>()?.ID;
     }
 
     public static Type[] GetTypes(Type[] src)

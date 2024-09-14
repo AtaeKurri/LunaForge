@@ -284,6 +284,12 @@ public abstract class TreeNode : ITraceThrowable
         if (!nodeToValidate.CheckRequiredParentsValidation(this))
             return false;
 
+        var e = this != sourceNode
+                ? this.GetRealChildren().Concat(sourceNode.GetRealChildren()).Distinct()
+                : GetRealChildren();
+        if (!MatchUniqueness(nodeToValidate, sourceNode.GetRealChildren()))
+            return false;
+
         Stack<TreeNode> stack = [];
         stack.Push(nodeToValidate);
         TreeNode current;
@@ -319,11 +325,28 @@ public abstract class TreeNode : ITraceThrowable
     {
         while (beg != end)
         {
+            if (beg.MetaData.IgnoreValidation)
+                return true;
             if (!beg.MetaData.IsFolder && beg.GetType() != typeof(RootNode))
                 return false;
             beg = beg.Parent;
         }
         return true;
+    }
+
+    /// <summary>
+    /// This method tests whether a group of nodes <see cref="TreeNode"/> can be unique one if marked as uniqueness.
+    /// </summary>
+    /// <param name="nodeToValidate"></param>
+    /// <param name="sourceChildren"></param>
+    private static bool MatchUniqueness(TreeNode nodeToValidate, IEnumerable<TreeNode> sourceChildren)
+    {
+        if (!nodeToValidate.MetaData.Unique)
+            return true;
+        List<Type> foundTypes = [];
+        foreach (TreeNode node in sourceChildren)
+            foundTypes.Add(node.GetType());
+        return !foundTypes.Any(x => x == nodeToValidate.GetType());
     }
 
     private bool CheckRequiredAncestorValidation(TreeNode Beg1, TreeNode End1, TreeNode Beg2, TreeNode End2)
@@ -336,6 +359,8 @@ public abstract class TreeNode : ITraceThrowable
         List<Type[]> toRemove = [];
         while (Beg1 != End1)
         {
+            if (Beg1.MetaData.IgnoreValidation)
+                return true;
             foreach (Type[] t1 in ts)
             {
                 foreach (Type t2 in t1)
@@ -367,6 +392,8 @@ public abstract class TreeNode : ITraceThrowable
         }
         while (Beg2 != End2)
         {
+            if (Beg2.MetaData.IgnoreValidation)
+                return true;
             foreach (Type[] t1 in ts)
             {
                 foreach (Type t2 in t1)
@@ -511,6 +538,7 @@ public abstract class TreeNode : ITraceThrowable
 
     public void RemoveChild(TreeNode node)
     {
+        ParentDef.SelectedNode = node.GetNearestEdited();
         Children.Remove(node);
     }
 

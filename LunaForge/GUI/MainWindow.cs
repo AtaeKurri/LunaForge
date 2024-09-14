@@ -24,6 +24,7 @@ using Image = Raylib_cs.Image;
 using LunaForge.EditorData.Traces;
 using System.Windows.Shapes;
 using Path = System.IO.Path;
+using LunaForge.Execution;
 
 namespace LunaForge.GUI;
 
@@ -305,7 +306,8 @@ public sealed class MainWindow : IDisposable
                 ImGui.MenuItem("Run", "F5");
                 ImGui.MenuItem("Test spell card", "F6");
                 ImGui.MenuItem("Test from scene node", "F7");
-                ImGui.MenuItem("Pack project");
+                if (ImGui.MenuItem("Pack project", string.Empty, false, BeginPacking_CanExecute()))
+                    BeginPackingCurrentProject(null, null);
                 ImGui.EndMenu();
             }
             if (ImGui.BeginMenu("View"))
@@ -543,7 +545,7 @@ public sealed class MainWindow : IDisposable
     /// </summary>
     /// <param name="path">Path to the project .lfp file.</param>
     /// <returns>True if the project is opened in the editor; otherwise, false.</returns>
-    public bool IsProjectOpened(string path) => Workspaces.Any(x => x.PathToLFP == path);
+    public bool IsProjectOpened(string path) => Workspaces.Any(x => Path.GetFileName(x.PathToLFP) == Path.GetFileName(path));
 
     /// <summary>
     /// Tries to load a project .lfp file.
@@ -663,6 +665,42 @@ public sealed class MainWindow : IDisposable
         return Workspaces.Current.CurrentProjectFile!.Delete_CanExecute();
     }
 
+    public void CutNode()
+    {
+        (Workspaces.Current?.CurrentProjectFile as LunaDefinition)?.CutNode();
+    }
+    public bool CutNode_CanExecute()
+    {
+        LunaDefinition def = (Workspaces.Current?.CurrentProjectFile as LunaDefinition);
+        if (def == null)
+            return false;
+        return def.CutNode_CanExecute();
+    }
+
+    public void CopyNode()
+    {
+        (Workspaces.Current?.CurrentProjectFile as LunaDefinition)?.CopyNode();
+    }
+    public bool CopyNode_CanExecute()
+    {
+        LunaDefinition def = (Workspaces.Current?.CurrentProjectFile as LunaDefinition);
+        if (def == null)
+            return false;
+        return def.CopyNode_CanExecute();
+    }
+
+    public void PasteNode()
+    {
+        (Workspaces.Current?.CurrentProjectFile as LunaDefinition)?.PasteNode();
+    }
+    public bool PasteNode_CanExecute()
+    {
+        LunaDefinition def = (Workspaces.Current?.CurrentProjectFile as LunaDefinition);
+        if (def == null)
+            return false;
+        return def.PasteNode_CanExecute();
+    }
+
     #endregion
     #region Compile
 
@@ -670,14 +708,19 @@ public sealed class MainWindow : IDisposable
     /// Calls <see cref="BeginPacking(LunaForgeProject, object[])"/> with the currently active project.
     /// </summary>
     /// <param name="args"></param>
-    public void BeginPackingCurrentProject(params object[] args) => BeginPacking(Workspaces.Current, args);
+    public void BeginPackingCurrentProject(params object[] args) => BeginPacking(Workspaces.Current, null, null, true, false);
 
     /// <summary>
     /// Starts the compilation process of the project to pack it inside a .zip in the mod folder of the LuaSTG installation folder.
     /// </summary>
     /// <param name="projectToCompile"></param>
     /// <param name="args"></param>
-    public void BeginPacking(LunaForgeProject projectToCompile, params object[] args)
+    public void BeginPacking(
+        LunaForgeProject projectToCompile,
+        TreeNode SCDebugger,
+        TreeNode StageDebugger,
+        bool run,
+        bool saveMeta)
     {
         if (projectToCompile == null)
             return; // This shouldn't happen, but just in case.
@@ -685,27 +728,44 @@ public sealed class MainWindow : IDisposable
         if (EditorTraceContainer.ContainSeverity(TraceSeverity.Error))
             return; // TODO: Display a compilation error and abort the compile process.
 
-        TreeNode SCDebugger = args[0] as TreeNode;
-        TreeNode StageDebugger = args[1] as TreeNode;
-
-        Thread packingThread = new(() =>
+        Thread packingThread = new(async () =>
         {
             projectToCompile.GatherCompileInfo();
-            projectToCompile.CompileProcess.ExecuteProcess(SCDebugger != null, StageDebugger != null);
+            await projectToCompile.CompileProcess.ExecuteProcess(SCDebugger != null, StageDebugger != null);
+            if (run)
+                RunLuaSTG();
         });
         packingThread.SetApartmentState(ApartmentState.STA);
         packingThread.Start();
+        
     }
     public bool BeginPacking_CanExecute() => Workspaces.Current != null;
 
-    public void FinishPacking()
-    {
-
-    }
-
     public void RunLuaSTG()
     {
-
+        LSTGExecution exec = null;
+        LunaForgeProject proj = Workspaces.Current;
+        proj.SetTargetVersion();
+        switch (proj.TargetLuaSTG)
+        {
+            case TargetVersion.Plus:
+                exec = null;
+                break;
+            case TargetVersion.Sub:
+                exec = new SubExecution(proj);
+                break;
+            case TargetVersion.x:
+                exec = new XExecution(proj);
+                break;
+            case TargetVersion.Evo:
+                exec = null;
+                break;
+        }
+        exec.BeforeRun();
+        exec.Run((s) =>
+        {
+            DebugLogWin.DebugLogContent = s;
+        }, () => { });
     }
 
     #endregion

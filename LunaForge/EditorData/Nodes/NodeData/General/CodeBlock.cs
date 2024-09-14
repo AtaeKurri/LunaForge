@@ -11,24 +11,22 @@ using System.Threading.Tasks;
 
 namespace LunaForge.EditorData.Nodes.NodeData.General;
 
-[Serializable, NodeIcon("Code")]
-[LeafNode]
-[RCInvoke(0)]
-public class Code : TreeNode
+[LeafNode, NodeIcon("CodeBlock")]
+public class CodeBlock : TreeNode
 {
     [JsonConstructor]
-    private Code() : base() { }
+    private CodeBlock() : base() { }
 
-    public Code(LunaDefinition def)
+    public CodeBlock(LunaDefinition def)
             : this(def, "") { }
 
-    public Code(LunaDefinition def, string code) : base(def)
+    public CodeBlock(LunaDefinition def, string name) : base(def)
     {
-        CodeContent = code;
+        Name = name;
     }
 
     [JsonIgnore, NodeAttribute]
-    public string CodeContent
+    public string Name
     {
         get => CheckAttr(0, "Code").AttrValue;
         set => CheckAttr(0, "Code").AttrValue = value;
@@ -36,31 +34,33 @@ public class Code : TreeNode
 
     public override IEnumerable<Tuple<int, TreeNode>> GetLines()
     {
-        string s = string.Empty;
-        int i = 1;
-        foreach (char c in s)
+        yield return new Tuple<int, TreeNode>(1, this);
+        foreach (var a in GetChildLines())
         {
-            if (c == '\n') i++;
+            yield return a;
         }
-        yield return new Tuple<int, TreeNode>(i, this);
+        yield return new Tuple<int, TreeNode>(1, this);
     }
 
     public override IEnumerable<string> ToLua(int spacing)
     {
-        Regex r = new("\\n");
         string sp = Indent(spacing);
-        string nsp = "\n" + sp;
-        yield return sp + r.Replace(CodeContent, nsp) + "\n";
+        yield return sp + "do\n";
+        foreach (var a in base.ToLua(spacing + 1))
+        {
+            yield return a;
+        }
+        yield return sp + "end\n";
     }
 
     public override string ToString()
     {
-        return CodeContent;
+        return NonMacrolize(0);
     }
 
     public override object Clone()
     {
-        var n = new Code(ParentDef);
+        CodeBlock n = new(ParentDef);
         n.CopyData(this);
         return n;
     }

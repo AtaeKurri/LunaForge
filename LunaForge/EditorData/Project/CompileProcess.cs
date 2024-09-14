@@ -37,7 +37,7 @@ public class CompileProcess
     /// <summary>
     /// The path the LuaSTG install executable. Supports all main branches.
     /// </summary>
-    public string LuaSTGExePath { get; set; } = string.Empty;
+    public string LuaSTGExePath => Source.PathToLuaSTGExecutable;
 
     /// <summary>
     /// Path to the LuaSTG install folder where the exectuable is located.<br/>
@@ -53,7 +53,7 @@ public class CompileProcess
     /// <summary>
     /// Path to the final mod zip in <see cref="ModFolderPath"/>.
     /// </summary>
-    public string FinalZipPath => Path.Combine(ModFolderPath, "mod", $"{Source.ProjectName}.zip");
+    public string FinalZipPath => Path.Combine(ModFolderPath, $"{Source.ProjectName}.zip");
 
     /// <summary>
     /// The code to put in the root.lua file (entrypoint of the mod).
@@ -65,26 +65,8 @@ public class CompileProcess
     /// </summary>
     public string RootLuaPath => Path.Combine(CurrentTempPath, "root.lua");
 
-    /// <summary>
-    /// Contains a representation of all the files to add in the pack.<br/>
-    /// Key: Relative File path. (which will construct the folder tree)
-    /// Value: File name.
-    /// </summary>
-    public Dictionary<string, string> FilesToPack { get; set; }
-
-    public async void ExecuteProcess(bool SCDebug, bool StageDebug)
+    public async Task ExecuteProcess(bool SCDebug, bool StageDebug)
     {
-        // TODO: Force repack on option (or not use md5) or just button.
-        List<string> filesToPack = await CheckMetaParity(!File.Exists(FinalZipPath));
-        foreach (string file in filesToPack)
-        {
-            string relativePath = Path.GetRelativePath(Source.PathToProjectRoot, file);
-            File.Copy(file, Path.Combine(CurrentTempPath, relativePath));
-        }
-
-        WriteRootCode();
-        GenerateCode(SCDebug, StageDebug);
-
         /*
          * Processus de compilation:
          * -> Si le zip target n'existe pas, repack l'intégralité du projet (ignorer la partie juste après et prendre tous les fichiers du dossier projet)
@@ -97,29 +79,27 @@ public class CompileProcess
          * -> Supprimer le dossier temp.
          */
 
-        /*if ()
+        // TODO: Force repack on option (or not use md5) or just button.
+        List<string> filesToPack = await CheckMetaParity(!File.Exists(FinalZipPath));
+        foreach (string file in filesToPack)
         {
-            if (File.Exists(PathToMD5Meta) && File.Exists(FinalZipPath))
-            {
-
-            }
-            else
-            {
-
-            }
+            string relativePath = Path.GetRelativePath(Source.PathToProjectRoot, file);
+            string dir = Path.GetDirectoryName(Path.Combine(CurrentTempPath, relativePath));
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+            File.Copy(file, Path.Combine(CurrentTempPath, relativePath), true);
         }
-        else
-        {
 
-        }*/
+        WriteRootCode();
+        await GenerateCode(SCDebug, StageDebug); // Wait for all the code to be generated.
 
         PackFiles();
 
-        if (Directory.Exists(CurrentTempPath))
+        if (Directory.Exists(CurrentTempPath)) // Delete the temp directory with all currently existing files.
             Directory.Delete(CurrentTempPath, true);
     }
 
-    public void GenerateCode(bool SCDebug, bool StageDebug)
+    public async Task GenerateCode(bool SCDebug, bool StageDebug)
     {
         if (SCDebug)
         {
@@ -131,7 +111,7 @@ public class CompileProcess
         }
         else
         {
-            Source.SaveCode();
+            await Source.SaveCode();
         }
     }
 
@@ -178,7 +158,7 @@ public class CompileProcess
         string[] allProjectFiles = Directory.GetFiles(Source.PathToProjectRoot, "*.*", SearchOption.AllDirectories);
         List<string> filesToPack = [];
         if (!File.Exists(PathToMD5Meta))
-            return [.. allProjectFiles];
+            forceRepack = true;
 
         if (!forceRepack)
         {
@@ -195,6 +175,8 @@ public class CompileProcess
 
             Parallel.ForEach(allProjectFiles, file =>
             {
+                if (file.EndsWith(".dat"))
+                    return;
                 if (!hashToPath.ContainsKey(GetMD5HashFromFile(file)))
                 {
                     lock (filesToPack)
@@ -210,122 +192,37 @@ public class CompileProcess
         {
             foreach (string file in allProjectFiles)
             {
+                if (file.EndsWith(".dat"))
+                    continue;
                 string hash = await Task.Run(() => GetMD5HashFromFile(file));
                 await sr.WriteLineAsync($"{hash}|{file}");
             }
         }
 
         List<string> returnList = forceRepack ? [.. allProjectFiles] : filesToPack;
-        returnList.RemoveAll(x => x.Contains(".lfp"));
+        returnList.RemoveAll(x => x.EndsWith(".lfp") || x.EndsWith(".dat"));
         return returnList;
     }
 
     public void PackFiles()
     {
+        Dictionary<string, string> archivefiles = [];
+        foreach (string file in Directory.GetFiles(CurrentTempPath, "*.*", SearchOption.AllDirectories))
+            archivefiles.Add(Path.GetRelativePath(CurrentTempPath, file), file);
         ZipCompressor compressor;
-        /*if (currentApp.UseFolderPacking)
+        if (Source.UseFolderPacking)
         {
-            compressor = new PlainCopy(targetZipPath);
+            compressor = new PlainCopy(FinalZipPath);
         }
-        else if (currentApp.BatchPacking)
+        /*else if (currentApp.BatchPacking)
         {
-            //compressor = new ZipCompressorBatch(targetZipPath, zipExePath, rootZipPackPath);
-        }
-        else
-        {*/
-            compressor = new ZipCompressorInternal(FinalZipPath);
-        //}
-        // TODO: Set the path to something that actually exists.
-        compressor.PackByDictReporting(null, true);
-    }
-
-    /// <summary>
-    /// Generate pack batch and execute it by given information.
-    /// </summary>
-    /// <param name="resNeedToPack">The output list of resources need to pack.</param>
-    /// <param name="resPathToMD5">The dictionary of resource archivePath -> (directoryPath, MD5 Hash)
-    /// of the resource.</param>
-    /// <param name="includeRoot">Whether regenerates root.lua.</param>
-    /// <param name="preserveZip">Whether zip file must be preserved.</param>
-    [Obsolete("REWORK THIS TO WORK WITH MULTIPLE FILES AND NOT ONLY THE MAIN PROJECT FILE.", true)]
-    protected void PackFileUsingInfo(
-        Dictionary<string, string> resNeedToPack,
-        Dictionary<string, Tuple<string, string>> resPathToMD5,
-        bool includeRoot,
-        bool preserveZip = false
-    )
-    {
-        return;
-        /*
-        Dictionary<string, string> entry2File = [];
-        string temp;
-        try
-        {
-            if (includeRoot)
-            {
-                entry2File.Add(Path.GetFileName(RootLuaPath), RootLuaPath);
-            }
-            entry2File.Add(Path.GetFileName(projLuaPath), projLuaPath);
-            if (currentApp.SaveResMeta)
-            {
-                foreach (KeyValuePair<string, string> resPath in resNeedToPack)
-                {
-                    entry2File.Add(resPath.Key, resPath.Value);
-                }
-                foreach (KeyValuePair<string, Tuple<string, string>> kvp in resPathToMD5)
-                {
-                    entry2File.Add(kvp.Key, kvp.Value.Item1);
-                }
-            }
-            else
-            {
-                foreach (KeyValuePair<string, string> resPath in FilesToPack)
-                {
-                    bool? undcPath = RelativePathConverter.IsRelativePath(resPath.Value);
-                    if (undcPath == true)
-                    {
-                        if (string.IsNullOrEmpty(projPath))
-                            throw new FileNotFoundException(resPath.Value);
-                        temp = Path.GetFullPath(Path.Combine(projPath, resPath.Value));
-                        entry2File.Add(resPath.Key, temp);
-                    }
-                    else if (undcPath == false)
-                    {
-                        entry2File.Add(resPath.Key, resPath.Value);
-                    }
-                }
-            }
-
-            if (currentApp.PackProj)
-            {
-                if (!string.IsNullOrEmpty(Source.PathToLFP))
-                {
-                    entry2File.Add(Source.ProjectName, Source.PathToLFP);
-                }
-            }
-            int entryCount = entry2File.Count;
-            ZipCompressor compressor;
-            if (currentApp.UseFolderPacking)
-            {
-                compressor = new PlainCopy(targetZipPath);
-            }
-            else if (currentApp.BatchPacking)
-            {
-                compressor = new ZipCompressorBatch(targetZipPath, zipExePath, rootZipPackPath);
-            }
-            else
-            {
-                compressor = new ZipCompressorInternal(targetZipPath);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.ToString());
-        }
-        finally
-        {
-            if (File.Exists(projLuaPath))
-                File.Delete(projLuaPath);
+            compressor = new ZipCompressorBatch(targetZipPath, zipExePath, rootZipPackPath);
         }*/
+        else
+        {
+            compressor = new ZipCompressorInternal(FinalZipPath);
+        }
+        foreach (string e in compressor.PackByDictReporting(archivefiles, false))
+        { } // Actually needed, don't remove the foreach.
     }
 }

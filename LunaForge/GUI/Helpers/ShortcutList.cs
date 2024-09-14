@@ -75,8 +75,29 @@ public static class ShortcutList
     public static Shortcut DeleteShortcut = new(
         () => true,
         ImGuiKey.Delete,
-        (opj) => { MainWin.Delete(); },
+        (obj) => { MainWin.Delete(); },
         () => { return MainWin.Delete_CanExecute(); }
+    );
+
+    public static Shortcut CutShortcut = new(
+        () => ImGui.GetIO().KeyCtrl,
+        ImGuiKey.X,
+        (obj) => { MainWin.CutNode(); },
+        () => { return MainWin.CutNode_CanExecute(); }
+    );
+
+    public static Shortcut CopyShortcut = new(
+        () => ImGui.GetIO().KeyCtrl,
+        ImGuiKey.C,
+        (obj) => { MainWin.CopyNode(); },
+        () => { return MainWin.CopyNode_CanExecute(); }
+    );
+
+    public static Shortcut PasteShortcut = new(
+        () => ImGui.GetIO().KeyCtrl,
+        ImGuiKey.V,
+        (obj) => { MainWin.PasteNode(); },
+        () => { return MainWin.PasteNode_CanExecute(); }
     );
 
     #endregion
@@ -93,6 +114,9 @@ public static class ShortcutList
         Shortcuts.Add(InsertChildShortcut);
         Shortcuts.Add(InsertAfterShortcut);
         Shortcuts.Add(DeleteShortcut);
+        Shortcuts.Add(CutShortcut);
+        Shortcuts.Add(CopyShortcut);
+        Shortcuts.Add(PasteShortcut);
     }
 
     public static void CheckKeybinds()

@@ -20,7 +20,8 @@ public class PlainCopy : ZipCompressor
 
     public override void PackByDict(Dictionary<string, string> fileInfo, bool removeIfExists)
     {
-        if (removeIfExists && Directory.Exists(targetArchivePath)) { Directory.Delete(targetArchivePath, true); }
+        if (removeIfExists && Directory.Exists(targetArchivePath))
+            Directory.Delete(targetArchivePath, true);
         if (!Directory.Exists(targetArchivePath))
         {
             Directory.CreateDirectory(targetArchivePath);
@@ -33,9 +34,9 @@ public class PlainCopy : ZipCompressor
                 File.Copy(kvp.Value, Path.GetDirectoryName(Path.Combine(targetArchivePath, kvp.Key)), true);
             }
         }
-        catch (System.Exception e)
+        catch (Exception ex)
         {
-            System.Windows.MessageBox.Show(e.ToString());
+            Console.WriteLine(ex.ToString());
         }
     }
 

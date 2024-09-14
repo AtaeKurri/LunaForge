@@ -10,8 +10,18 @@ using LunaForge.GUI.Windows;
 using YamlDotNet.Serialization.NamingConventions;
 using YamlDotNet.Serialization;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Numerics;
 
 namespace LunaForge.EditorData.Project;
+
+public enum TargetVersion
+{
+    Plus,
+    Sub,
+    Evo,
+    x
+}
 
 public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
 {
@@ -34,6 +44,20 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
 
     [DefaultValue(true)]
     public bool CheckUpdatesOnStartup = true;
+
+    [DefaultValue(false)]
+    public bool UseFolderPacking = false;
+
+    [DefaultValue(true)]
+    public bool Windowed = true;
+
+    [DefaultValue(false)]
+    public bool Cheat = false;
+
+    [DefaultValue(false)]
+    public bool LogWindowSub = false;
+
+    public Vector2 DebugRes = new(800, 600);
 
     /// <summary>
     /// Replace files in the zip only if the MD5 hash signature doesn't match.<br/>
@@ -70,6 +94,9 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
 
     [YamlIgnore]
     public CompileProcess CompileProcess { get; set; }
+
+    [YamlIgnore]
+    public TargetVersion TargetLuaSTG { get; private set; }
 
     /* This fucking line took 1 hour of my life for nothing.
      * YamlDotNet, please make your fucking Exceptions more precise. How the fuck was I supposed to know that
@@ -124,6 +151,19 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
     #endregion
     #region Compilation
 
+    public void SetTargetVersion()
+    {
+        FileVersionInfo LuaSTGExecutableInfos = FileVersionInfo.GetVersionInfo(PathToLuaSTGExecutable);
+        if (LuaSTGExecutableInfos.ProductName.Contains("Plus"))
+            TargetLuaSTG = TargetVersion.Plus;
+        else if (LuaSTGExecutableInfos.ProductName.Contains("Sub"))
+            TargetLuaSTG = TargetVersion.Sub;
+        else if (LuaSTGExecutableInfos.ProductName.Contains("-x"))
+            TargetLuaSTG = TargetVersion.Plus;
+        else if (LuaSTGExecutableInfos.ProductName.Contains("Evo"))
+            TargetLuaSTG = TargetVersion.Plus;
+    }
+
     public void GatherCompileInfo()
     {
         CompileProcess c = new();
@@ -138,7 +178,7 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
         CompileProcess = c;
     }
 
-    public async void SaveCode()
+    public async Task SaveCode()
     {
         // TODO: Go to every definition file in the temp folders recursively.
         string[] listOfDefinitions = Directory.GetFiles(CompileProcess.CurrentTempPath, "*.lfd", SearchOption.AllDirectories);
@@ -147,12 +187,15 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
             try
             {
                 LunaDefinition def = await LunaDefinition.CreateFromFile(this, definitionPath);
-                string pathToTemp = Path.GetRelativePath(PathToProjectRoot, definitionPath);
-                using FileStream fs = new(Path.Combine(CompileProcess.CurrentTempPath, Path.ChangeExtension(pathToTemp, ".lua")), FileMode.Create, FileAccess.Write);
-                using (StreamWriter sw = new(fs))
+                if (def.TreeNodes[0] != null)
                 {
-                    foreach (string code in def.TreeNodes[0].ToLua(0))
-                        sw.Write(code);
+                    string pathToTemp = Path.GetRelativePath(PathToProjectRoot, definitionPath);
+                    using FileStream fs = new(Path.Combine(CompileProcess.CurrentTempPath, Path.ChangeExtension(pathToTemp, ".lua")), FileMode.Create, FileAccess.Write);
+                    using (StreamWriter sw = new(fs))
+                    {
+                        foreach (string code in def.TreeNodes[0].ToLua(0))
+                            sw.Write(code);
+                    }
                 }
                 File.Delete(definitionPath);
             }
