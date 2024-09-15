@@ -13,7 +13,8 @@ using System.Threading.Tasks;
 
 namespace LunaForge.EditorData.Nodes.NodeData.Project;
 
-[LeafNode, NodeIcon("LoadDef")]
+[NodeIcon("LoadDef")]
+[LeafNode]
 public class LoadDefinition : TreeNode
 {
     [JsonConstructor]

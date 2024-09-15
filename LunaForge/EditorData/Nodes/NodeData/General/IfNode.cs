@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace LunaForge.EditorData.Nodes.NodeData.General;
 
 [NodeIcon("if")]
-[RCInvoke(0)]
+[CreateInvoke(0), RCInvoke(0)]
 public class IfNode : TreeNode
 {
     [JsonConstructor]

@@ -268,6 +268,8 @@ public abstract class TreeNode : ITraceThrowable
 
     public bool ValidateChild(TreeNode nodeToValidate, TreeNode sourceNode)
     {
+        if (sourceNode.MetaData.IsLeafNode)
+            return false;
         if (MetaData.IsFolder)
             return GetRealParent()?.ValidateChild(nodeToValidate, sourceNode) ?? true;
         if (nodeToValidate.MetaData.IsFolder)
@@ -279,8 +281,6 @@ public abstract class TreeNode : ITraceThrowable
             }
             return true;
         }
-        if (sourceNode.MetaData.IsLeafNode)
-            return false;
         if (!nodeToValidate.CheckRequiredParentsValidation(this))
             return false;
 

@@ -705,7 +705,7 @@ public sealed class MainWindow : IDisposable
     #region Compile
 
     /// <summary>
-    /// Calls <see cref="BeginPacking(LunaForgeProject, object[])"/> with the currently active project.
+    /// Calls <see cref="BeginPacking(LunaForgeProject, TreeNode, TreeNode, bool, bool)"/> with the currently active project.
     /// </summary>
     /// <param name="args"></param>
     public void BeginPackingCurrentProject(params object[] args) => BeginPacking(Workspaces.Current, null, null, true, false);
@@ -714,7 +714,10 @@ public sealed class MainWindow : IDisposable
     /// Starts the compilation process of the project to pack it inside a .zip in the mod folder of the LuaSTG installation folder.
     /// </summary>
     /// <param name="projectToCompile"></param>
-    /// <param name="args"></param>
+    /// <param name="SCDebugger"></param>
+    /// <param name="StageDebugger"></param>
+    /// <param name="run"></param>
+    /// <param name="saveMeta"></param>
     public void BeginPacking(
         LunaForgeProject projectToCompile,
         TreeNode SCDebugger,

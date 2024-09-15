@@ -27,9 +27,8 @@ public class TabGeneral : NodePickerRegister
         Tab.AddNode(new NodePickerItem(true));
 
         Tab.AddNode(new NodePickerItem("if", "if", "If", new AddNode(AddNode_IfNode)));
-
-        Tab.AddNode(new NodePickerItem(true));
-
+        Tab.AddNode(new NodePickerItem("else", "else", "Else", new AddNode(AddNode_IfElse)));
+        Tab.AddNode(new NodePickerItem("elseif", "elseif", "Else If", new AddNode(AddNode_IfElseIf)));
         Tab.AddNode(new NodePickerItem("codeblock", "CodeBlock", "Code Block", new AddNode(AddNode_CodeBlock)));
 
         return Tab;
@@ -78,6 +77,16 @@ public class TabGeneral : NodePickerRegister
         newIf.AddChild(new IfThen(Def));
         newIf.AddChild(new IfElse(Def));
         MainApp.Insert(newIf);
+    }
+
+    private void AddNode_IfElse()
+    {
+        MainApp.Insert(new IfElse(Def));
+    }
+
+    private void AddNode_IfElseIf()
+    {
+        MainApp.Insert(new IfElseIf(Def));
     }
 
     private void AddNode_CodeBlock()
