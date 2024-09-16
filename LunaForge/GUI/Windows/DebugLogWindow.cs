@@ -23,6 +23,7 @@ public class DebugLogWindow : ImGuiWindow
         if (BeginNoClose("Debug Log"))
         {
             ImGui.InputTextMultiline("##DebugLogText", ref DebugLogContent, 10_000_000, ImGui.GetContentRegionAvail(), ImGuiInputTextFlags.ReadOnly);
+
             End();
         }
     }

@@ -62,7 +62,7 @@ public class NodeAttributeWindow : ImGuiWindow
 
                     // More...
                     ImGui.TableSetColumnIndex(2);
-                    if (ImGui.Button("...", new Vector2(ImGui.GetContentRegionAvail().X, 0)))
+                    if (ImGui.Button($"...##{attr.AttrName}", new Vector2(ImGui.GetContentRegionAvail().X, 0)))
                     {
                         Console.WriteLine($"More clicked for: {attr.AttrName}");
                     }

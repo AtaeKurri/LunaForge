@@ -16,7 +16,7 @@ public class NodeService : INodeService
 {
     public bool RegisterDefinitionNode<T>(string displayName) where T : ITreeNode
     {
-        Type pluginNodeType = typeof(T);
+        /*Type pluginNodeType = typeof(T);
         if (typeof(ITreeNode).IsAssignableFrom(pluginNodeType))
         {
             try
@@ -33,7 +33,7 @@ public class NodeService : INodeService
                 Console.WriteLine(ex.ToString());
                 return false;
             }
-        }
+        }*/
         return false;
     }
 }

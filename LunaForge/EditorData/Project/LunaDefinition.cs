@@ -18,6 +18,8 @@ using Raylib_cs;
 using System.Numerics;
 using rlImGui_cs;
 using LunaForge.GUI.Helpers;
+using LunaForge.EditorData.Nodes.NodeData.Stages;
+using static LunaForge.EditorData.Nodes.NodeManager;
 
 namespace LunaForge.EditorData.Project;
 
@@ -60,9 +62,9 @@ public class LunaDefinition : LunaProjectFile
         {
             if (listbox)
             {
-                foreach (var type in NodeManager.DefinitionNodes)
+                foreach (KeyValuePair<string, AddDefNode> type in NodeManager.DefinitionNodes)
                 {
-                    if (ImGui.Selectable($"{type.Value}"))
+                    if (ImGui.Selectable($"{type.Key}"))
                     {
                         SelectDefinition(type.Key);
                     }
@@ -335,11 +337,11 @@ public class LunaDefinition : LunaProjectFile
     #endregion
     #region TreeNodes
 
-    private void SelectDefinition(Type definitionType)
+    private void SelectDefinition(string defName)
     {
         try
         {
-            TreeNodes[0] = (TreeNode)Activator.CreateInstance(definitionType);
+            NodeManager.DefinitionNodes[defName].Invoke(this);
         }
         catch (Exception ex)
         {

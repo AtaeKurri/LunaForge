@@ -1,5 +1,4 @@
-﻿using LunaForge.EditorData.Documents;
-using LunaForge.GUI.Helpers;
+﻿using LunaForge.GUI.Helpers;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
@@ -161,6 +160,7 @@ public class ProjectViewerWindow : ImGuiWindow
     ];
 
     public string TempPathToLuaSTGExecutable;
+    public string TempEntryPoint;
     public bool TempUseMD5Files;
     public bool TempCheckUpdatesOnStartup;
     public bool TempUseFolderPacking;
@@ -186,6 +186,7 @@ public class ProjectViewerWindow : ImGuiWindow
                 if (ImGui.BeginTabItem("General"))
                 {
                     RenderLuaSTGPath();
+                    RenderEntryPointPath();
                     RenderUseMD5();
                     RenderUseFolderPacking();
                     RenderCheckUpdatesOnStartup();
@@ -233,7 +234,6 @@ public class ProjectViewerWindow : ImGuiWindow
 
     public void RenderLuaSTGPath()
     {
-
         bool validPath = File.Exists(TempPathToLuaSTGExecutable) && TempPathToLuaSTGExecutable.EndsWith(".exe");
         ImGui.PushStyleColor(ImGuiCol.Text, validPath ? ImGui.GetColorU32(ImGuiCol.Text) : 0xFF0000FFu);
         ImGui.Text("Path to LuaSTG Executable");
@@ -244,24 +244,42 @@ public class ProjectViewerWindow : ImGuiWindow
         ImGui.SetNextItemWidth(450);
         ImGui.InputText("##PathToLuaSTGExecutable", ref TempPathToLuaSTGExecutable, 1024);
         ImGui.SameLine();
-        if (ImGui.Button("..."))
+        if (ImGui.Button("...##PathToLuaSTGExecutableBtn"))
             PromptLuaSTGPath();
 
         ImGui.Text($"Target version: {GetTargetVersion()}");
 
         ImGui.Spacing();
-        ImGui.Separator();
     }
 
     private string GetTargetVersion()
     {
         if (!File.Exists(TempPathToLuaSTGExecutable))
         {
-            return "No LuaSTG exectuable set.";
+            return "No LuaSTG executable selected.";
         }
         FileVersionInfo LuaSTGExecutableInfos = FileVersionInfo.GetVersionInfo(TempPathToLuaSTGExecutable);
         ParentProject.SetTargetVersion();
         return $"{LuaSTGExecutableInfos.ProductName} v{LuaSTGExecutableInfos.ProductVersion}";
+    }
+
+    public void RenderEntryPointPath()
+    {
+        bool validPath = File.Exists(TempEntryPoint) && (TempEntryPoint.EndsWith(".lua") || TempEntryPoint.EndsWith(".lfd"));
+        ImGui.PushStyleColor(ImGuiCol.Text, validPath ? ImGui.GetColorU32(ImGuiCol.Text) : 0xFF0000FFu);
+        ImGui.Text("Path to project entry point");
+        if (!validPath && ImGui.IsItemHovered())
+            ImGui.SetTooltip("This path is invalid.\nCheck that it redirects to a .lfd or .lua file.");
+        ImGui.PopStyleColor();
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(450);
+        ImGui.InputText("##PathEntryPoint", ref TempEntryPoint, 1024);
+        ImGui.SameLine();
+        if (ImGui.Button("...##PathEntryPointBtn"))
+            PromptEntryPointPath();
+
+        ImGui.Spacing();
+        ImGui.Separator();
     }
 
     private void RenderUseMD5()
@@ -307,6 +325,7 @@ public class ProjectViewerWindow : ImGuiWindow
     public void GetSettings()
     {
         TempPathToLuaSTGExecutable = ParentProject.PathToLuaSTGExecutable;
+        TempEntryPoint = ParentProject.EntryPoint;
         TempUseMD5Files = ParentProject.UseMD5Files;
         TempCheckUpdatesOnStartup = ParentProject.CheckUpdatesOnStartup;
         TempUseFolderPacking = ParentProject.UseFolderPacking;
@@ -322,6 +341,7 @@ public class ProjectViewerWindow : ImGuiWindow
     public void ApplySettings(bool quitPopup = false)
     {
         ParentProject.PathToLuaSTGExecutable = TempPathToLuaSTGExecutable;
+        ParentProject.EntryPoint = TempEntryPoint;
         ParentProject.UseMD5Files = TempUseMD5Files;
         ParentProject.CheckUpdatesOnStartup = TempCheckUpdatesOnStartup;
         ParentProject.UseFolderPacking = TempUseFolderPacking;
@@ -356,6 +376,26 @@ public class ProjectViewerWindow : ImGuiWindow
             };
             if (openFileDialog.ShowDialog() != true) return;
             TempPathToLuaSTGExecutable = openFileDialog.FileName;
+        });
+        dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
+        dialogThread.Start();
+        dialogThread.Join();
+    }
+
+    public void PromptEntryPointPath()
+    {
+        Thread dialogThread = new(() =>
+        {
+            Microsoft.Win32.OpenFileDialog openFileDialog = new()
+            {
+                Multiselect = false,
+                Filter = "Entry Point file (*.lua;*.lfd)|*.lua;*.lfd",
+                InitialDirectory = string.IsNullOrEmpty(ParentProject.EntryPoint)
+                ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+                : Path.GetDirectoryName(ParentProject.EntryPoint)
+            };
+            if (openFileDialog.ShowDialog() != true) return;
+            TempEntryPoint = openFileDialog.FileName;
         });
         dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
         dialogThread.Start();

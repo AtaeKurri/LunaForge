@@ -65,7 +65,25 @@ public class CompileProcess
     /// </summary>
     public string RootLuaPath => Path.Combine(CurrentTempPath, "root.lua");
 
-    public async Task ExecuteProcess(bool SCDebug, bool StageDebug)
+    public ProgressChangedEventHandler ProgressChangedEventHandler { get; private set; }
+
+    private event ProgressChangedEventHandler ProgressChanged_Private;
+
+    public event ProgressChangedEventHandler ProgressChanged
+    {
+        add
+        {
+            ProgressChanged_Private += value;
+            ProgressChangedEventHandler += new ProgressChangedEventHandler(value);
+        }
+        remove
+        {
+            ProgressChanged_Private -= value;
+            ProgressChangedEventHandler = null;
+        }
+    }
+
+    public async Task<bool> ExecuteProcess(bool SCDebug, bool StageDebug)
     {
         /*
          * Processus de compilation:
@@ -93,17 +111,19 @@ public class CompileProcess
         WriteRootCode();
         await GenerateCode(SCDebug, StageDebug); // Wait for all the code to be generated.
 
-        PackFiles();
+        if (!PackFiles())
+            return false;
 
         if (Directory.Exists(CurrentTempPath)) // Delete the temp directory with all currently existing files.
             Directory.Delete(CurrentTempPath, true);
+        return true;
     }
 
     public async Task GenerateCode(bool SCDebug, bool StageDebug)
     {
         if (SCDebug)
         {
-            //Source.SaveSCDebugCode();
+            Source.SaveSCDebugCode();
         }
         else if (StageDebug)
         {
@@ -165,7 +185,7 @@ public class CompileProcess
             Dictionary<string, string> hashToPath = [];
             using (StreamReader sr = new(PathToMD5Meta))
             {
-                while (sr.EndOfStream)
+                while (!sr.EndOfStream)
                 {
                     string line = sr.ReadLine();
                     string[] parts = line.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -204,25 +224,31 @@ public class CompileProcess
         return returnList;
     }
 
-    public void PackFiles()
+    public bool PackFiles()
     {
         Dictionary<string, string> archivefiles = [];
         foreach (string file in Directory.GetFiles(CurrentTempPath, "*.*", SearchOption.AllDirectories))
             archivefiles.Add(Path.GetRelativePath(CurrentTempPath, file), file);
+
+        int entryCount = archivefiles.Count;
+        float currentCount = 0f;
+
+        ProgressChanged_Private?.Invoke(this, new(Convert.ToInt32(currentCount), $"Packing {entryCount} files.\n"));
+
         ZipCompressor compressor;
         if (Source.UseFolderPacking)
         {
             compressor = new PlainCopy(FinalZipPath);
         }
-        /*else if (currentApp.BatchPacking)
-        {
-            compressor = new ZipCompressorBatch(targetZipPath, zipExePath, rootZipPackPath);
-        }*/
         else
         {
             compressor = new ZipCompressorInternal(FinalZipPath);
         }
-        foreach (string e in compressor.PackByDictReporting(archivefiles, false))
-        { } // Actually needed, don't remove the foreach.
+        foreach (string s in compressor.PackByDictReporting(archivefiles, false))
+        {
+            ProgressChanged_Private?.Invoke(this, new(Convert.ToInt32(currentCount), s));
+            currentCount += 1.0f / entryCount;
+        }
+        return true;
     }
 }

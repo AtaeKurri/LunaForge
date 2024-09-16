@@ -120,7 +120,7 @@ public class FileSystemWindow : ImGuiWindow
                 ImGui.Text("Enter file name (with extension):");
                 if (ImGui.InputText("##newFileName", ref newFileName, 100, ImGuiInputTextFlags.EnterReturnsTrue))
                 {
-                    File.Create(Path.Combine(folderPath, newFileName));
+                    using FileStream fs = File.Create(Path.Combine(folderPath, newFileName));
                     newFileName = string.Empty;
                     ImGui.CloseCurrentPopup();
                 }

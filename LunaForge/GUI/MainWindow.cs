@@ -25,6 +25,7 @@ using LunaForge.EditorData.Traces;
 using System.Windows.Shapes;
 using Path = System.IO.Path;
 using LunaForge.Execution;
+using System.ComponentModel;
 
 namespace LunaForge.GUI;
 
@@ -303,11 +304,12 @@ public sealed class MainWindow : IDisposable
             }
             if (ImGui.BeginMenu("Compile"))
             {
-                ImGui.MenuItem("Run", "F5");
+                if (ImGui.MenuItem("Run", "F5", false, RunProject_CanExecute()))
+                    RunProject();
                 ImGui.MenuItem("Test spell card", "F6");
                 ImGui.MenuItem("Test from scene node", "F7");
-                if (ImGui.MenuItem("Pack project", string.Empty, false, BeginPacking_CanExecute()))
-                    BeginPackingCurrentProject(null, null);
+                if (ImGui.MenuItem("Pack project", string.Empty, false, PackProject_CanExecute()))
+                    PackProject();
                 ImGui.EndMenu();
             }
             if (ImGui.BeginMenu("View"))
@@ -319,13 +321,13 @@ public sealed class MainWindow : IDisposable
             {
                 ImGui.MenuItem("General settings");
                 ImGui.MenuItem("Compiler settings");
-                ImGui.MenuItem("Debug settings");
                 ImGui.MenuItem("Editor settings");
                 ImGui.EndMenu();
             }
             if (ImGui.BeginMenu("Help"))
             {
-                ImGui.MenuItem("Documentation");
+                if (ImGui.MenuItem("Documentation"))
+                    Raylib.OpenURL("https://rulholos.github.io/LunaForge/index.html");
                 ImGui.Separator();
                 ImGui.MenuItem("Check for Updates");
                 ImGui.MenuItem("About");
@@ -704,11 +706,41 @@ public sealed class MainWindow : IDisposable
     #endregion
     #region Compile
 
+    public bool OpenedProject() => Workspaces.Current != null;
+    public bool OpenedDefinition() => Workspaces.Current?.CurrentProjectFile as LunaDefinition != null;
+    public bool OpenedScript() => Workspaces.Current?.CurrentProjectFile as LunaScript != null;
+
+    public void RunProject() => BeginPackingCurrentProject();
+    public bool RunProject_CanExecute() => OpenedProject();
+    public void PackProject() => BeginPackingCurrentProject(run: false);
+    public bool PackProject_CanExecute() => OpenedProject();
+    public void SCDebugProject()
+    {
+        TreeNode node = (Workspaces.Current?.CurrentProjectFile as LunaDefinition)?.SelectedNode;
+        if (node == null)
+            return;
+
+        while (node != null)
+        {
+            // TODO: Match SC Node types.
+        }
+        BeginPackingCurrentProject(node);
+    }
+    public void StageDebugProject()
+    {
+        TreeNode node = (Workspaces.Current?.CurrentProjectFile as LunaDefinition)?.SelectedNode;
+        BeginPackingCurrentProject(null, node);
+    }
+
     /// <summary>
     /// Calls <see cref="BeginPacking(LunaForgeProject, TreeNode, TreeNode, bool, bool)"/> with the currently active project.
     /// </summary>
     /// <param name="args"></param>
-    public void BeginPackingCurrentProject(params object[] args) => BeginPacking(Workspaces.Current, null, null, true, false);
+    public void BeginPackingCurrentProject(
+        TreeNode SCDebugger = null,
+        TreeNode StageDebugger = null,
+        bool run = true)
+    => BeginPacking(Workspaces.Current, SCDebugger, StageDebugger, run);
 
     /// <summary>
     /// Starts the compilation process of the project to pack it inside a .zip in the mod folder of the LuaSTG installation folder.
@@ -720,10 +752,9 @@ public sealed class MainWindow : IDisposable
     /// <param name="saveMeta"></param>
     public void BeginPacking(
         LunaForgeProject projectToCompile,
-        TreeNode SCDebugger,
-        TreeNode StageDebugger,
-        bool run,
-        bool saveMeta)
+        TreeNode SCDebugger = null,
+        TreeNode StageDebugger = null,
+        bool run = true)
     {
         if (projectToCompile == null)
             return; // This shouldn't happen, but just in case.
@@ -733,9 +764,18 @@ public sealed class MainWindow : IDisposable
 
         Thread packingThread = new(async () =>
         {
+            bool saveMeta = false;
+            if (!run)
+            {
+                saveMeta = projectToCompile.UseMD5Files;
+            }
+
+            DebugLogWin.DebugLogContent = string.Empty;
             projectToCompile.GatherCompileInfo();
-            await projectToCompile.CompileProcess.ExecuteProcess(SCDebugger != null, StageDebugger != null);
-            if (run)
+            projectToCompile.CompileProcess.ProgressChanged +=
+                (o, e) => PackageProgressReport(o, e);
+            bool success = await projectToCompile.CompileProcess.ExecuteProcess(SCDebugger != null, StageDebugger != null);
+            if (run && success)
                 RunLuaSTG();
         });
         packingThread.SetApartmentState(ApartmentState.STA);
@@ -743,6 +783,11 @@ public sealed class MainWindow : IDisposable
         
     }
     public bool BeginPacking_CanExecute() => Workspaces.Current != null;
+
+    private void PackageProgressReport(object sender, ProgressChangedEventArgs args)
+    {
+        DebugLogWin.DebugLogContent += args.UserState?.ToString() + "\n";
+    }
 
     public void RunLuaSTG()
     {

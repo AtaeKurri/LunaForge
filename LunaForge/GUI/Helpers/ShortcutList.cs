@@ -100,6 +100,13 @@ public static class ShortcutList
         () => { return MainWin.PasteNode_CanExecute(); }
     );
 
+    public static Shortcut RunProjectShortcut = new(
+        () => true,
+        ImGuiKey.F5,
+        (obj) => { MainWin.RunProject(); },
+        () => { return MainWin.RunProject_CanExecute(); }
+     );
+
     #endregion
 
     public static void RegisterShortcuts(MainWindow mainWin)
@@ -117,6 +124,7 @@ public static class ShortcutList
         Shortcuts.Add(CutShortcut);
         Shortcuts.Add(CopyShortcut);
         Shortcuts.Add(PasteShortcut);
+        Shortcuts.Add(RunProjectShortcut);
     }
 
     public static void CheckKeybinds()

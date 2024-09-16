@@ -60,6 +60,15 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
     public Vector2 DebugRes = new(800, 600);
 
     /// <summary>
+    /// Path to the entry point lfd or lua file. Relative to <see cref="PathToProjectRoot"/>
+    /// </summary>
+    [DefaultValue("")]
+    public string EntryPoint = string.Empty;
+
+    [YamlIgnore]
+    public string EntryPointRelative => Path.GetRelativePath(PathToProjectRoot, EntryPoint).Replace("\\", "/");
+
+    /// <summary>
     /// Replace files in the zip only if the MD5 hash signature doesn't match.<br/>
     /// TODO: Will require the lfp.meta file.
     /// </summary>
@@ -173,14 +182,40 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
 
         c.CurrentTempPath = tempPath;
         c.Source = this;
-        c.RootCode = $"Include\'THlib.lua\'\nInclude\'{"Temp Entry point."}\'"; // TODO: Replace this with the actual entry point.
+        c.RootCode = $"Include\'THlib.lua\'\nInclude\'{EntryPointRelative.Replace(".lfd", ".lua")}\'";
 
         CompileProcess = c;
     }
 
     public async Task SaveCode()
     {
-        // TODO: Go to every definition file in the temp folders recursively.
+        string[] listOfDefinitions = Directory.GetFiles(CompileProcess.CurrentTempPath, "*.lfd", SearchOption.AllDirectories);
+        foreach (string definitionPath in listOfDefinitions)
+        {
+            try
+            {
+                LunaDefinition def = await LunaDefinition.CreateFromFile(this, definitionPath);
+                if (def.TreeNodes[0] != null)
+                {
+                    string pathToTemp = Path.GetRelativePath(PathToProjectRoot, definitionPath);
+                    using FileStream fs = new(Path.Combine(CompileProcess.CurrentTempPath, Path.ChangeExtension(pathToTemp, ".lua")), FileMode.Create, FileAccess.Write);
+                    using (StreamWriter sw = new(fs))
+                    {
+                        foreach (string code in def.TreeNodes[0].ToLua(0))
+                            sw.Write(code);
+                    }
+                }
+                File.Delete(definitionPath);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+    }
+
+    public async Task SaveSCDebugCode()
+    {
         string[] listOfDefinitions = Directory.GetFiles(CompileProcess.CurrentTempPath, "*.lfd", SearchOption.AllDirectories);
         foreach (string definitionPath in listOfDefinitions)
         {

@@ -1,5 +1,4 @@
-﻿using LunaForge.EditorData.Documents;
-using ImGuiNET;
+﻿using ImGuiNET;
 using Newtonsoft.Json;
 using rlImGui_cs;
 using System;
@@ -41,9 +40,6 @@ public abstract class TreeNode : ITraceThrowable
 
     [JsonIgnore]
     public LunaDefinition ParentDef;
-
-    /*[JsonProperty, DefaultValue(false)]
-    public bool IsSelected { get; set; }*/
 
     [JsonProperty, DefaultValue(false)]
     public bool IsBanned { get; set; }
