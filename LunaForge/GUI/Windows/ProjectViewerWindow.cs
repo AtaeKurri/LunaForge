@@ -10,7 +10,7 @@ using System.Numerics;
 using Raylib_cs;
 using System.IO;
 using System.Diagnostics;
-using NativeFileDialogSharp;
+using NativeFileDialogs.Net;
 
 namespace LunaForge.GUI.Windows;
 
@@ -367,12 +367,15 @@ public class ProjectViewerWindow : ImGuiWindow
     {
         Thread dialogThread = new(() =>
         {
-            DialogResult res = Dialog.FileOpen("exe", string.IsNullOrEmpty(ParentProject.PathToLuaSTGExecutable)
+            string path;
+            Dictionary<string, string> filters = [];
+            filters.Add("LuaSTG Executable (*.exe)", "exe");
+            NfdStatus res = Nfd.OpenDialog(out path, filters, string.IsNullOrEmpty(ParentProject.PathToLuaSTGExecutable)
                 ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
                 : Path.GetDirectoryName(ParentProject.PathToLuaSTGExecutable));
-            if (!res.IsOk)
+            if (res != NfdStatus.Ok)
                 return;
-            TempPathToLuaSTGExecutable = res.Path;
+            TempPathToLuaSTGExecutable = path;
         });
         dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
         dialogThread.Start();
@@ -383,12 +386,15 @@ public class ProjectViewerWindow : ImGuiWindow
     {
         Thread dialogThread = new(() =>
         {
-            DialogResult res = Dialog.FileOpen("lfp", string.IsNullOrEmpty(ParentProject.EntryPoint)
+            string path;
+            Dictionary<string, string> filters = [];
+            filters.Add("LunaForge Project (*.lfp)", "lfp");
+            NfdStatus res = Nfd.OpenDialog(out path, filters, string.IsNullOrEmpty(ParentProject.PathToLuaSTGExecutable)
                 ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
-                : Path.GetDirectoryName(ParentProject.EntryPoint));
-            if (!res.IsOk)
+                : Path.GetDirectoryName(ParentProject.PathToLuaSTGExecutable));
+            if (res != NfdStatus.Ok)
                 return;
-            TempEntryPoint = res.Path;
+            TempEntryPoint = path;
         });
         dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
         dialogThread.Start();

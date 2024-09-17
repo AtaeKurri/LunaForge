@@ -19,7 +19,7 @@ using LunaForge.GUI.Helpers;
 using LunaForge.EditorData.Nodes.NodeData.Stages;
 using static LunaForge.EditorData.Nodes.NodeManager;
 using LunaForge.EditorData.InputWindows;
-using NativeFileDialogSharp;
+using NativeFileDialogs.Net;
 
 namespace LunaForge.EditorData.Project;
 
@@ -267,12 +267,13 @@ public class LunaDefinition : LunaProjectFile
             string path = "";
             if (string.IsNullOrEmpty(FullFilePath) || saveAs)
             {
-                DialogResult res = Dialog.FileSave("lfd", Path.GetDirectoryName(path));
-                if (!res.IsOk)
+                Dictionary<string, string> filters = [];
+                filters.Add("LunaForge Definition (*.lfd)", "lfd");
+                NfdStatus res = Nfd.SaveDialog(out path, filters, defaultPath:Path.GetDirectoryName(path));
+                if (res != NfdStatus.Ok)
                     return;
-                path = res.Path;
                 FullFilePath = path;
-                FileName = path[(path.LastIndexOf('\\') + 1)..];
+                FileName = Path.GetFileName(path);
             }
             else path = FullFilePath;
             PushSavedCommand();

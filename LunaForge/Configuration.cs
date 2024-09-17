@@ -41,7 +41,8 @@ public static class Configuration
                 .Build();
 
             string yaml = serializer.Serialize(Default);
-            using StreamWriter sw = new(PathToConfig);
+            using FileStream fs = new(PathToConfig, FileMode.Open, FileAccess.Write);
+            using StreamWriter sw = new(fs);
             sw.Write(yaml);
 
             return true;
@@ -57,6 +58,13 @@ public static class Configuration
     {
         try
         {
+            if (!File.Exists(PathToConfig))
+            {
+                Default = new DefaultConfig();
+                Save();
+                return;
+            }
+
             IDeserializer deserializer = new DeserializerBuilder()
                 .WithNamingConvention(PascalCaseNamingConvention.Instance)
                 .IgnoreUnmatchedProperties()

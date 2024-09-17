@@ -31,4 +31,6 @@ The main "why" point with LunaForge is "[SharpX](https://github.com/Sharp-X-Team
 
 ## For Linux
 
+Linux version is **NOT** stable.
+
 Please install [xsel](https://github.com/kfish/xsel) and make it callable.

@@ -25,8 +25,7 @@ using Path = System.IO.Path;
 using LunaForge.Execution;
 using System.ComponentModel;
 using LunaForge.EditorData.InputWindows;
-using NativeFileDialogSharp;
-using DialogResult = NativeFileDialogSharp.DialogResult;
+using NativeFileDialogs.Net;
 
 namespace LunaForge.GUI;
 
@@ -388,12 +387,14 @@ public sealed class MainWindow : IDisposable
         TreeNode node = (Workspaces.Current?.CurrentProjectFile as LunaDefinition).SelectedNode.Clone() as TreeNode;
         Thread dialogThread = new(() =>
         {
-            DialogResult res = Dialog.FileSave("lfdpreset", Path.GetFullPath(Path.Combine(
+            string path;
+            Dictionary<string, string> filters = [];
+            filters.Add("LunaForge Preset (*.lfdpreset)", "lfdpreset");
+            NfdStatus res = Nfd.SaveDialog(out path, filters, defaultPath:Path.GetFullPath(Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                 "LunaForge Definition Presets")));
-            if (!res.IsOk)
+            if (res != NfdStatus.Ok)
                 return;
-            string path = res.Path;
             try
             {
                 using FileStream fs = new(path, FileMode.Create, FileAccess.Write);
@@ -468,11 +469,12 @@ public sealed class MainWindow : IDisposable
         Thread dialogThread = new(() =>
         {
             string lastUsedPath = Configuration.Default.LastUsedPath;
-            DialogResult res = Dialog.FolderPicker(string.IsNullOrEmpty(lastUsedPath) ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) : lastUsedPath);
-            if (!res.IsOk)
+            string path;
+            NfdStatus res = Nfd.PickFolder(out path, string.IsNullOrEmpty(lastUsedPath) ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) : lastUsedPath);
+            if (res != NfdStatus.Ok)
                 return;
-            Configuration.Default.LastUsedPath = res.Path;
-            CloneTemplate(pathToTemplate, res.Path);
+            Configuration.Default.LastUsedPath = path;
+            CloneTemplate(pathToTemplate, path);
         });
         dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
         dialogThread.Start();
@@ -522,14 +524,19 @@ public sealed class MainWindow : IDisposable
         Thread dialogThread = new(() =>
         {
             string lastUsedPath = Configuration.Default.LastUsedPath;
-            DialogResult res = Dialog.FileOpenMultiple("lfp", string.IsNullOrEmpty(lastUsedPath) ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) : lastUsedPath);
-            if (!res.IsOk)
+            string[] paths;
+            Dictionary<string, string> filters = [];
+            filters.Add("LunaForge Project (*.lfp)", "lfp");
+            NfdStatus res = Nfd.OpenDialogMultiple(out paths, filters, string.IsNullOrEmpty(lastUsedPath)
+                ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+                : lastUsedPath);
+            if (res != NfdStatus.Ok)
                 return;
-            for (int i = 0; i < res.Paths.Count; i++)
+            for (int i = 0; i < paths.Length; i++)
             {
-                if (!IsProjectOpened(res.Paths[i]))
-                    OpenProjectFromPath(res.Paths[i]);
-                Configuration.Default.LastUsedPath = Path.GetDirectoryName(res.Paths[i]);
+                if (!IsProjectOpened(paths[i]))
+                    OpenProjectFromPath(paths[i]);
+                Configuration.Default.LastUsedPath = Path.GetDirectoryName(paths[i]);
             }
         });
         dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
