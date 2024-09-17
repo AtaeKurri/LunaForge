@@ -51,7 +51,6 @@ public class NodeAttributeWindow : ImGuiWindow
                     // Attr Value
                     ImGui.TableSetColumnIndex(1);
                     ImGui.SetNextItemWidth(-1);
-                    // TODO: Replace this with a ComboBox when the EditWindow types are defined.
                     ImGuiInputTextFlags Tflags = ImGuiInputTextFlags.EnterReturnsTrue;
                     if (attr.AttrValue != string.Empty && attr.TempAttrValue == string.Empty)
                         attr.TempAttrValue = attr.AttrValue;
@@ -64,7 +63,7 @@ public class NodeAttributeWindow : ImGuiWindow
                     ImGui.TableSetColumnIndex(2);
                     if (ImGui.Button($"...##{attr.AttrName}", new Vector2(ImGui.GetContentRegionAvail().X, 0)))
                     {
-                        Console.WriteLine($"More clicked for: {attr.AttrName}");
+                        CurrentNode.ParentDef.ShowEditWindow(CurrentNode, CurrentNode.Attributes.IndexOf(attr));
                     }
                 }
 

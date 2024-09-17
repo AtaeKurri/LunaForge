@@ -28,7 +28,7 @@ public class ZipCompressorInternal : ZipCompressor
         }
         catch (Exception e)
         {
-            System.Windows.MessageBox.Show($"Packaging failed.\n{e}");
+            Console.WriteLine($"Packaging failed.\n{e}");
         }
     }
 

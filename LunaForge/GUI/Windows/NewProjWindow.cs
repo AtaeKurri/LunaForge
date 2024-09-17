@@ -35,7 +35,7 @@ public class NewProjWindow : ImGuiWindow
     public NewProjWindow(MainWindow parent)
         : base(parent, false)
     {
-        Author = parent.AuthorName;
+        Author = Configuration.Default.AuthorName;
     }
 
     public void Reset()
@@ -43,7 +43,7 @@ public class NewProjWindow : ImGuiWindow
         ShowWindow = false;
         SelectedTemplate = null;
 
-        string templatePath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates\\"));
+        string templatePath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates"));
         DirectoryInfo dir = new(templatePath);
         List<FileInfo> fis = new(dir.GetFiles("*.json"));
 

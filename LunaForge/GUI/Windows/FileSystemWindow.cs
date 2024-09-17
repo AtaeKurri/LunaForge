@@ -66,7 +66,7 @@ public class FileSystemWindow : ImGuiWindow
         foreach (string file in files)
         {
             string fileName = Path.GetFileName(file);
-            if (fileName.EndsWith(".lfp"))
+            if (fileName.EndsWith(".lfp") || fileName.EndsWith("meta.dat"))
                 continue;
             ImGui.Selectable(fileName);
             if (ImGui.BeginPopupContextItem())

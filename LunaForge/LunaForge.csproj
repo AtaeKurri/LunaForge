@@ -2,11 +2,10 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-	<UseWindowsForms>True</UseWindowsForms>
-	<UseWPF>True</UseWPF>
+    <Nullable>annotations</Nullable>
+	
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	<BaseOutputPath>..\bin</BaseOutputPath>
@@ -16,6 +15,9 @@
 	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <PackageIcon>Icon.png</PackageIcon>
+    <AssemblyName>LunaForge</AssemblyName>
+    <RootNamespace>LunaForge</RootNamespace>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -80,9 +82,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="ICSharpCode.SharpZipLib.dll" Version="0.85.4.369" />
     <PackageReference Include="ImGui.NET" Version="1.91.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="NativeFileDialogExtendedSharp" Version="0.1.0" />
+    <PackageReference Include="NativeFileDialogSharp" Version="0.5.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <PackageReference Include="TextCopy" Version="6.2.1" />
@@ -95,21 +106,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Properties\Settings.Designer.cs">
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="Images\Icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
-    </None>
-    <None Update="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
 </Project>

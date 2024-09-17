@@ -10,6 +10,7 @@ using System.Numerics;
 using Raylib_cs;
 using System.IO;
 using System.Diagnostics;
+using NativeFileDialogSharp;
 
 namespace LunaForge.GUI.Windows;
 
@@ -366,16 +367,12 @@ public class ProjectViewerWindow : ImGuiWindow
     {
         Thread dialogThread = new(() =>
         {
-            Microsoft.Win32.OpenFileDialog openFileDialog = new()
-            {
-                Multiselect = false,
-                Filter = "LuaSTG Executable (*.exe)|*.exe",
-                InitialDirectory = string.IsNullOrEmpty(ParentProject.PathToLuaSTGExecutable)
+            DialogResult res = Dialog.FileOpen("exe", string.IsNullOrEmpty(ParentProject.PathToLuaSTGExecutable)
                 ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
-                : Path.GetDirectoryName(ParentProject.PathToLuaSTGExecutable) 
-            };
-            if (openFileDialog.ShowDialog() != true) return;
-            TempPathToLuaSTGExecutable = openFileDialog.FileName;
+                : Path.GetDirectoryName(ParentProject.PathToLuaSTGExecutable));
+            if (!res.IsOk)
+                return;
+            TempPathToLuaSTGExecutable = res.Path;
         });
         dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
         dialogThread.Start();
@@ -386,16 +383,12 @@ public class ProjectViewerWindow : ImGuiWindow
     {
         Thread dialogThread = new(() =>
         {
-            Microsoft.Win32.OpenFileDialog openFileDialog = new()
-            {
-                Multiselect = false,
-                Filter = "Entry Point file (*.lua;*.lfd)|*.lua;*.lfd",
-                InitialDirectory = string.IsNullOrEmpty(ParentProject.EntryPoint)
+            DialogResult res = Dialog.FileOpen("lfp", string.IsNullOrEmpty(ParentProject.EntryPoint)
                 ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
-                : Path.GetDirectoryName(ParentProject.EntryPoint)
-            };
-            if (openFileDialog.ShowDialog() != true) return;
-            TempEntryPoint = openFileDialog.FileName;
+                : Path.GetDirectoryName(ParentProject.EntryPoint));
+            if (!res.IsOk)
+                return;
+            TempEntryPoint = res.Path;
         });
         dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
         dialogThread.Start();

@@ -10,7 +10,7 @@ namespace LunaForge.GUI.Windows;
 public class DefinitionsWindow : ImGuiWindow
 {
     public DefinitionsWindow(MainWindow parent)
-        : base(parent, Properties.Settings.Default.DefinitionsWindowOpen)
+        : base(parent, Configuration.Default.DefinitionsWindowOpen)
     {
 
     }
@@ -21,6 +21,6 @@ public class DefinitionsWindow : ImGuiWindow
         {
             End();
         }
-        Properties.Settings.Default.DefinitionsWindowOpen = ShowWindow;
+        Configuration.Default.DefinitionsWindowOpen = ShowWindow;
     }
 }

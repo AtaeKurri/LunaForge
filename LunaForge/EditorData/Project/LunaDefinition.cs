@@ -5,12 +5,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Controls;
 using TreeNode = LunaForge.EditorData.Nodes.TreeNode;
 using ImGuiNET;
 using LunaForge.API.Core;
 using LunaForge.EditorData.Commands;
-using static System.ComponentModel.Design.ObjectSelectorEditor;
 using System.ComponentModel;
 using LunaForge.GUI;
 using TextCopy;
@@ -20,6 +18,8 @@ using rlImGui_cs;
 using LunaForge.GUI.Helpers;
 using LunaForge.EditorData.Nodes.NodeData.Stages;
 using static LunaForge.EditorData.Nodes.NodeManager;
+using LunaForge.EditorData.InputWindows;
+using NativeFileDialogSharp;
 
 namespace LunaForge.EditorData.Project;
 
@@ -47,7 +47,6 @@ public class LunaDefinition : LunaProjectFile
             RenderRootTypeSelector();
         else
         {
-            // TODO: Render the relevant node icons here. (insert mode, ...)
             RenderNodeToolbar();
             ImGui.Separator();
             RenderTreeView(TreeNodes[0], TreeNodes[0].IsBanned);
@@ -251,7 +250,7 @@ public class LunaDefinition : LunaProjectFile
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message);
+            Console.WriteLine(ex.ToString());
         }
         tree.Add(root);
         return tree;
@@ -268,17 +267,10 @@ public class LunaDefinition : LunaProjectFile
             string path = "";
             if (string.IsNullOrEmpty(FullFilePath) || saveAs)
             {
-                Microsoft.Win32.SaveFileDialog dialog = new()
-                {
-                    Filter = "LunaForge Definition (*.lfd)|*.lfd",
-                    InitialDirectory = Path.GetDirectoryName(path),
-                    FileName = saveAs ? string.Empty : FileName
-                };
-                do
-                {
-                    if (dialog.ShowDialog() == false) return;
-                } while (string.IsNullOrEmpty(dialog.FileName));
-                path = dialog.FileName;
+                DialogResult res = Dialog.FileSave("lfd", Path.GetDirectoryName(path));
+                if (!res.IsOk)
+                    return;
+                path = res.Path;
                 FullFilePath = path;
                 FileName = path[(path.LastIndexOf('\\') + 1)..];
             }
@@ -391,7 +383,7 @@ public class LunaDefinition : LunaProjectFile
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.ToString());
+            Console.WriteLine(ex.ToString());
             return false;
         }
     }
@@ -399,7 +391,27 @@ public class LunaDefinition : LunaProjectFile
     public void CreateInvoke(TreeNode node)
     {
         NodeAttribute attr = node.GetCreateInvoke();
-        // TODO: inputwindow invoke.
+        if (attr != null)
+        {
+            InputWindow inputWindow = InputWindowSelector.SelectInputWindow(attr, attr.EditWindow, attr.AttrValue);
+            inputWindow.Invoke((result) =>
+            {
+                AddAndExecuteCommand(new EditAttributeCommand(attr, attr.AttrValue, result));
+            });
+        }
+    }
+
+    public void ShowEditWindow(TreeNode node, int? id = null)
+    {
+        NodeAttribute attr = (id.HasValue) ? node.Attributes[id.Value] : node.GetRCInvoke();
+        if (attr != null)
+        {
+            InputWindow inputWindow = InputWindowSelector.SelectInputWindow(attr, attr.EditWindow, attr.AttrValue);
+            inputWindow.Invoke((result) =>
+            {
+                AddAndExecuteCommand(new EditAttributeCommand(attr, attr.AttrValue, result));
+            });
+        }
     }
 
     public void CutNode()

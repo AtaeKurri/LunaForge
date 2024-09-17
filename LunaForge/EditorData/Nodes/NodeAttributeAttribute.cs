@@ -9,10 +9,12 @@ namespace LunaForge.EditorData.Nodes;
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
 public class NodeAttributeAttribute : Attribute
 {
-    public string Default { get; set; }
+    public string EditWindow { get; set; }
+    public string DefaultValue { get; set; }
 
-    public NodeAttributeAttribute(string defaultValue = "")
+    public NodeAttributeAttribute(string editWindow = "", string defaultValue = "")
     {
-        Default = defaultValue;
+        EditWindow = editWindow;
+        DefaultValue = defaultValue;
     }
 }

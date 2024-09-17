@@ -19,13 +19,14 @@ using LunaForge.Plugins;
 using LunaForge.EditorData.Nodes;
 using TreeNode = LunaForge.EditorData.Nodes.TreeNode;
 using LunaForge.EditorData.Commands;
-using static System.ComponentModel.Design.ObjectSelectorEditor;
 using Image = Raylib_cs.Image;
 using LunaForge.EditorData.Traces;
-using System.Windows.Shapes;
 using Path = System.IO.Path;
 using LunaForge.Execution;
 using System.ComponentModel;
+using LunaForge.EditorData.InputWindows;
+using NativeFileDialogSharp;
+using DialogResult = NativeFileDialogSharp.DialogResult;
 
 namespace LunaForge.GUI;
 
@@ -143,6 +144,8 @@ public sealed class MainWindow : IDisposable
     /// </summary>
     public MainWindow()
     {
+        Configuration.Load();
+
         ToolboxWin = new(this);
         NodeAttributeWin = new(this);
         DefinitionsWin = new(this);
@@ -179,6 +182,7 @@ public sealed class MainWindow : IDisposable
 
         LoadEditorImages();
         NodeManager.RegisterDefinitionNodes();
+        InputWindowSelector.Register(new InputWindowSelectorRegister());
 
         rlImGui.Setup(true, true);
         ImGui.GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
@@ -215,7 +219,7 @@ public sealed class MainWindow : IDisposable
             }
         }
 
-        Properties.Settings.Default.Save();
+        Configuration.Save();
 
         Dispose();
 
@@ -235,6 +239,8 @@ public sealed class MainWindow : IDisposable
         NewProjWin.Render();
         FSWin.Render();
         ViewCodeWin.Render();
+
+        InputWindowSelector.CurrentInputWindow?.Render();
     }
 
     #region RenderMenu
@@ -382,16 +388,12 @@ public sealed class MainWindow : IDisposable
         TreeNode node = (Workspaces.Current?.CurrentProjectFile as LunaDefinition).SelectedNode.Clone() as TreeNode;
         Thread dialogThread = new(() =>
         {
-            Microsoft.Win32.SaveFileDialog dialog = new()
-            {
-                Filter = "LunaForge Preset (*.lfdpreset)|*.lfdpreset",
-                InitialDirectory = Path.GetFullPath(Path.Combine(
+            DialogResult res = Dialog.FileSave("lfdpreset", Path.GetFullPath(Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                "LunaForge Definition Presets"))
-            };
-            if (dialog.ShowDialog() == false)
+                "LunaForge Definition Presets")));
+            if (!res.IsOk)
                 return;
-            string path = dialog.FileName;
+            string path = res.Path;
             try
             {
                 using FileStream fs = new(path, FileMode.Create, FileAccess.Write);
@@ -402,6 +404,7 @@ public sealed class MainWindow : IDisposable
             {
                 Console.WriteLine(ex.ToString());
             }
+            
         });
         dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
         dialogThread.Start();
@@ -464,17 +467,12 @@ public sealed class MainWindow : IDisposable
 
         Thread dialogThread = new(() =>
         {
-            string lastUsedPath = LastUsedPath;
-            FolderBrowserDialog dialog = new()
-            {
-                InitialDirectory = string.IsNullOrEmpty(lastUsedPath) ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) : lastUsedPath,
-                ShowHiddenFiles = true,
-                ShowNewFolderButton = true,
-                ShowPinnedPlaces = true
-            };
-            if (dialog.ShowDialog() != DialogResult.OK) return;
-            LastUsedPath = dialog.SelectedPath;
-            CloneTemplate(pathToTemplate, dialog.SelectedPath);
+            string lastUsedPath = Configuration.Default.LastUsedPath;
+            DialogResult res = Dialog.FolderPicker(string.IsNullOrEmpty(lastUsedPath) ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) : lastUsedPath);
+            if (!res.IsOk)
+                return;
+            Configuration.Default.LastUsedPath = res.Path;
+            CloneTemplate(pathToTemplate, res.Path);
         });
         dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
         dialogThread.Start();
@@ -523,19 +521,15 @@ public sealed class MainWindow : IDisposable
     {
         Thread dialogThread = new(() =>
         {
-            string lastUsedPath = Properties.Settings.Default.LastUsedPath;
-            Microsoft.Win32.OpenFileDialog openFileDialog = new()
+            string lastUsedPath = Configuration.Default.LastUsedPath;
+            DialogResult res = Dialog.FileOpenMultiple("lfp", string.IsNullOrEmpty(lastUsedPath) ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) : lastUsedPath);
+            if (!res.IsOk)
+                return;
+            for (int i = 0; i < res.Paths.Count; i++)
             {
-                Multiselect = true,
-                Filter = "LunaForge Project (*.lfp)|*.lfp",
-                InitialDirectory = string.IsNullOrEmpty(lastUsedPath) ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) : lastUsedPath
-            };
-            if (openFileDialog.ShowDialog() != true) return;
-            for (int i = 0; i < openFileDialog.FileNames.Length; i++)
-            {
-                if (!IsProjectOpened(openFileDialog.FileNames[i]))
-                    OpenProjectFromPath(openFileDialog.FileNames[i]);
-                Properties.Settings.Default.LastUsedPath = Path.GetDirectoryName(openFileDialog.FileNames[i]);
+                if (!IsProjectOpened(res.Paths[i]))
+                    OpenProjectFromPath(res.Paths[i]);
+                Configuration.Default.LastUsedPath = Path.GetDirectoryName(res.Paths[i]);
             }
         });
         dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
@@ -597,10 +591,12 @@ public sealed class MainWindow : IDisposable
     /// </summary>
     /// <param name="file">The project file instance.</param>
     /// <returns>True if the file was saved/closed; otherwise, false.</returns>
+    [Obsolete]
     public bool CloseProjectFile(LunaProjectFile file)
     {
         if (file.IsUnsaved)
         {
+            /*
             switch (System.Windows.MessageBox.Show($"Do you want to save \"{file.FileName}\"?",
                     LunaForgeName, MessageBoxButton.YesNoCancel, MessageBoxImage.Question))
             {
@@ -615,7 +611,7 @@ public sealed class MainWindow : IDisposable
                     break;
                 default:
                     return false;
-            }
+            }*/
         }
         else
         {
@@ -893,36 +889,6 @@ public sealed class MainWindow : IDisposable
             Console.WriteLine(ex.ToString());
             return false;
         }
-    }
-
-    #endregion
-    #region Configurations
-
-    /// <summary>
-    /// Should the <see cref="DefinitionsWindow"/> be opened.
-    /// </summary>
-    public bool DefinitionsWindowOpen
-    {
-        get => Properties.Settings.Default.DefinitionsWindowOpen;
-        set => Properties.Settings.Default.DefinitionsWindowOpen = value;
-    }
-
-    /// <summary>
-    /// The default AuthorName for this LunaForge installation.
-    /// </summary>
-    public string AuthorName
-    {
-        get => Properties.Settings.Default.AuthorName;
-        set => Properties.Settings.Default.AuthorName = value;
-    }
-
-    /// <summary>
-    /// The last used path for folder searching in Open, Save, ...
-    /// </summary>
-    public string LastUsedPath
-    {
-        get => Properties.Settings.Default.LastUsedPath;
-        set => Properties.Settings.Default.LastUsedPath = value;
     }
 
     #endregion

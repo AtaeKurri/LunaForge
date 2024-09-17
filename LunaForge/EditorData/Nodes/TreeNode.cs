@@ -215,6 +215,18 @@ public abstract class TreeNode : ITraceThrowable
         return regex.IsMatch(s);
     }
 
+    public NodeAttribute GetCreateInvoke()
+    {
+        int? invokeID = MetaData.CreateInvokeId;
+        return invokeID.HasValue ? Attributes[invokeID.Value] : null;
+    }
+
+    public NodeAttribute GetRCInvoke()
+    {
+        int? id = MetaData.RCInvokeId;
+        return id.HasValue ? Attributes[id.Value] : null;
+    }
+
     #endregion
     #region Rendering
 
@@ -591,12 +603,6 @@ public abstract class TreeNode : ITraceThrowable
         foreach (TreeNode tn in childrens)
             this.Children.Add(tn);
         Parent = source.Parent;
-    }
-
-    public NodeAttribute GetCreateInvoke()
-    {
-        int? invokeID = MetaData.CreateInvokeId;
-        return invokeID.HasValue ? Attributes[invokeID.Value] : null;
     }
 
     public abstract IEnumerable<Tuple<int, TreeNode>> GetLines();

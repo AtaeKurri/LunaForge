@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using ImGuiNET;
+using NativeFileDialogSharp;
 using YamlDotNet.Core.Tokens;
 
 namespace LunaForge.EditorData.Project;
@@ -74,17 +75,10 @@ public class LunaScript : LunaProjectFile
             string path = "";
             if (string.IsNullOrEmpty(FullFilePath) || saveAs)
             {
-                Microsoft.Win32.SaveFileDialog dialog = new()
-                {
-                    Filter = "Lua Script (*.lua)|*.lua",
-                    InitialDirectory = Path.GetDirectoryName(path),
-                    FileName = saveAs ? string.Empty : FileName
-                };
-                do
-                {
-                    if (dialog.ShowDialog() == false) return;
-                } while (string.IsNullOrEmpty(dialog.FileName));
-                path = dialog.FileName;
+                DialogResult res = Dialog.FileSave("lfd", Path.GetDirectoryName(path));
+                if (!res.IsOk)
+                    return;
+                path = res.Path;
                 FullFilePath = path;
                 FileName = path[(path.LastIndexOf('\\') + 1)..];
             }

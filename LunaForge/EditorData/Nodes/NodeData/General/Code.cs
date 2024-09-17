@@ -27,7 +27,7 @@ public class Code : TreeNode
         CodeContent = code;
     }
 
-    [JsonIgnore, NodeAttribute]
+    [JsonIgnore, NodeAttribute("")]
     public string CodeContent
     {
         get => CheckAttr(0, "Code").AttrValue;
