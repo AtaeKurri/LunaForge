@@ -41,7 +41,7 @@ public static class Configuration
                 .Build();
 
             string yaml = serializer.Serialize(Default);
-            using FileStream fs = new(PathToConfig, FileMode.Open, FileAccess.Write);
+            using FileStream fs = new(PathToConfig, FileMode.Create, FileAccess.Write);
             using StreamWriter sw = new(fs);
             sw.Write(yaml);
 

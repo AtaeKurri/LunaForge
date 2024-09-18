@@ -25,7 +25,6 @@ using Path = System.IO.Path;
 using LunaForge.Execution;
 using System.ComponentModel;
 using LunaForge.EditorData.InputWindows;
-using NativeFileDialogs.Net;
 using LunaForge.GUI.ImGuiFileDialog;
 
 namespace LunaForge.GUI;
@@ -386,18 +385,12 @@ public sealed class MainWindow : IDisposable
         }
     }
 
-    public void NodeToPreset()
+    public void NodeToPreset(TreeNode nodeToSave = null)
     {
-        TreeNode node = (Workspaces.Current?.CurrentProjectFile as LunaDefinition).SelectedNode.Clone() as TreeNode;
-        Thread dialogThread = new(() =>
+        TreeNode node = nodeToSave ?? (Workspaces.Current?.CurrentProjectFile as LunaDefinition).SelectedNode.Clone() as TreeNode;
+        void SelectPath(bool success, string path)
         {
-            string path;
-            Dictionary<string, string> filters = [];
-            filters.Add("LunaForge Preset (*.lfdpreset)", "lfdpreset");
-            NfdStatus res = Nfd.SaveDialog(out path, filters, defaultPath:Path.GetFullPath(Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                "LunaForge Definition Presets")));
-            if (res != NfdStatus.Ok)
+            if (!success)
                 return;
             try
             {
@@ -409,10 +402,12 @@ public sealed class MainWindow : IDisposable
             {
                 Console.WriteLine(ex.ToString());
             }
-            
-        });
-        dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
-        dialogThread.Start();
+        }
+
+        FileDialogManager.SaveFileDialog("Create Preset", "LunaForge Preset{.lfdpreset}", "", "LunaForge Definition{.lfdpreset}", SelectPath,
+            Path.GetFullPath(Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "LunaForge Definition Presets")), true);
     }
     public bool NodeToPreset_CanExecute() => (Workspaces.Current?.CurrentProjectFile as LunaDefinition) != null;
 
@@ -470,18 +465,17 @@ public sealed class MainWindow : IDisposable
     {
         string pathToTemplate = Path.GetFullPath(NewProjWin.SelectedPath);
 
-        Thread dialogThread = new(() =>
+        void SelectPath(bool success, string path)
         {
-            string lastUsedPath = Configuration.Default.LastUsedPath;
-            string path;
-            NfdStatus res = Nfd.PickFolder(out path, string.IsNullOrEmpty(lastUsedPath) ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) : lastUsedPath);
-            if (res != NfdStatus.Ok)
+            if (!success)
                 return;
             Configuration.Default.LastUsedPath = path;
             CloneTemplate(pathToTemplate, path);
-        });
-        dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
-        dialogThread.Start();
+        }
+
+        string lastUsedPath = Configuration.Default.LastUsedPath;
+        FileDialogManager.OpenFolderDialog("New Project", SelectPath,
+            string.IsNullOrEmpty(lastUsedPath) ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) : lastUsedPath, true);
     }
 
     /// <summary>
@@ -542,8 +536,6 @@ public sealed class MainWindow : IDisposable
         FileDialogManager.OpenFileDialog("Open Project File", "LunaForge Project{.lfp}", SelectPath, 1, string.IsNullOrEmpty(lastUsedPath)
                 ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
                 : lastUsedPath, true);
-
-        return;
     }
 
     /// <summary>
@@ -835,13 +827,13 @@ public sealed class MainWindow : IDisposable
     /// </summary>
     /// <returns>True if the save went without problem; otherwise, false.</returns>
     /// <seealso cref="SaveActiveProjectFileAs">Saves the project file but as a new file.</seealso>
-    public bool SaveActiveProjectFile() => SaveProject(Workspaces.Current?.CurrentProjectFile);
+    public void SaveActiveProjectFile() => SaveProject(Workspaces.Current?.CurrentProjectFile);
     /// <summary>
     /// Saves the currently selected <see cref="LunaProjectFile"/> as new file.
     /// </summary>
     /// <returns>True if the save went without problem; otherwise, false.</returns>
     /// <seealso cref="SaveActiveProjectFile">Saves the project file normally.</seealso>
-    public bool SaveActiveProjectFileAs() => SaveProject(Workspaces.Current?.CurrentProjectFile, true);
+    public void SaveActiveProjectFileAs() => SaveProject(Workspaces.Current?.CurrentProjectFile, true);
 
     /// <summary>
     /// Saves the given <see cref="LunaProjectFile"/> normally or as a new file.
@@ -851,9 +843,9 @@ public sealed class MainWindow : IDisposable
     /// <returns>True if the save went without problem; otherwise, false.</returns>
     /// <seealso cref="SaveActiveProjectFile">Saves the project file normally.</seealso>
     /// <seealso cref="SaveActiveProjectFileAs">Saves the project file but as a new file.</seealso>
-    public bool SaveProject(LunaProjectFile projFile, bool saveAs = false)
+    public void SaveProject(LunaProjectFile projFile, bool saveAs = false)
     {
-        return projFile.Save(saveAs);
+        projFile.Save(saveAs);
     }
 
     /// <summary>

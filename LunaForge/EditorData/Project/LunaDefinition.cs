@@ -19,7 +19,7 @@ using LunaForge.GUI.Helpers;
 using LunaForge.EditorData.Nodes.NodeData.Stages;
 using static LunaForge.EditorData.Nodes.NodeManager;
 using LunaForge.EditorData.InputWindows;
-using NativeFileDialogs.Net;
+using LunaForge.GUI.ImGuiFileDialog;
 
 namespace LunaForge.EditorData.Project;
 
@@ -259,43 +259,40 @@ public class LunaDefinition : LunaProjectFile
     #endregion
     #region IO
 
-    public override bool Save(bool saveAs = false)
+    public override void Save(bool saveAs = false)
     {
-        bool result = false;
-        Thread dialogThread = new(() =>
+        void SelectPath(bool success, string path)
         {
-            string path = "";
-            if (string.IsNullOrEmpty(FullFilePath) || saveAs)
+            if (success)
             {
-                Dictionary<string, string> filters = [];
-                filters.Add("LunaForge Definition (*.lfd)", "lfd");
-                NfdStatus res = Nfd.SaveDialog(out path, filters, defaultPath:Path.GetDirectoryName(path));
-                if (res != NfdStatus.Ok)
-                    return;
                 FullFilePath = path;
                 FileName = Path.GetFileName(path);
-            }
-            else path = FullFilePath;
-            PushSavedCommand();
-            try
-            {
-                using (StreamWriter sw = new(path))
+                PushSavedCommand();
+                try
                 {
+                    using StreamWriter sw = new(path);
                     SerializeToFile(sw);
                 }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                    return;
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                return;
-            }
-            result = true;
-            return;
-        });
-        dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
-        dialogThread.Start();
-        dialogThread.Join();
-        return result;
+        }
+
+        if (string.IsNullOrEmpty(FullFilePath) || saveAs)
+        {
+            string lastUsedPath = Configuration.Default.LastUsedPath;
+            ParentProject.Window.ParentWindow.FileDialogManager.SaveFileDialog("Save Definition", "LunaForge Definition{.lfd}",
+                saveAs ? string.Empty : FileName, "LunaForge Definition{.lfd}", SelectPath, string.IsNullOrEmpty(lastUsedPath)
+                    ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+                    : lastUsedPath, true);
+        }
+        else
+        {
+            SelectPath(true, FullFilePath);
+        }
     }
 
     public void SerializeToFile(StreamWriter sw)

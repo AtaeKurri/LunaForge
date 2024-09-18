@@ -100,7 +100,7 @@ public abstract class LunaProjectFile : ITraceThrowable
     #endregion
     #region IO
 
-    public abstract bool Save(bool saveAs = false);
+    public abstract void Save(bool saveAs = false);
 
     #endregion
     #region Traces

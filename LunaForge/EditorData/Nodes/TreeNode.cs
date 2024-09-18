@@ -260,9 +260,9 @@ public abstract class TreeNode : ITraceThrowable
             ParentDef.ParentProject.Parent.MainWin.ViewCodeWin.ResetAndShow(code.ToString());
         }
         ImGui.Separator();
-        if (ImGui.MenuItem("Save as Preset"))
+        if (ImGui.MenuItem("Save as Preset", string.Empty, false, ParentDef.ParentProject.Parent.MainWin.NodeToPreset_CanExecute()))
         {
-
+            ParentDef.ParentProject.Parent.MainWin.NodeToPreset(this);
         }
     }
 

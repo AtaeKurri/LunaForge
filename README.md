@@ -35,6 +35,12 @@ Linux version is **NOT** stable.
 
 Please install [xsel](https://github.com/kfish/xsel) and make it callable.
 
+## For MacOS
+
+MacOS version is **NOT** stable.
+
+No testing has been made yet.
+
 ## Licence
 
 All files from the **LunaForge.GUI.ImGuiFileDialog** namespace are taken and modified from [Dalamud](https://github.com/goatcorp/Dalamud).

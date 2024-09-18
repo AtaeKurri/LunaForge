@@ -10,7 +10,7 @@ using System.Numerics;
 using Raylib_cs;
 using System.IO;
 using System.Diagnostics;
-using NativeFileDialogs.Net;
+using LunaForge.GUI.ImGuiFileDialog;
 
 namespace LunaForge.GUI.Windows;
 
@@ -365,40 +365,32 @@ public class ProjectViewerWindow : ImGuiWindow
     /// </summary>
     public void PromptLuaSTGPath()
     {
-        Thread dialogThread = new(() =>
+        void SelectPath(bool success, List<string> paths)
         {
-            string path;
-            Dictionary<string, string> filters = [];
-            filters.Add("LuaSTG Executable (*.exe)", "exe");
-            NfdStatus res = Nfd.OpenDialog(out path, filters, string.IsNullOrEmpty(ParentProject.PathToLuaSTGExecutable)
-                ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
-                : Path.GetDirectoryName(ParentProject.PathToLuaSTGExecutable));
-            if (res != NfdStatus.Ok)
+            if (!success)
                 return;
-            TempPathToLuaSTGExecutable = path;
-        });
-        dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
-        dialogThread.Start();
-        dialogThread.Join();
+            TempPathToLuaSTGExecutable = paths[0];
+        }
+
+        string lastUsedPath = Configuration.Default.LastUsedPath;
+        ParentWindow.FileDialogManager.OpenFileDialog("Choose Executable", "LuaSTG Executable{.exe}", SelectPath, 1, string.IsNullOrEmpty(ParentProject.PathToLuaSTGExecutable)
+                ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+                : Path.GetDirectoryName(ParentProject.PathToLuaSTGExecutable), true);
     }
 
     public void PromptEntryPointPath()
     {
-        Thread dialogThread = new(() =>
+        void SelectPath(bool success, List<string> paths)
         {
-            string path;
-            Dictionary<string, string> filters = [];
-            filters.Add("LunaForge Project (*.lfp)", "lfp");
-            NfdStatus res = Nfd.OpenDialog(out path, filters, string.IsNullOrEmpty(ParentProject.PathToLuaSTGExecutable)
-                ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
-                : Path.GetDirectoryName(ParentProject.PathToLuaSTGExecutable));
-            if (res != NfdStatus.Ok)
+            if (!success)
                 return;
-            TempEntryPoint = path;
-        });
-        dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
-        dialogThread.Start();
-        dialogThread.Join();
+            TempEntryPoint = paths[0];
+        }
+
+        string lastUsedPath = Configuration.Default.LastUsedPath;
+        ParentWindow.FileDialogManager.OpenFileDialog("Choose Project", "LunaForge Project{.lfp}", SelectPath, 1, string.IsNullOrEmpty(ParentProject.PathToLuaSTGExecutable)
+                ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+                : Path.GetDirectoryName(ParentProject.PathToLuaSTGExecutable), true);
     }
 
     #endregion

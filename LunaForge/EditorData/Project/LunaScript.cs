@@ -8,7 +8,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using ImGuiNET;
-using NativeFileDialogs.Net;
 using YamlDotNet.Core.Tokens;
 
 namespace LunaForge.EditorData.Project;
@@ -67,43 +66,40 @@ public class LunaScript : LunaProjectFile
         }
     }
 
-    public override bool Save(bool saveAs = false)
+    public override void Save(bool saveAs = false)
     {
-        bool result = false;
-        Thread dialogThread = new(() =>
+        void SelectPath(bool success, string path)
         {
-            string path = "";
-            if (string.IsNullOrEmpty(FullFilePath) || saveAs)
+            if (success)
             {
-                Dictionary<string, string> filters = [];
-                filters.Add("Lua Script (*.lua)", "lua");
-                NfdStatus res = Nfd.SaveDialog(out path, filters, defaultPath: Path.GetDirectoryName(path));
-                if (res != NfdStatus.Ok)
-                    return;
                 FullFilePath = path;
                 FileName = Path.GetFileName(path);
-            }
-            else path = FullFilePath;
-            PushSavedCommand();
-            try
-            {
-                using (StreamWriter sw = new(path, false))
+                PushSavedCommand();
+                try
                 {
+                    using StreamWriter sw = new(path);
                     SerializeToFile(sw);
                 }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                    return;
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                return;
-            }
-            result = true;
-            return;
-        });
-        dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
-        dialogThread.Start();
-        dialogThread.Join();
-        return result;
+        }
+
+        if (string.IsNullOrEmpty(FullFilePath) || saveAs)
+        {
+            string lastUsedPath = Configuration.Default.LastUsedPath;
+            ParentProject.Window.ParentWindow.FileDialogManager.SaveFileDialog("Save Script", "Lua Script{.lua}",
+                saveAs ? string.Empty : FileName, "Lua Script{.lua}", SelectPath, string.IsNullOrEmpty(lastUsedPath)
+                    ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+                    : lastUsedPath, true);
+        }
+        else
+        {
+            SelectPath(true, FullFilePath);
+        }
     }
 
     public void SerializeToFile(StreamWriter sw)
