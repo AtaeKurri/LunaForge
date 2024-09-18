@@ -34,3 +34,7 @@ The main "why" point with LunaForge is "[SharpX](https://github.com/Sharp-X-Team
 Linux version is **NOT** stable.
 
 Please install [xsel](https://github.com/kfish/xsel) and make it callable.
+
+## Licence
+
+All files from the **LunaForge.GUI.ImGuiFileDialog** namespace are taken and modified from [Dalamud](https://github.com/goatcorp/Dalamud).

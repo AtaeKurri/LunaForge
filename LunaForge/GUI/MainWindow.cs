@@ -26,6 +26,7 @@ using LunaForge.Execution;
 using System.ComponentModel;
 using LunaForge.EditorData.InputWindows;
 using NativeFileDialogs.Net;
+using LunaForge.GUI.ImGuiFileDialog;
 
 namespace LunaForge.GUI;
 
@@ -102,6 +103,8 @@ public sealed class MainWindow : IDisposable
     /// The plugin manager. Currently not active in alpha. See the API documentation to see how to use plugins.
     /// </summary>
     public PluginManager Plugins { get; private set; } = new();
+
+    public FileDialogManager FileDialogManager { get; set; } = new();
 
     #region Windows
 
@@ -240,6 +243,7 @@ public sealed class MainWindow : IDisposable
         ViewCodeWin.Render();
 
         InputWindowSelector.CurrentInputWindow?.Render();
+        FileDialogManager.Draw();
     }
 
     #region RenderMenu
@@ -521,26 +525,25 @@ public sealed class MainWindow : IDisposable
     /// </summary>
     public void OpenProject()
     {
-        Thread dialogThread = new(() =>
+        void SelectPath(bool success, List<string> paths)
         {
-            string lastUsedPath = Configuration.Default.LastUsedPath;
-            string[] paths;
-            Dictionary<string, string> filters = [];
-            filters.Add("LunaForge Project (*.lfp)", "lfp");
-            NfdStatus res = Nfd.OpenDialogMultiple(out paths, filters, string.IsNullOrEmpty(lastUsedPath)
-                ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
-                : lastUsedPath);
-            if (res != NfdStatus.Ok)
-                return;
-            for (int i = 0; i < paths.Length; i++)
+            if (success)
             {
-                if (!IsProjectOpened(paths[i]))
-                    OpenProjectFromPath(paths[i]);
-                Configuration.Default.LastUsedPath = Path.GetDirectoryName(paths[i]);
+                for (int i = 0; i < paths.Count; i++)
+                {
+                    if (!IsProjectOpened(paths[i]))
+                        OpenProjectFromPath(paths[i]);
+                    Configuration.Default.LastUsedPath = Path.GetDirectoryName(paths[i]);
+                }
             }
-        });
-        dialogThread.SetApartmentState(ApartmentState.STA); // Set to STA for UI thread
-        dialogThread.Start();
+        }
+
+        string lastUsedPath = Configuration.Default.LastUsedPath;
+        FileDialogManager.OpenFileDialog("Open Project File", "LunaForge Project{.lfp}", SelectPath, 1, string.IsNullOrEmpty(lastUsedPath)
+                ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+                : lastUsedPath, true);
+
+        return;
     }
 
     /// <summary>
