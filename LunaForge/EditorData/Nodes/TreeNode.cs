@@ -232,7 +232,8 @@ public abstract class TreeNode : ITraceThrowable
 
     public void RenderNodeContext()
     {
-        ImGui.MenuItem("Edit");
+        if (ImGui.MenuItem("Edit"))
+            ParentDef.ShowEditWindow(this);
         ImGui.Separator();
         if (ImGui.MenuItem($"Undo - {((ParentDef.CommandStack.Count != 0) ? ParentDef.CommandStack.Peek() : "///")}", "Ctrl+Z", false, ParentDef.CommandStack.Count > 0))
             ParentDef.Undo();

@@ -194,6 +194,8 @@ public sealed class MainWindow : IDisposable
         // Plugins disabled for the moment.
         //Plugins.LoadPlugins();
 
+        NotificationManager.AddToast("test message", ToastType.Success, 50);
+
         while (!Raylib.WindowShouldClose())
         {
             try
@@ -243,6 +245,7 @@ public sealed class MainWindow : IDisposable
 
         InputWindowSelector.CurrentInputWindow?.Render();
         FileDialogManager.Draw();
+        NotificationManager.Render();
     }
 
     #region RenderMenu

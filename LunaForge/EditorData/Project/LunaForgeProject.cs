@@ -80,7 +80,7 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
     [YamlIgnore]
     public string PathToProjectRoot { get; set; } = rootFolder;
     [YamlIgnore]
-    public string PathToLFP { get => $"{PathToProjectRoot}/Project.lfp"; }
+    public string PathToLFP => Path.Combine(PathToProjectRoot, "Project.lfp");
 
     [YamlIgnore]
     public int Hash { get; set; }

@@ -11,7 +11,6 @@ using LunaForge.API.Core;
 using LunaForge.EditorData.Commands;
 using System.ComponentModel;
 using LunaForge.GUI;
-using TextCopy;
 using Raylib_cs;
 using System.Numerics;
 using rlImGui_cs;
@@ -57,16 +56,14 @@ public class LunaDefinition : LunaProjectFile
     {
         ImGui.Text("This file is currently empty. Please choose the Definition Type to start editing:");
 
-        using (var listbox = ImRaii.ListBox(string.Empty))
+        using var listbox = ImRaii.ListBox(string.Empty);
+        if (listbox)
         {
-            if (listbox)
+            foreach (KeyValuePair<string, AddDefNode> type in NodeManager.DefinitionNodes)
             {
-                foreach (KeyValuePair<string, AddDefNode> type in NodeManager.DefinitionNodes)
+                if (ImGui.Selectable($"{type.Key}"))
                 {
-                    if (ImGui.Selectable($"{type.Key}"))
-                    {
-                        SelectDefinition(type.Key);
-                    }
+                    SelectDefinition(type.Key);
                 }
             }
         }
@@ -416,7 +413,7 @@ public class LunaDefinition : LunaProjectFile
     {
         try
         {
-            ClipboardService.SetText(TreeSerializer.SerializeTreeNode((TreeNode)SelectedNode.Clone()));
+            ImGui.SetClipboardText(TreeSerializer.SerializeTreeNode((TreeNode)SelectedNode.Clone()));
             TreeNode prev = SelectedNode.GetNearestEdited();
             AddAndExecuteCommand(new DeleteCommand(SelectedNode));
             if (prev != null)
@@ -438,7 +435,7 @@ public class LunaDefinition : LunaProjectFile
     {
         try
         {
-            ClipboardService.SetText(TreeSerializer.SerializeTreeNode((TreeNode)SelectedNode.Clone()));
+            ImGui.SetClipboardText(TreeSerializer.SerializeTreeNode((TreeNode)SelectedNode.Clone()));
         }
         catch (Exception ex)
         {
@@ -451,7 +448,7 @@ public class LunaDefinition : LunaProjectFile
     {
         try
         {
-            TreeNode node = TreeSerializer.DeserializeTreeNode(ClipboardService.GetText());
+            TreeNode node = TreeSerializer.DeserializeTreeNode(ImGui.GetClipboardText());
             node.ParentDef = this;
             TreeNode newNode = (TreeNode)node.Clone();
             Insert(newNode, false);
@@ -461,7 +458,7 @@ public class LunaDefinition : LunaProjectFile
             Console.WriteLine(ex.ToString());
         }
     }
-    public bool PasteNode_CanExecute() => SelectedNode != null && !string.IsNullOrEmpty(ClipboardService.GetText());
+    public bool PasteNode_CanExecute() => SelectedNode != null && !string.IsNullOrEmpty(ImGui.GetClipboardText());
 
     public override void Delete()
     {

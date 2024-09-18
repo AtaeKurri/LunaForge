@@ -34,24 +34,30 @@ public static class ImGuiEx
             }
             ImGui.EndPopup();
         }
-
-        /*
-        ImGui.InputText($"{label}", ref currentInput, 1024);
-        if (ImGui.BeginCombo($"{label}_combo", currentItem >= 0 ? items[currentItem] : currentInput))
-        {
-            for (int i = 0; i < items.Length; i++)
-            {
-                bool isSelected = i == currentItem;
-                if (ImGui.Selectable(items[i], isSelected))
-                {
-                    currentItem = i;
-                    currentInput = items[i];
-                }
-                if (isSelected)
-                    ImGui.SetItemDefaultFocus();
-            }
-            ImGui.EndCombo();
-        }
-        */
     }
+
+    public static void ClickToCopyText(string text, string? textToCopy = null)
+    {
+        textToCopy ??= text;
+
+        ImGui.Text(text);
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+            if (textToCopy != text)
+                ImGui.SetTooltip(textToCopy);
+        }
+        if (ImGui.IsItemClicked())
+            ImGui.SetClipboardText(textToCopy);
+    }
+
+    public static void CenteredText(string text)
+    {
+        CenterCursorForText(text);
+        ImGui.TextUnformatted(text);
+    }
+
+    public static void CenterCursorForText(string text) => CenterCursorFor(ImGui.CalcTextSize(text).X);
+
+    public static void CenterCursorFor(float itemWidth) => ImGui.SetCursorPosX((int)((ImGui.GetWindowWidth() - itemWidth) / 2));
 }
