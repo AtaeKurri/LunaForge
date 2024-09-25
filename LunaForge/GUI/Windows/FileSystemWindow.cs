@@ -147,8 +147,8 @@ public class FileSystemWindow : ImGuiWindow
 
         switch (Path.GetExtension(filePath))
         {
-            case ".lfp":
-                return;
+            case ".png":
+                break;
             case ".lfd":
                 ParentWindow.Workspaces.Current!.OpenDefinitionFile(filePath);
                 break;

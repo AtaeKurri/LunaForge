@@ -23,6 +23,8 @@ public class ProjectViewerWindow : ImGuiWindow
 
     private bool SettingsModalClosed = true;
 
+    private bool ShouldOpenSettings = false;
+
     public ProjectViewerWindow(MainWindow parent)
         : base(parent, true)
     {
@@ -90,17 +92,17 @@ public class ProjectViewerWindow : ImGuiWindow
                     }
                 }
 
-                if (ImGui.TabItemButton(IconFonts.FontAwesome6.Gear, ImGuiTabItemFlags.Trailing))
+                if (ImGui.TabItemButton($"{IconFonts.FontAwesome6.Gear}##{ParentProject.ProjectName}", ImGuiTabItemFlags.Trailing) || ShouldOpenSettings)
                 {
-                    ImGui.OpenPopup("Project Settings");
+                    OpenSettings();
+                    OpenSettingsPopup();
                 }
 
                 ConfirmCloseModal();
                 RenderProjectSettings();
 
                 // Close the file if confirmed
-                if (fileToClose != null)
-                    fileToClose.Close();
+                fileToClose?.Close();
 
                 ImGui.EndTabBar();
             }
@@ -171,13 +173,26 @@ public class ProjectViewerWindow : ImGuiWindow
     public Vector2 TempDebugRes;
     public int TempSelectedRes;
 
+    public void OpenSettings()
+    {
+        ShouldOpenSettings = true;
+    }
+
+    private void OpenSettingsPopup()
+    {
+        if (!ShouldOpenSettings)
+            return;
+        ImGui.OpenPopup($"Project Settings##{ParentProject.ProjectName}");
+        ShouldOpenSettings = false;
+    }
+
     public void RenderProjectSettings()
     {
         Vector2 modalSize = new(700, 500);
         Vector2 renderSize = new(Raylib.GetRenderWidth(), Raylib.GetRenderHeight());
         ImGui.SetNextWindowSize(modalSize);
         ImGui.SetNextWindowPos(renderSize/2 - (modalSize/2));
-        if (ImGui.BeginPopupModal("Project Settings", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoDocking))
+        if (ImGui.BeginPopupModal($"Project Settings##{ParentProject.ProjectName}", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoDocking))
         {
             if (SettingsModalClosed)
                 GetSettings();
@@ -260,7 +275,7 @@ public class ProjectViewerWindow : ImGuiWindow
             return "No LuaSTG executable selected.";
         }
         FileVersionInfo LuaSTGExecutableInfos = FileVersionInfo.GetVersionInfo(TempPathToLuaSTGExecutable);
-        ParentProject.SetTargetVersion();
+        ParentProject.SetTargetVersion(TempPathToLuaSTGExecutable);
         return $"{LuaSTGExecutableInfos.ProductName} v{LuaSTGExecutableInfos.ProductVersion}";
     }
 
@@ -352,6 +367,8 @@ public class ProjectViewerWindow : ImGuiWindow
         ParentProject.DebugRes = TempDebugRes;
 
         ParentProject.Save();
+
+        ParentProject.CheckTrace();
 
         if (quitPopup)
         {

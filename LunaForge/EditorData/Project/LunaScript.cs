@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using ImGuiNET;
+using LunaForge.EditorData.Traces;
 using YamlDotNet.Core.Tokens;
 
 namespace LunaForge.EditorData.Project;
@@ -130,6 +131,7 @@ public class LunaScript : LunaProjectFile
 
     public override void Close()
     {
+        EditorTraceContainer.RemoveChecksFromSource(this);
         ParentProject.ProjectFiles.Remove(this);
     }
 

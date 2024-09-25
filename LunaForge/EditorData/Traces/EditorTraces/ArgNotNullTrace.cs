@@ -14,7 +14,7 @@ public class ArgNotNullTrace : EditorTrace
     public string ArgName { get; private set; }
 
     public ArgNotNullTrace(ITraceThrowable source, string argName)
-        : base(TraceSeverity.Error, source)
+        : base(TraceSeverity.Error, source, (source as TreeNode).ParentDef.FileName)
     {
         ArgName = argName;
     }
@@ -31,7 +31,6 @@ public class ArgNotNullTrace : EditorTrace
 
     public override void Invoke()
     {
-        return; // TODO: Reveal the node
-        //Reveal(Source as TreeNode);
+        (Source as TreeNode).ParentDef.RevealNode(Source as TreeNode);
     }
 }

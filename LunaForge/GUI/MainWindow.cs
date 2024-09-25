@@ -1,31 +1,26 @@
 ﻿using System;
+using System.IO;
+using System.IO.Compression;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.ComponentModel;
+using System.Reflection;
+
 using Raylib_cs;
 using rlImGui_cs;
 using ImGuiNET;
-using Color = Raylib_cs.Color;
-using System.Reflection;
+using Newtonsoft.Json;
+using LunaForge.Plugins;
+using LunaForge.Execution;
 using LunaForge.GUI.Helpers;
 using LunaForge.GUI.Windows;
-using System.IO;
-using Newtonsoft.Json;
-using System.Windows;
-using LunaForge.EditorData.Project;
-using System.IO.Compression;
-using LunaForge.Plugins;
-using LunaForge.EditorData.Nodes;
-using TreeNode = LunaForge.EditorData.Nodes.TreeNode;
-using LunaForge.EditorData.Commands;
-using Image = Raylib_cs.Image;
-using LunaForge.EditorData.Traces;
-using Path = System.IO.Path;
-using LunaForge.Execution;
-using System.ComponentModel;
-using LunaForge.EditorData.InputWindows;
 using LunaForge.GUI.ImGuiFileDialog;
+using LunaForge.EditorData.Project;
+using LunaForge.EditorData.Nodes;
+using LunaForge.EditorData.Traces;
+using LunaForge.EditorData.InputWindows;
 
 namespace LunaForge.GUI;
 
@@ -193,8 +188,6 @@ public sealed class MainWindow : IDisposable
 
         // Plugins disabled for the moment.
         //Plugins.LoadPlugins();
-
-        NotificationManager.AddToast("test message", ToastType.Success, 50);
 
         while (!Raylib.WindowShouldClose())
         {
@@ -449,7 +442,7 @@ public sealed class MainWindow : IDisposable
     }
 
     /// <summary>
-    /// Tried to find a <see cref="Texture2D"/> with the corresponding name.
+    /// Tries to find a <see cref="Texture2D"/> with the corresponding name.
     /// </summary>
     /// <param name="name">The name of the texture to find in <see cref="EditorImages"/>.</param>
     /// <returns>A <see cref="Texture2D"/> object if it's found; otherwise, the default value, which is an "Unknown" image.</returns>
@@ -462,7 +455,7 @@ public sealed class MainWindow : IDisposable
     }
 
     /// <summary>
-    /// Prompts the user to choose a directory and creates a new project at the given location.<br/>
+    /// Prompts the user to choose a directory and creates a new project at the given location.
     /// </summary>
     public void CreateNewProject()
     {
@@ -509,10 +502,12 @@ public sealed class MainWindow : IDisposable
             LunaForgeProject newProj = LunaForgeProject.CreateFromFile(pathToLFP);
             newProj.ResetVariables(NewProjWin);
             newProj.Save();
+            newProj.CheckTrace();
             Workspaces.Add(newProj);
         }
         catch (Exception ex)
         {
+            NotificationManager.AddToast($"Couldn't clone template.\n{ex.Message}.", ToastType.Error);
             Console.WriteLine(ex.ToString());
         }
     }
@@ -559,10 +554,12 @@ public sealed class MainWindow : IDisposable
         {
             LunaForgeProject proj = LunaForgeProject.CreateFromFile(path);
             Workspaces.Add(proj);
+            proj.CheckTrace();
             return proj;
         }
         catch (JsonException ex)
         {
+            NotificationManager.AddToast($"Couldn't open project.\n{ex.Message}", ToastType.Error);
             Console.WriteLine(ex.ToString());
             return null;
         }
@@ -761,23 +758,37 @@ public sealed class MainWindow : IDisposable
             return; // This shouldn't happen, but just in case.
 
         if (EditorTraceContainer.ContainSeverity(TraceSeverity.Error))
-            return; // TODO: Display a compilation error and abort the compile process.
+        {
+            NotificationManager.AddToast($"There are errors inside your project.\nFix them and try again.", ToastType.Error);
+            return;
+        }
 
         Thread packingThread = new(async () =>
         {
-            bool saveMeta = false;
-            if (!run)
+            NotificationManager.AddToast($"Beginning packaging...", ToastType.Info);
+            try
             {
-                saveMeta = projectToCompile.UseMD5Files;
-            }
+                bool saveMeta = false;
+                if (!run)
+                {
+                    saveMeta = projectToCompile.UseMD5Files;
+                }
 
-            DebugLogWin.DebugLogContent = string.Empty;
-            projectToCompile.GatherCompileInfo();
-            projectToCompile.CompileProcess.ProgressChanged +=
-                (o, e) => PackageProgressReport(o, e);
-            bool success = await projectToCompile.CompileProcess.ExecuteProcess(SCDebugger != null, StageDebugger != null);
-            if (run && success)
-                RunLuaSTG();
+                DebugLogWin.DebugLogContent = string.Empty;
+                projectToCompile.GatherCompileInfo();
+                projectToCompile.CompileProcess.ProgressChanged +=
+                    (o, e) => PackageProgressReport(o, e);
+                bool success = await projectToCompile.CompileProcess.ExecuteProcess(SCDebugger != null, StageDebugger != null);
+                NotificationManager.AddToast($"Packaging finished.", ToastType.Success);
+                if (run && success)
+                    RunLuaSTG();
+            }
+            catch (Exception ex)
+            {
+                NotificationManager.AddToast($"Packaging failed...", ToastType.Error);
+                Console.WriteLine(ex.ToString());
+                return;
+            }
         });
         packingThread.SetApartmentState(ApartmentState.STA);
         packingThread.Start();
@@ -798,7 +809,7 @@ public sealed class MainWindow : IDisposable
         switch (proj.TargetLuaSTG)
         {
             case TargetVersion.Plus:
-                exec = null;
+                exec = new PlusExecution(proj);
                 break;
             case TargetVersion.Sub:
                 exec = new SubExecution(proj);
@@ -865,10 +876,12 @@ public sealed class MainWindow : IDisposable
         {
             string pathToFile = Path.Combine(Directory.GetCurrentDirectory(), "Templates", $"{currentProj.ProjectName}.zip");
             ZipFile.CreateFromDirectory(currentProj.PathToProjectRoot, pathToFile);
+            NotificationManager.AddToast($"Templated created!\n({pathToFile})", ToastType.Success);
             return true;
         }
         catch (Exception ex)
         {
+            NotificationManager.AddToast($"Couldn't create template.\n{ex.Message}", ToastType.Error);
             Console.WriteLine(ex.ToString());
             return false;
         }
@@ -891,6 +904,7 @@ public sealed class MainWindow : IDisposable
         }
         catch (Exception ex)
         {
+            NotificationManager.AddToast($"Cannot insert node.\n{ex.Message}", ToastType.Error);
             Console.WriteLine(ex.ToString());
             return false;
         }

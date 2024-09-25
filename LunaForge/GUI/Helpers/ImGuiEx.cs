@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -33,6 +34,26 @@ public static class ImGuiEx
                     ImGui.SetItemDefaultFocus();
             }
             ImGui.EndPopup();
+        }
+    }
+
+    [Obsolete("Not complete.", true)]
+    public static void FileSelector(string label, ref string filePath, Action<bool, string[]> callback = null)
+    {
+        void SelectPath(bool success, string[] paths)
+        {
+            if (!success)
+                return;
+            //filePath = paths[0];
+        }
+
+        ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X - 20);
+
+        ImGui.InputText($"{label}", ref filePath, 1024);
+        ImGui.SameLine(0f, 0f);
+        if (ImGui.Button($"{label}_btn", ImGui.CalcTextSize("...")))
+        {
+
         }
     }
 

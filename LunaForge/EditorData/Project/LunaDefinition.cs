@@ -19,6 +19,8 @@ using LunaForge.EditorData.Nodes.NodeData.Stages;
 using static LunaForge.EditorData.Nodes.NodeManager;
 using LunaForge.EditorData.InputWindows;
 using LunaForge.GUI.ImGuiFileDialog;
+using LunaForge.EditorData.Traces;
+using TextCopy;
 
 namespace LunaForge.EditorData.Project;
 
@@ -306,6 +308,9 @@ public class LunaDefinition : LunaProjectFile
             {
                 definition.TreeNodes = await DeserializeTree(sr, definition);
             }
+
+            definition.TreeNodes[0].CheckChildrenTraces();
+
             return definition;
         }
         catch (Exception ex)
@@ -317,6 +322,7 @@ public class LunaDefinition : LunaProjectFile
 
     public override void Close()
     {
+        EditorTraceContainer.RemoveChecksFromSource(this);
         SelectedNode = null;
         ParentProject.ProjectFiles.Remove(this);
     }
@@ -342,6 +348,8 @@ public class LunaDefinition : LunaProjectFile
         {
             if (SelectedNode == null)
                 return false;
+            if (node.Children.Count > 0)
+                node.IsExpanded = true;
             TreeNode oldSelection = SelectedNode;
             Command cmd = null;
             switch (ParentProject.Window.ParentWindow.InsertMode)
@@ -369,7 +377,6 @@ public class LunaDefinition : LunaProjectFile
                 RevealNode(node);
                 if (doInvoke)
                 {
-                    //node.CheckTrace(null, new PropertyChangedEventArgs(""));
                     CreateInvoke(node);
                 }
                 return true;
@@ -413,7 +420,7 @@ public class LunaDefinition : LunaProjectFile
     {
         try
         {
-            ImGui.SetClipboardText(TreeSerializer.SerializeTreeNode((TreeNode)SelectedNode.Clone()));
+            ClipboardService.SetText(TreeSerializer.SerializeTreeNode((TreeNode)SelectedNode.Clone()));
             TreeNode prev = SelectedNode.GetNearestEdited();
             AddAndExecuteCommand(new DeleteCommand(SelectedNode));
             if (prev != null)
@@ -435,7 +442,7 @@ public class LunaDefinition : LunaProjectFile
     {
         try
         {
-            ImGui.SetClipboardText(TreeSerializer.SerializeTreeNode((TreeNode)SelectedNode.Clone()));
+            ClipboardService.SetText(TreeSerializer.SerializeTreeNode((TreeNode)SelectedNode.Clone()));
         }
         catch (Exception ex)
         {
@@ -448,7 +455,7 @@ public class LunaDefinition : LunaProjectFile
     {
         try
         {
-            TreeNode node = TreeSerializer.DeserializeTreeNode(ImGui.GetClipboardText());
+            TreeNode node = TreeSerializer.DeserializeTreeNode(ClipboardService.GetText());
             node.ParentDef = this;
             TreeNode newNode = (TreeNode)node.Clone();
             Insert(newNode, false);
@@ -458,7 +465,7 @@ public class LunaDefinition : LunaProjectFile
             Console.WriteLine(ex.ToString());
         }
     }
-    public bool PasteNode_CanExecute() => SelectedNode != null && !string.IsNullOrEmpty(ImGui.GetClipboardText());
+    public bool PasteNode_CanExecute() => SelectedNode != null && !string.IsNullOrEmpty(ClipboardService.GetText());
 
     public override void Delete()
     {

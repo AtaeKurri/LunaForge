@@ -23,6 +23,17 @@ public static class EditorTraceContainer
             Traces.Add(et);
     }
 
+    public static void RemoveChecksFromSource(ITraceThrowable source)
+    {
+        // Faut faire un truc avec les parents des sources, ça marche pas ça
+        var traces = from EditorTrace editorTrace in Traces
+                     where editorTrace.Source == source
+                     select editorTrace;
+        List<EditorTrace> editorTraces = new(traces);
+        foreach (EditorTrace et in editorTraces)
+            Traces.Remove(et);
+    }
+
     public static bool ContainSeverity(TraceSeverity severity)
     {
         foreach (EditorTrace trace in Traces)

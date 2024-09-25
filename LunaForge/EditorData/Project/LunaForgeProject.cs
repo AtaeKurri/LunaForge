@@ -12,6 +12,8 @@ using YamlDotNet.Serialization;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Numerics;
+using LunaForge.EditorData.Traces;
+using LunaForge.EditorData.Traces.EditorTraces;
 
 namespace LunaForge.EditorData.Project;
 
@@ -23,7 +25,7 @@ public enum TargetVersion
     x
 }
 
-public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
+public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder) : ITraceThrowable
 {
     #region Configuration
 
@@ -76,6 +78,9 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
     public bool UseMD5Files = true;
 
     #endregion
+
+    [YamlIgnore]
+    public List<EditorTrace> Traces { get; private set; } = [];
 
     [YamlIgnore]
     public string PathToProjectRoot { get; set; } = rootFolder;
@@ -160,17 +165,17 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
     #endregion
     #region Compilation
 
-    public void SetTargetVersion()
+    public void SetTargetVersion(string? tempPath = null)
     {
-        FileVersionInfo LuaSTGExecutableInfos = FileVersionInfo.GetVersionInfo(PathToLuaSTGExecutable);
+        FileVersionInfo LuaSTGExecutableInfos = FileVersionInfo.GetVersionInfo(tempPath ?? PathToLuaSTGExecutable);
         if (LuaSTGExecutableInfos.ProductName.Contains("Plus"))
             TargetLuaSTG = TargetVersion.Plus;
         else if (LuaSTGExecutableInfos.ProductName.Contains("Sub"))
             TargetLuaSTG = TargetVersion.Sub;
         else if (LuaSTGExecutableInfos.ProductName.Contains("-x"))
-            TargetLuaSTG = TargetVersion.Plus;
+            TargetLuaSTG = TargetVersion.x;
         else if (LuaSTGExecutableInfos.ProductName.Contains("Evo"))
-            TargetLuaSTG = TargetVersion.Plus;
+            TargetLuaSTG = TargetVersion.Evo;
     }
 
     public void GatherCompileInfo()
@@ -182,7 +187,7 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
 
         c.CurrentTempPath = tempPath;
         c.Source = this;
-        c.RootCode = $"Include\'THlib.lua\'\nInclude\'{EntryPointRelative.Replace(".lfd", ".lua")}\'";
+        c.RootCode = $"Include\'THlib.lua\'\nInclude\'{Path.ChangeExtension(EntryPointRelative, ".lua")}\'";
 
         CompileProcess = c;
     }
@@ -314,6 +319,29 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder)
         ProjectFiles.Add(newScript);
 
         return true;
+    }
+
+    #endregion
+    #region Traces
+
+    public virtual List<EditorTrace> GetTraces()
+    {
+        List<EditorTrace> traces = [];
+        if (!(File.Exists(PathToLuaSTGExecutable) && PathToLuaSTGExecutable.EndsWith(".exe")))
+            traces.Add(new ProjectPathNotNullTrace(this, "LuaSTG Executable"));
+        if (!(File.Exists(EntryPoint) && (EntryPoint.EndsWith(".lua") || EntryPoint.EndsWith(".lfd"))))
+            traces.Add(new ProjectPathNotNullTrace(this, "Project Entry Point"));
+        return traces;
+    }
+
+    public void CheckTrace()
+    {
+        List<EditorTrace> traces = GetTraces();
+        Traces.Clear();
+
+        foreach (EditorTrace trace in traces)
+            Traces.Add(trace);
+        EditorTraceContainer.UpdateTraces(this);
     }
 
     #endregion

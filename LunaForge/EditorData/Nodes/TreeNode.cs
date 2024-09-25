@@ -783,6 +783,20 @@ public abstract class TreeNode : ITraceThrowable
         EditorTraceContainer.UpdateTraces(this);
     }
 
+    public void CheckChildrenTraces()
+    {
+        CheckChildrenTraces(this);
+    }
+
+    public void CheckChildrenTraces(TreeNode node)
+    {
+        node.CheckTrace();
+        foreach (TreeNode child in node.Children)
+        {
+            node.CheckChildrenTraces(child);
+        }
+    }
+
     #endregion
 
     public string Indent(int length) => string.Empty.PadLeft(4 * length);

@@ -45,7 +45,7 @@ public static class NotificationManager
     /// </summary>
     /// <param name="message"></param>
     /// <param name="type"></param>
-    /// <param name="duration"></param>
+    /// <param name="duration">Duration in seconds. Negative numbers means that the toast won't expire with time.</param>
     /// <param name="clickCallback">If null, clicking the toast will close it.</param>
     public static void AddToast(
         string message,
@@ -74,6 +74,13 @@ public static class NotificationManager
         toasts.Add(toast);
     }
 
+    private static void DeleteToast(ref int index, bool decrement = true)
+    {
+        toasts.RemoveAt(index);
+        if (decrement)
+            index--;
+    }
+
     public static void Render()
     {
         if (toasts.Count == 0)
@@ -85,33 +92,24 @@ public static class NotificationManager
         {
             var toast = toasts[i];
 
-            if ((DateTime.Now - toast.TimeAdded).TotalSeconds > MathF.Min(MaximumDuration, toast.Duration))
+            if (toast.Duration > 0
+                && (DateTime.Now - toast.TimeAdded).TotalSeconds > MathF.Min(MaximumDuration, toast.Duration)
+            )
             {
-                toasts.RemoveAt(i);
-                i--;
+                DeleteToast(ref i);
                 continue;
             }
 
             ImGui.SetNextWindowPos(pos);
             ImGui.SetNextWindowSize(new Vector2(ToastSize - 10, 50));
-
-            Vector4 bgColor;
-            switch (toast.Type)
+            var bgColor = toast.Type switch
             {
-                case ToastType.Success:
-                    bgColor = new Vector4(0.0f, 0.8f, 0.0f, 1.0f); // Green for success
-                    break;
-                case ToastType.Warning:
-                    bgColor = new Vector4(0.8f, 0.8f, 0.0f, 1.0f); // Yellow for warning
-                    break;
-                case ToastType.Error:
-                    bgColor = new Vector4(0.8f, 0.0f, 0.0f, 1.0f); // Red for error
-                    break;
-                default:
-                    bgColor = new Vector4(0.2f, 0.2f, 0.2f, 1.0f); // Default gray for info
-                    break;
-            }
-
+                ToastType.Info => new Vector4(0.4f, 0.4f, 0.8f, 1.0f),// Default gray for info
+                ToastType.Success => new Vector4(0.0f, 0.8f, 0.0f, 1.0f),// Green for success
+                ToastType.Warning => new Vector4(0.8f, 0.8f, 0.0f, 1.0f),// Yellow for warning
+                ToastType.Error => new Vector4(0.8f, 0.0f, 0.0f, 1.0f),// Red for error
+                _ => new Vector4(0f, 0f, 0f, 1f),
+            };
             ImGui.PushStyleColor(ImGuiCol.WindowBg, bgColor);
             if (ImGui.Begin($"##ToastNotification_{i}",
                 ImGuiWindowFlags.NoTitleBar
@@ -123,7 +121,9 @@ public static class NotificationManager
                 ImGui.TextWrapped(toast.Message);
 
                 if (ImGui.IsWindowHovered())
+                {
                     ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+                }
                 if (ImGui.IsWindowHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 {
                     if (toast.ClickCallback != null)
@@ -132,8 +132,7 @@ public static class NotificationManager
                     }
                     else
                     {
-                        toasts.RemoveAt(i);
-                        i--;
+                        DeleteToast(ref i);
                     }
                 }
 
