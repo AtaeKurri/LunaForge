@@ -25,6 +25,8 @@ public class ProjectViewerWindow : ImGuiWindow
 
     private bool ShouldOpenSettings = false;
 
+    private bool ShouldForceClose = false;
+
     public ProjectViewerWindow(MainWindow parent)
         : base(parent, true)
     {
@@ -83,6 +85,7 @@ public class ProjectViewerWindow : ImGuiWindow
                         {
                             filePendingModal = file;
                             ImGui.OpenPopup("Confirm close of unsaved file");
+                            file.IsOpened = true;
                         }
                         else
                         {
@@ -110,7 +113,7 @@ public class ProjectViewerWindow : ImGuiWindow
         }
         ImGui.PopID();
 
-        if (!ShowWindow)
+        if (!ShowWindow || ShouldForceClose)
             CheckProjectSaveState();
     }
 
@@ -154,8 +157,10 @@ public class ProjectViewerWindow : ImGuiWindow
 
     public void CheckProjectSaveState()
     {
-        // TODO: check every opened files.
-        ParentWindow.CloseProject(ParentProject);
+        ShowWindow = true;
+        ShouldForceClose = true;
+        ParentProject.CloseProjectAtClosing();
+        //ParentWindow.CloseProject(ParentProject);
     }
 
     #region Project Settings

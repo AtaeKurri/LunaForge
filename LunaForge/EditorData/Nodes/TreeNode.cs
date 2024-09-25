@@ -109,6 +109,11 @@ public abstract class TreeNode : ITraceThrowable
 
     protected TreeNode()
     {
+        OnDependencyAttributeChanged += new OnDependencyAttributeChangedHandler(ReflectAttr);
+        //OnVirtualCreate += new OnCreateNodeHandler(CreateMeta);
+        OnCreate += new OnCreateNodeHandler(OnCreateNode);
+        //OnVirtualRemove += new OnRemoveNodeHandler(RemoveMeta);
+        OnRemove += new OnRemoveNodeHandler(OnRemoveNode);
         MetaData = new(this);
         Children = null;
         Attributes = null;
@@ -722,6 +727,24 @@ public abstract class TreeNode : ITraceThrowable
         }
     }
 
+    #region Event Implementation
+
+    private void OnCreateNode(OnCreateEventArgs e)
+    {
+        
+    }
+
+    private void OnRemoveNode(OnRemoveEventArgs e)
+    {
+        var traces = from EditorTrace editorTrace in EditorTraceContainer.Traces
+                    where editorTrace.Source == this
+                    select editorTrace;
+        List<EditorTrace> list = new(traces);
+        foreach (EditorTrace trace in list)
+            EditorTraceContainer.Traces.Remove(trace);
+    }
+
+    #endregion
     #endregion
     #region Near
 
@@ -765,6 +788,18 @@ public abstract class TreeNode : ITraceThrowable
 
     #endregion
     #region Traces
+
+    public void RemoveTracesRecursive()
+    {
+        RemoveTracesRecursive(this);
+    }
+
+    public void RemoveTracesRecursive(TreeNode node)
+    {
+        EditorTraceContainer.RemoveChecksFromSource(node);
+        foreach (TreeNode child in node.Children)
+            RemoveTracesRecursive(child);
+    }
 
     public virtual List<EditorTrace> GetTraces()
     {

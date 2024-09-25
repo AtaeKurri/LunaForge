@@ -327,6 +327,7 @@ public class LunaDefinition : LunaProjectFile
 
     public override void Close()
     {
+        TreeNodes[0].RemoveTracesRecursive();
         EditorTraceContainer.RemoveChecksFromSource(this);
         SelectedNode = null;
         ParentProject.ProjectFiles.Remove(this);

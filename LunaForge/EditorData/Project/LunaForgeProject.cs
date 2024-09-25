@@ -165,6 +165,7 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder) : IT
         if (ProjectFiles.Count == 0)
         {
             Parent.Remove(this);
+            RemoveTraces();
             Parent.Current = null;
         }
         else
@@ -172,17 +173,6 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder) : IT
             ProjectFiles[0].ForceClose = true;
             ProjectFiles[0].IsOpened = false;
         }
-    }
-
-    public void CloseProject()
-    {
-        while (ProjectFiles.Count > 0)
-        {
-            ProjectFiles[0].IsOpened = false;
-        }
-
-        Parent.Remove(this);
-        Parent.Current = null;
     }
 
     public bool IsFileOpened(string path) => ProjectFiles.Any(x => x.FullFilePath == path);
@@ -348,6 +338,11 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder) : IT
 
     #endregion
     #region Traces
+
+    public void RemoveTraces()
+    {
+        EditorTraceContainer.RemoveChecksFromSource(this);
+    }
 
     public virtual List<EditorTrace> GetTraces()
     {
