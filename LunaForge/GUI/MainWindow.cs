@@ -189,7 +189,10 @@ public sealed class MainWindow : IDisposable
         // Plugins disabled for the moment.
         //Plugins.LoadPlugins();
 
-        while (!Raylib.WindowShouldClose())
+        bool exitWindow = false;
+        bool exitWindowRequested = false;
+
+        while (!exitWindow)
         {
             try
             {
@@ -204,6 +207,12 @@ public sealed class MainWindow : IDisposable
                 RenderMenu();
                 //ImGui.ShowDemoWindow();
                 Render();
+
+                if (Raylib.WindowShouldClose() || exitWindowRequested) // Will ask save files if they're unsaved then close all opened files then projects.
+                {
+                    exitWindowRequested = true;
+                    exitWindow = RenderCloseOpenedProjects();
+                }
 
                 rlImGui.End();
 
@@ -239,6 +248,17 @@ public sealed class MainWindow : IDisposable
         InputWindowSelector.CurrentInputWindow?.Render();
         FileDialogManager.Draw();
         NotificationManager.Render();
+    }
+
+    private bool RenderCloseOpenedProjects()
+    {
+        if (Workspaces.Count > 0)
+        {
+            Workspaces[0].CloseProjectAtClosing();
+            return false;
+        }
+        else
+            return true;
     }
 
     #region RenderMenu
@@ -438,7 +458,12 @@ public sealed class MainWindow : IDisposable
 
         string[] images = Directory.GetFiles(rootDir, "*.png", SearchOption.AllDirectories);
         foreach (string image in images)
-            EditorImages.Add(Path.GetFileNameWithoutExtension(image), Raylib.LoadTexture(image));
+        {
+            string key = Path.GetFileNameWithoutExtension(image);
+            if (EditorImages.ContainsKey(key))
+                continue;
+            EditorImages.Add(key, Raylib.LoadTexture(image));
+        }
     }
 
     /// <summary>
@@ -596,6 +621,12 @@ public sealed class MainWindow : IDisposable
     [Obsolete]
     public bool CloseProjectFile(LunaProjectFile file)
     {
+        void CloseCallback()
+        {
+            Workspaces.Current!.ProjectFiles.Remove(file);
+            Workspaces.Current!.CurrentProjectFile = null;
+        }
+
         if (file.IsUnsaved)
         {
             /*
@@ -617,8 +648,7 @@ public sealed class MainWindow : IDisposable
         }
         else
         {
-            Workspaces.Current!.ProjectFiles.Remove(file);
-            Workspaces.Current!.CurrentProjectFile = null;
+            CloseCallback();
         }
         return true;
     }

@@ -258,9 +258,9 @@ public class LunaDefinition : LunaProjectFile
     #endregion
     #region IO
 
-    public override void Save(bool saveAs = false)
+    public override async Task Save(bool saveAs = false)
     {
-        void SelectPath(bool success, string path)
+        async Task SelectPathAsync(bool success, string path)
         {
             if (success)
             {
@@ -270,7 +270,7 @@ public class LunaDefinition : LunaProjectFile
                 try
                 {
                     using StreamWriter sw = new(path);
-                    SerializeToFile(sw);
+                    await SerializeToFile(sw);
                 }
                 catch (Exception ex)
                 {
@@ -278,6 +278,11 @@ public class LunaDefinition : LunaProjectFile
                     return;
                 }
             }
+        }
+
+        void SelectPath(bool success, string path)
+        {
+            SelectPathAsync(success, path);
         }
 
         if (string.IsNullOrEmpty(FullFilePath) || saveAs)
@@ -290,13 +295,13 @@ public class LunaDefinition : LunaProjectFile
         }
         else
         {
-            SelectPath(true, FullFilePath);
+            await SelectPathAsync(true, FullFilePath);
         }
     }
 
-    public void SerializeToFile(StreamWriter sw)
+    public async Task SerializeToFile(StreamWriter sw)
     {
-        TreeNodes[0].SerializeToFile(sw, 0);
+        await TreeNodes[0].SerializeToFile(sw, 0);
     }
 
     public static async Task<LunaDefinition> CreateFromFile(LunaForgeProject parentProject, string filePath)

@@ -561,11 +561,11 @@ public abstract class TreeNode : ITraceThrowable
     #endregion
     #region Serializer
 
-    public void SerializeToFile(StreamWriter sw, int level)
+    public async Task SerializeToFile(StreamWriter sw, int level)
     {
-        sw.WriteLine($"{level},{TreeSerializer.SerializeTreeNode(this)}");
+        await sw.WriteLineAsync($"{level},{TreeSerializer.SerializeTreeNode(this)}");
         foreach (TreeNode node in Children)
-            node.SerializeToFile(sw, level + 1);
+            await node.SerializeToFile(sw, level + 1);
     }
 
     #endregion

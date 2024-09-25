@@ -83,7 +83,6 @@ public class ProjectViewerWindow : ImGuiWindow
                         {
                             filePendingModal = file;
                             ImGui.OpenPopup("Confirm close of unsaved file");
-                            file.IsOpened = true;
                         }
                         else
                         {
@@ -115,14 +114,19 @@ public class ProjectViewerWindow : ImGuiWindow
             CheckProjectSaveState();
     }
 
-    public void ConfirmCloseModal()
+    public async void ConfirmCloseModal()
     {
         if (ImGui.BeginPopupModal("Confirm close of unsaved file", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoDocking))
         {
-            ImGui.Text($"The file \"{filePendingModal?.FileName}\" has unsaved changes. Do you really want to close it?");
+            if (!filePendingModal.ForceClose)
+                ImGui.Text($"The file \"{filePendingModal?.FileName}\" has unsaved changes. Do you really want to close it?");
+            else
+                ImGui.Text($"The file \"{filePendingModal?.FileName}\" has unsaved changes. Do you want to save before closing?");
 
             if (ImGui.Button("Yes"))
             {
+                if (filePendingModal.ForceClose)
+                    await filePendingModal.Save();
                 fileToClose = filePendingModal;
                 filePendingModal = null;
                 ImGui.CloseCurrentPopup();
@@ -130,6 +134,8 @@ public class ProjectViewerWindow : ImGuiWindow
             ImGui.SameLine();
             if (ImGui.Button("No"))
             {
+                if (filePendingModal.ForceClose)
+                    fileToClose = filePendingModal;
                 filePendingModal = null;
                 ImGui.CloseCurrentPopup();
             }

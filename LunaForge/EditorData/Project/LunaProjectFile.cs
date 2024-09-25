@@ -18,6 +18,7 @@ public abstract class LunaProjectFile : ITraceThrowable
     public string FileName { get; set; }
 
     public bool IsOpened = true;
+    public bool ForceClose = false; // Only set to true when the file is opened on the software closing process.
 
     public Stack<Command> CommandStack { get; set; } = [];
     public Stack<Command> UndoCommandStack { get; set; } = [];
@@ -100,7 +101,7 @@ public abstract class LunaProjectFile : ITraceThrowable
     #endregion
     #region IO
 
-    public abstract void Save(bool saveAs = false);
+    public abstract Task Save(bool saveAs = false);
 
     #endregion
     #region Traces

@@ -67,9 +67,9 @@ public class LunaScript : LunaProjectFile
         }
     }
 
-    public override void Save(bool saveAs = false)
+    public override async Task Save(bool saveAs = false)
     {
-        void SelectPath(bool success, string path)
+        async Task SelectPathAsync(bool success, string path)
         {
             if (success)
             {
@@ -79,7 +79,7 @@ public class LunaScript : LunaProjectFile
                 try
                 {
                     using StreamWriter sw = new(path);
-                    SerializeToFile(sw);
+                    await SerializeToFile(sw);
                 }
                 catch (Exception ex)
                 {
@@ -87,6 +87,11 @@ public class LunaScript : LunaProjectFile
                     return;
                 }
             }
+        }
+
+        void SelectPath(bool success, string path)
+        {
+            SelectPathAsync(success, path);
         }
 
         if (string.IsNullOrEmpty(FullFilePath) || saveAs)
@@ -99,13 +104,13 @@ public class LunaScript : LunaProjectFile
         }
         else
         {
-            SelectPath(true, FullFilePath);
+            await SelectPathAsync(true, FullFilePath);
         }
     }
 
-    public void SerializeToFile(StreamWriter sw)
+    public async Task SerializeToFile(StreamWriter sw)
     {
-        sw.Write(FileContent);
+        await sw.WriteAsync(FileContent);
         SavedFileContent = GenerateChecksum(FileContent);
     }
 

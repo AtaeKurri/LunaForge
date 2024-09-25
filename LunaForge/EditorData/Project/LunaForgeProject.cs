@@ -160,6 +160,31 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder) : IT
 
     }
 
+    public void CloseProjectAtClosing()
+    {
+        if (ProjectFiles.Count == 0)
+        {
+            Parent.Remove(this);
+            Parent.Current = null;
+        }
+        else
+        {
+            ProjectFiles[0].ForceClose = true;
+            ProjectFiles[0].IsOpened = false;
+        }
+    }
+
+    public void CloseProject()
+    {
+        while (ProjectFiles.Count > 0)
+        {
+            ProjectFiles[0].IsOpened = false;
+        }
+
+        Parent.Remove(this);
+        Parent.Current = null;
+    }
+
     public bool IsFileOpened(string path) => ProjectFiles.Any(x => x.FullFilePath == path);
 
     #endregion
