@@ -14,9 +14,7 @@ public class ViewCodeWindow : ImGuiWindow
 
     public ViewCodeWindow(MainWindow parent)
         : base(parent, false)
-    {
-
-    }
+    { }
 
     public void ResetAndShow(string code)
     {

@@ -21,6 +21,8 @@ using LunaForge.EditorData.Project;
 using LunaForge.EditorData.Nodes;
 using LunaForge.EditorData.Traces;
 using LunaForge.EditorData.InputWindows;
+using NetSparkleUpdater;
+using NetSparkleUpdater.SignatureVerifiers;
 
 namespace LunaForge.GUI;
 
@@ -100,6 +102,8 @@ public sealed class MainWindow : IDisposable
 
     public FileDialogManager FileDialogManager { get; set; } = new();
 
+    public SparkleUpdater Sparkle;
+
     #region Windows
 
     public ToolboxWindow ToolboxWin;
@@ -110,6 +114,7 @@ public sealed class MainWindow : IDisposable
     public NewProjWindow NewProjWin;
     public FileSystemWindow FSWin;
     public ViewCodeWindow ViewCodeWin;
+    public SparkleWindow SparkleWin;
 
     #endregion
     #region Properties
@@ -150,6 +155,7 @@ public sealed class MainWindow : IDisposable
         NewProjWin = new(this);
         FSWin = new(this);
         ViewCodeWin = new(this);
+        SparkleWin = new(this);
 
         Workspaces = new(this);
     }
@@ -163,6 +169,8 @@ public sealed class MainWindow : IDisposable
             Raylib.UnloadTexture(texture);
         Raylib.UnloadImage(EditorIcon);
     }
+
+    bool ForceCloseWindow = false;
 
     /// <summary>
     /// Raylib/ImGui window initialization and main rendering loop of the editor.
@@ -192,7 +200,7 @@ public sealed class MainWindow : IDisposable
         bool exitWindow = false;
         bool exitWindowRequested = false;
 
-        while (!exitWindow)
+        while (!exitWindow || !ForceCloseWindow)
         {
             try
             {
@@ -244,13 +252,19 @@ public sealed class MainWindow : IDisposable
         NewProjWin.Render();
         FSWin.Render();
         ViewCodeWin.Render();
+        SparkleWin.Render();
 
         InputWindowSelector.CurrentInputWindow?.Render();
         FileDialogManager.Draw();
         NotificationManager.Render();
     }
 
-    private bool RenderCloseOpenedProjects()
+    public void ForceClose()
+    {
+        ForceCloseWindow = true;
+    }
+
+    public bool RenderCloseOpenedProjects()
     {
         if (Workspaces.Count > 0)
         {
@@ -261,6 +275,14 @@ public sealed class MainWindow : IDisposable
             return true;
     }
 
+    #region Init
+
+    public void SetupDiscordRpc()
+    {
+
+    }
+
+    #endregion
     #region RenderMenu
 
     private void RenderMenu()
@@ -353,7 +375,8 @@ public sealed class MainWindow : IDisposable
                 if (ImGui.MenuItem("Documentation"))
                     Raylib.OpenURL("https://rulholos.github.io/LunaForge/index.html");
                 ImGui.Separator();
-                ImGui.MenuItem("Check for Updates");
+                if (ImGui.MenuItem("Check for Updates"))
+                    SparkleWin.Sparkle.CheckForUpdatesAtUserRequest();
                 ImGui.MenuItem("About");
                 ImGui.EndMenu();
             }
@@ -887,7 +910,7 @@ public sealed class MainWindow : IDisposable
     /// <returns>True if the save went without problem; otherwise, false.</returns>
     /// <seealso cref="SaveActiveProjectFile">Saves the project file normally.</seealso>
     /// <seealso cref="SaveActiveProjectFileAs">Saves the project file but as a new file.</seealso>
-    public void SaveProject(LunaProjectFile projFile, bool saveAs = false)
+    public static void SaveProject(LunaProjectFile projFile, bool saveAs = false)
     {
         projFile.Save(saveAs);
     }
