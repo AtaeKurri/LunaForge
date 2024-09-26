@@ -14,6 +14,7 @@ using System.Diagnostics;
 using System.Numerics;
 using LunaForge.EditorData.Traces;
 using LunaForge.EditorData.Traces.EditorTraces;
+using LunaForge.GUI.Helpers;
 
 namespace LunaForge.EditorData.Project;
 
@@ -86,6 +87,8 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder) : IT
     public string PathToProjectRoot { get; set; } = rootFolder;
     [YamlIgnore]
     public string PathToLFP => Path.Combine(PathToProjectRoot, "Project.lfp");
+    [YamlIgnore]
+    public string PathToData => Path.Combine(PathToProjectRoot, ".lunaforge");
 
     [YamlIgnore]
     public int Hash { get; set; }
@@ -297,6 +300,7 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder) : IT
             using StreamReader sr = new(pathToFile);
             LunaForgeProject proj = deserializer.Deserialize<LunaForgeProject>(sr);
             proj.PathToProjectRoot = Path.GetDirectoryName(pathToFile);
+            ProjectFileSystem.CreateLunaForgeData(proj.PathToData);
             return proj;
         }
         catch (Exception ex)

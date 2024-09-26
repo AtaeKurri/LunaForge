@@ -44,7 +44,7 @@ public class FileSystemWindow : ImGuiWindow
 
     public void RenderFileTree(string directoryPath)
     {
-        string[] directories = Directory.GetDirectories(directoryPath);
+        string[] directories = Directory.GetDirectories(directoryPath, "*", new EnumerationOptions() { AttributesToSkip = FileAttributes.Hidden });
         string[] files = Directory.GetFiles(directoryPath);
 
         foreach (var dir in directories)
@@ -66,7 +66,7 @@ public class FileSystemWindow : ImGuiWindow
         foreach (string file in files)
         {
             string fileName = Path.GetFileName(file);
-            if (fileName.EndsWith(".lfp") || fileName.EndsWith("meta.dat"))
+            if (fileName.EndsWith(".lfp"))
                 continue;
             ImGui.Selectable(fileName);
             if (ImGui.BeginPopupContextItem())

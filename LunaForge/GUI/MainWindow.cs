@@ -63,6 +63,14 @@ namespace LunaForge.GUI;
  * 
  * Scripts:
  * Pure lua scripts. Can be opened by the editor as code.
+ * 
+ * 
+ * Structure:
+ * .LunaForge invisible folder in the root of the project. Contains the DefinitionCache.yaml, meta.dat, and other files. Doesn't get included in the templates
+ * and is instead generated at runtime on a project on which it's missing.
+ * 
+ * DefinitionCache.yaml : data of all definitions on the project: The file, the object type and optional params and its scope (cf: loaded by another definition)
+ * meta.dat : md5 hash of files to pack.
  */
 
 /// <summary>

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using LunaForge.Zip;
+using LunaForge.GUI.Helpers;
 
 namespace LunaForge.EditorData.Project;
 
@@ -32,7 +33,7 @@ public class CompileProcess
     /// <summary>
     /// Gets the meta.dat file to use for the MD5 check for file packing.
     /// </summary>
-    public string PathToMD5Meta => Path.Combine(Source.PathToProjectRoot, "meta.dat");
+    public string PathToMD5Meta => Path.Combine(Source.PathToData, "meta.dat");
 
     /// <summary>
     /// The path the LuaSTG install executable. Supports all main branches.
@@ -175,7 +176,7 @@ public class CompileProcess
     /// <returns>An array of mismatched files' path (files to re-pack.)</returns>
     public async Task<List<string>> CheckMetaParity(bool forceRepack)
     {
-        string[] allProjectFiles = Directory.GetFiles(Source.PathToProjectRoot, "*.*", SearchOption.AllDirectories);
+        string[] allProjectFiles = ProjectFileSystem.GetPackableFiles(Source.PathToProjectRoot);
         List<string> filesToPack = [];
         if (!File.Exists(PathToMD5Meta))
             forceRepack = true;
@@ -189,7 +190,7 @@ public class CompileProcess
                 {
                     string line = sr.ReadLine();
                     string[] parts = line.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                    hashToPath.Add(parts[0], parts[1]);
+                    hashToPath.TryAdd(parts[0], parts[1]);
                 }
             }
 
@@ -198,8 +199,6 @@ public class CompileProcess
             // Other solution: check both at the same time. (that's what is being done here.)
             Parallel.ForEach(allProjectFiles, file =>
             {
-                if (file.EndsWith(".dat"))
-                    return;
                 if (!hashToPath.Contains(new KeyValuePair<string, string>(GetMD5HashFromFile(file), Path.GetRelativePath(Source.PathToProjectRoot, file))))
                 {
                     lock (filesToPack)
@@ -215,15 +214,13 @@ public class CompileProcess
         {
             foreach (string file in allProjectFiles)
             {
-                if (file.EndsWith(".dat"))
-                    continue;
                 string hash = await Task.Run(() => GetMD5HashFromFile(file));
                 await sr.WriteLineAsync($"{hash}|{Path.GetRelativePath(Source.PathToProjectRoot, file)}");
             }
         }
 
         List<string> returnList = forceRepack ? [.. allProjectFiles] : filesToPack;
-        returnList.RemoveAll(x => x.EndsWith(".lfp") || x.EndsWith(".dat"));
+        returnList.RemoveAll(x => x.EndsWith(".lfp"));
         return returnList;
     }
 
