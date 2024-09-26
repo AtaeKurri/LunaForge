@@ -12,9 +12,9 @@ namespace LunaForge.EditorData.InputWindows.Windows;
 
 public class PathInput : InputWindow
 {
-    public string CurrentFilePath;
-    private string InitialDirectory;
-    private string Filter;
+    public string CurrentFilePath = "";
+    private string InitialDirectory = "";
+    private string Filter = "";
 
     private NodeAttribute Owner;
 
@@ -36,16 +36,18 @@ public class PathInput : InputWindow
             {
                 if (!success)
                     return;
-                CurrentFilePath = paths[0];
+                Result = CurrentFilePath = paths[0];
+                Close();
             }
 
-            ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X - 20);
+            ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X - 30);
 
-            ImGui.InputText($"PathInput", ref CurrentFilePath, 1024);
+            ImGui.InputText($"##AttributePathInput", ref CurrentFilePath, 1024);
             ImGui.SameLine(0f, 0f);
-            if (ImGui.Button($"PathInput_btn", ImGui.CalcTextSize("...")))
+            if (ImGui.Button($"...##AttributePathInput_btn"))
             {
-                Owner.ParentNode.ParentDef.ParentProject.Parent.MainWin.FileDialogManager.OpenFileDialog("Open File", Filter, SelectPath, 1, InitialDirectory, false);
+                Close(false);
+                Owner.ParentNode.ParentDef.ParentProject.Parent.MainWin.FileDialogManager.OpenFileDialog("Open File", Filter, SelectPath, 1, InitialDirectory, true);
             }
 
             RenderModalButtons();

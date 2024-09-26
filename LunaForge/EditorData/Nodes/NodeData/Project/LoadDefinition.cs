@@ -28,8 +28,8 @@ public class LoadDefinition : TreeNode
     [JsonIgnore, NodeAttribute, DefaultValue("")]
     public string PathToDefinition
     {
-        get => CheckAttr(0, "Path to Definition").AttrValue;
-        set => CheckAttr(0, "Path to Definition").AttrValue = value;
+        get => CheckAttr(0, "Path to Definition", "definitionFile").AttrValue;
+        set => CheckAttr(0, "Path to Definition", "definitionFile").AttrValue = value;
     }
 
     public override string ToString()
@@ -45,7 +45,7 @@ public class LoadDefinition : TreeNode
     public override IEnumerable<string> ToLua(int spacing)
     {
         string sp = Indent(spacing);
-        yield return sp + $"Report error here. -> {Macrolize(0)}\n"; // TODO: Include lua file
+        yield return sp + $"Include'{Path.ChangeExtension(Path.GetRelativePath(ParentDef.ParentProject.PathToProjectRoot, Macrolize(0) ?? string.Empty), ".lua")}'\n"; // TODO: Include lua file
     }
 
     public override object Clone()
@@ -60,6 +60,8 @@ public class LoadDefinition : TreeNode
         List<EditorTrace> traces = [];
         if (string.IsNullOrEmpty(NonMacrolize(0)))
             traces.Add(new ArgNotNullTrace(this, GetAttr(0).AttrName));
+        if (!string.IsNullOrEmpty(NonMacrolize(0)) && !File.Exists(Path.Combine(ParentDef.ParentProject.PathToProjectRoot, NonMacrolize(0))))
+            traces.Add(new FileMustExistTrace(this, GetAttr(0).AttrName));
         return traces;
     }
 }

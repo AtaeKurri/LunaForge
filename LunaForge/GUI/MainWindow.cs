@@ -170,8 +170,6 @@ public sealed class MainWindow : IDisposable
         Raylib.UnloadImage(EditorIcon);
     }
 
-    bool ForceCloseWindow = false;
-
     /// <summary>
     /// Raylib/ImGui window initialization and main rendering loop of the editor.
     /// </summary>
@@ -200,7 +198,7 @@ public sealed class MainWindow : IDisposable
         bool exitWindow = false;
         bool exitWindowRequested = false;
 
-        while (!exitWindow || !ForceCloseWindow)
+        while (!exitWindow && !ForceCloseWindow)
         {
             try
             {
@@ -258,6 +256,8 @@ public sealed class MainWindow : IDisposable
         FileDialogManager.Draw();
         NotificationManager.Render();
     }
+
+    private bool ForceCloseWindow = false;
 
     public void ForceClose()
     {

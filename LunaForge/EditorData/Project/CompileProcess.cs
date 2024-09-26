@@ -193,11 +193,14 @@ public class CompileProcess
                 }
             }
 
+            // Check the relative file path instead of directory the MD5 because multiple files with the same hash can exist if the user puts the same file multiple times.
+            // To avoid problems with checking file validity, the checksum should be checked by it's relative value (aka: file path).
+            // Other solution: check both at the same time. (that's what is being done here.)
             Parallel.ForEach(allProjectFiles, file =>
             {
                 if (file.EndsWith(".dat"))
                     return;
-                if (!hashToPath.ContainsKey(GetMD5HashFromFile(file)))
+                if (!hashToPath.Contains(new KeyValuePair<string, string>(GetMD5HashFromFile(file), Path.GetRelativePath(Source.PathToProjectRoot, file))))
                 {
                     lock (filesToPack)
                     {
@@ -215,7 +218,7 @@ public class CompileProcess
                 if (file.EndsWith(".dat"))
                     continue;
                 string hash = await Task.Run(() => GetMD5HashFromFile(file));
-                await sr.WriteLineAsync($"{hash}|{file}");
+                await sr.WriteLineAsync($"{hash}|{Path.GetRelativePath(Source.PathToProjectRoot, file)}");
             }
         }
 

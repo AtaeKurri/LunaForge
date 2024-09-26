@@ -21,6 +21,7 @@ using YamlDotNet.Core;
 using System.Collections;
 using LunaForge.EditorData.Commands;
 using LunaForge.EditorData.Traces;
+using LunaForge.GUI;
 
 namespace LunaForge.EditorData.Nodes;
 
@@ -260,10 +261,15 @@ public abstract class TreeNode : ITraceThrowable
         ImGui.Separator();
         if (ImGui.MenuItem("View Code"))
         {
-            StringBuilder code = new();
-            foreach (string codeLine in ToLua(0))
-                code.Append(codeLine);
-            ParentDef.ParentProject.Parent.MainWin.ViewCodeWin.ResetAndShow(code.ToString());
+            if (EditorTraceContainer.ContainSeverity(TraceSeverity.Error))
+                NotificationManager.AddToast("There are errors inside your code.\nPlease fix them before viewing code.", ToastType.Error);
+            else
+            {
+                StringBuilder code = new();
+                foreach (string codeLine in ToLua(0))
+                    code.Append(codeLine);
+                ParentDef.ParentProject.Parent.MainWin.ViewCodeWin.ResetAndShow(code.ToString());
+            }
         }
         ImGui.Separator();
         if (ImGui.MenuItem("Save as Preset", string.Empty, false, ParentDef.ParentProject.Parent.MainWin.NodeToPreset_CanExecute()))

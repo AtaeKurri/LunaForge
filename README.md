@@ -29,6 +29,17 @@ The main "why" point with LunaForge is "[SharpX](https://github.com/Sharp-X-Team
 - Projects are sharable by defaullt since all files are relative to the root of the project.
 - LunaForge is meant to be cross-platform for Windows, Mac and Linux. (not the case yet)
 
+## Compilation
+
+To compile your project to a LuaSTG-ready game, LunaForge goes through all your files in the project folder.
+It first tries to compile all .lfd (definition files) to .lua scripts.
+Then, after this has been done, the compiler checks for every file's checksums.
+If the file has changed since the last time it was packed into the game, it will be repacked.
+
+After all this has been done, the editor tries to start LuaSTG.
+
+**Please be aware that EVERY file inside your project folder will be packed. This can result in a large game size.**
+
 ## For Linux
 
 Linux version is **NOT** stable.
@@ -41,6 +52,6 @@ MacOS version is **NOT** stable.
 
 No testing has been made yet.
 
-## Licence
+## Credits
 
 All files from the **LunaForge.GUI.ImGuiFileDialog** namespace are taken and modified from [Dalamud](https://github.com/goatcorp/Dalamud).

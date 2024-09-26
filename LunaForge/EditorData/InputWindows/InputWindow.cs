@@ -96,7 +96,7 @@ public abstract class InputWindow
         ImGui.SetNextWindowPos(renderSize / 2 - (ModalSize / 2));
     }
 
-    private void Close(bool invoke = true)
+    public void Close(bool invoke = true)
     {
         if (invoke)
             Callback(Result);
