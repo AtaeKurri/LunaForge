@@ -109,7 +109,7 @@ public class LunaDefinition : LunaProjectFile
         ImGuiTreeNodeFlags flags =
             ImGuiTreeNodeFlags.OpenOnArrow
             | ImGuiTreeNodeFlags.OpenOnDoubleClick
-            | ImGuiTreeNodeFlags.SpanFullWidth
+            | ImGuiTreeNodeFlags.SpanTextWidth
             | ImGuiTreeNodeFlags.FramePadding;
         if (node == SelectedNode)
             flags |= ImGuiTreeNodeFlags.Selected;
@@ -267,6 +267,7 @@ public class LunaDefinition : LunaProjectFile
                 FullFilePath = path;
                 FileName = Path.GetFileName(path);
                 PushSavedCommand();
+                ParentProject.DefCache.UpdateCache(this);
                 try
                 {
                     using StreamWriter sw = new(path);
@@ -314,7 +315,7 @@ public class LunaDefinition : LunaProjectFile
                 definition.TreeNodes = await DeserializeTree(sr, definition);
             }
 
-            definition.TreeNodes[0].CheckChildrenTraces();
+            definition.TreeNodes[0]?.CheckChildrenTraces();
 
             return definition;
         }

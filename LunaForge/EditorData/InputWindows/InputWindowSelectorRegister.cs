@@ -33,6 +33,7 @@ public class InputWindowSelectorRegister
     {
         target.Add("bool", (src, tar) => new Selector(tar, InputWindowSelector.SelectComboBox("bool"), "Input Bool"));
         target.Add("sineinterpolation", (src, tar) => new Selector(tar, InputWindowSelector.SelectComboBox("sineinterpolation"), "Input Sine Interpolation Mode"));
+        target.Add("code", (src, tar) => new CodeInput(tar));
         target.Add("target", (src, tar) => new Selector(tar, InputWindowSelector.SelectComboBox("target"), "Input Target Object"));
         target.Add("plainFile", (src, tar) => new PathInput(tar, "File{*.*}", src));
         target.Add("definitionFile", (src, tar) => new PathInput(tar, "LunaForge Definition{.lfd}", src));

@@ -30,8 +30,8 @@ public class Code : TreeNode
     [JsonIgnore, NodeAttribute("")]
     public string CodeContent
     {
-        get => CheckAttr(0, "Code").AttrValue;
-        set => CheckAttr(0, "Code").AttrValue = value;
+        get => CheckAttr(0, "Code", "code").AttrValue;
+        set => CheckAttr(0, "Code", "code").AttrValue = value;
     }
 
     public override IEnumerable<Tuple<int, TreeNode>> GetLines()

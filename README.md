@@ -39,7 +39,7 @@ If the file has changed since the last time it was packed into the game, it will
 After all this has been done, the editor tries to start LuaSTG.
 
 **Please be aware that (almost) EVERY file inside your project folder will be packed. This can result in a large game size.**
-Note: Only the .LunaForge invisible folder and the Project.lfp file won't get included in the packing process.
+Note: Only the .lunalorge invisible folder (and its contents) and the Project.lfp file won't get included in the packing process.
 
 ## For Linux
 

@@ -47,7 +47,7 @@ public class LoadDefinition : TreeNode
         string sp = Indent(spacing);
         yield return sp + $"Include'{Path.ChangeExtension(
             Path.GetRelativePath(ParentDef.ParentProject.PathToProjectRoot, Macrolize(0) ?? string.Empty), ".lua")
-            .Replace("\\", "/")}'\n"; // TODO: Include lua file
+            .Replace("\\", "/")}'\n";
     }
 
     public override object Clone()

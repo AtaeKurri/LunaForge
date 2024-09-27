@@ -115,6 +115,9 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder) : IT
     [YamlIgnore]
     public TargetVersion TargetLuaSTG { get; private set; }
 
+    [YamlIgnore]
+    public DefinitionsCache DefCache { get; private set; }
+
     /* This fucking line took 1 hour of my life for nothing.
      * YamlDotNet, please make your fucking Exceptions more precise. How the fuck was I supposed to know that
      * "(Line: 1, Col: 1, Idx: 0) - (Line: 1, Col: 1, Idx: 0): Exception during deserialization"
@@ -278,6 +281,7 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder) : IT
             string yaml = serializer.Serialize(this);
             using StreamWriter sw = new(PathToLFP);
             sw.Write(yaml);
+            DefCache.Save();
 
             return true;
         }
@@ -301,6 +305,7 @@ public class LunaForgeProject(NewProjWindow? newProjWin, string rootFolder) : IT
             LunaForgeProject proj = deserializer.Deserialize<LunaForgeProject>(sr);
             proj.PathToProjectRoot = Path.GetDirectoryName(pathToFile);
             ProjectFileSystem.CreateLunaForgeData(proj.PathToData);
+            proj.DefCache = DefinitionsCache.LoadFromProject(proj);
             return proj;
         }
         catch (Exception ex)

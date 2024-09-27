@@ -396,8 +396,8 @@ public class ProjectViewerWindow : ImGuiWindow
         void SelectPath(bool success, List<string> paths)
         {
             if (!success)
-                return;
-            TempPathToLuaSTGExecutable = paths[0];
+                TempPathToLuaSTGExecutable = paths[0];
+            ShouldOpenSettings = true;
         }
 
         string lastUsedPath = Configuration.Default.LastUsedPath;
@@ -410,15 +410,15 @@ public class ProjectViewerWindow : ImGuiWindow
     {
         void SelectPath(bool success, List<string> paths)
         {
-            if (!success)
-                return;
-            TempEntryPoint = paths[0];
+            if (success)
+                TempEntryPoint = paths[0];
+            ShouldOpenSettings = true;
         }
 
         string lastUsedPath = Configuration.Default.LastUsedPath;
-        ParentWindow.FileDialogManager.OpenFileDialog("Choose Project", "LunaForge Project{.lfp}", SelectPath, 1, string.IsNullOrEmpty(ParentProject.PathToLuaSTGExecutable)
+        ParentWindow.FileDialogManager.OpenFileDialog("Choose Definition", "LunaForge Definition{.lfd}", SelectPath, 1, string.IsNullOrEmpty(ParentProject.PathToProjectRoot)
                 ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
-                : Path.GetDirectoryName(ParentProject.PathToLuaSTGExecutable), true);
+                : Path.GetDirectoryName(ParentProject.PathToProjectRoot), true);
     }
 
     #endregion

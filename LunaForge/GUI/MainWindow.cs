@@ -597,7 +597,7 @@ public sealed class MainWindow : IDisposable
     /// </summary>
     /// <param name="path">Path to the project .lfp file.</param>
     /// <returns>True if the project is opened in the editor; otherwise, false.</returns>
-    public bool IsProjectOpened(string path) => Workspaces.Any(x => Path.GetFileName(x.PathToLFP) == Path.GetFileName(path));
+    public bool IsProjectOpened(string path) => Workspaces.Any(x => Path.GetDirectoryName(x.PathToLFP) == Path.GetDirectoryName(path));
 
     /// <summary>
     /// Tries to load a project .lfp file.

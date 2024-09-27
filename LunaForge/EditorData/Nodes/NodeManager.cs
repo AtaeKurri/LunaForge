@@ -1,4 +1,5 @@
 ﻿using LunaForge.API.Core;
+using LunaForge.EditorData.Nodes.NodeData.General;
 using LunaForge.EditorData.Nodes.NodeData.Stages;
 using LunaForge.EditorData.Project;
 using LunaForge.GUI;
@@ -20,6 +21,7 @@ public static class NodeManager
     {
         DefinitionNodes.Add("Stage Group", new AddDefNode(AddDefNode_StageGroup));
         DefinitionNodes.Add("Main Menu", new AddDefNode(AddDefNode_MainMenu));
+        DefinitionNodes.Add("Empty", new AddDefNode(AddDefNode_Folder));
     }
 
     #region Add Nodes
@@ -38,6 +40,11 @@ public static class NodeManager
         node.AddChild(new MainMenuFrame(def));
         node.IsExpanded = true;
         def.TreeNodes[0] = node;
+    }
+
+    private static void AddDefNode_Folder(LunaDefinition def)
+    {
+        TreeNode node = new Folder(def);
     }
 
     #endregion
