@@ -32,7 +32,7 @@ public class NodePicker : IEnumerable<NodePickerTab>
 
     public void InitializeData()
     {
-        NodeFuncs = [];
+        NodeFuncs.Clear();
         foreach (NodePickerTab tab in NodePickerTabs)
         {
             foreach (NodePickerItem item in tab)

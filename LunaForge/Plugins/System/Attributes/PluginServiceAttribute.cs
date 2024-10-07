@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LunaForge.API.Attributes;
+namespace LunaForge.Plugins.System.Attributes;
 
 /// <summary>
 /// This attribute indicates whether an applicable service should be injected into the plugin.

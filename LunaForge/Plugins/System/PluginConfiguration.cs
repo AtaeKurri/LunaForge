@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LunaForge.API.Core;
+namespace LunaForge.Plugins.System;
 
 /// <summary>
 /// Abstract per-plugin configuration. 

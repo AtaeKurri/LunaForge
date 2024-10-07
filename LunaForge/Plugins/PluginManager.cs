@@ -1,7 +1,6 @@
-﻿using LunaForge.API.Attributes;
-using LunaForge.API.Core;
-using LunaForge.API.Services;
-using LunaForge.Plugins.Services;
+﻿using LunaForge.Plugins.Services;
+using LunaForge.Plugins.System;
+using LunaForge.Plugins.System.Attributes;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -13,9 +12,17 @@ using System.Threading.Tasks;
 
 namespace LunaForge.Plugins;
 
-public sealed class PluginManager
+internal struct LunaPluginInfo
 {
-    public List<ILunaPlugin> Plugins { get; private set; }
+    public ILunaPlugin Plugin { get; set; }
+    public bool IsEnabled { get; set; }
+
+    public static LunaPluginInfo Null => new() { Plugin = null };
+}
+
+internal sealed class PluginManager
+{
+    public List<LunaPluginInfo> Plugins { get; private set; }
 
     private readonly IServiceProvider serviceProvider;
 
@@ -23,7 +30,6 @@ public sealed class PluginManager
     {
         ServiceCollection serviceCollection = new();
         serviceCollection.AddSingleton<IToolboxService, ToolboxService>();
-        serviceCollection.AddSingleton<INodeService, NodeService>();
 
         serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -83,6 +89,6 @@ public sealed class PluginManager
         }
 
         plugin.Initialize();
-        Plugins.Add(plugin);
+        Plugins.Add(new() { Plugin = plugin, IsEnabled = true }); // TODO: Change with editor config '<Plugin>.IsEnabled'
     }
 }

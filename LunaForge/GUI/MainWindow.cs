@@ -53,6 +53,7 @@ namespace LunaForge.GUI;
  * Plugin manager, loaded at startup. Can add nodes or other features.
  * An interface entry plugin scanned with Reflection and instanciated.
  * Plugin window in config to enable/disable them with warning like "can allow malicious code to run"
+ * -----: Discard the API. Turn every "important" classes to internal and keep the Service API.
  * 
  * 
  * Definitions:
@@ -129,6 +130,7 @@ internal static class MainWindow
     public static FileSystemWindow FSWin;
     public static ViewCodeWindow ViewCodeWin;
     public static SparkleWindow SparkleWin;
+    public static PluginManagerWindow PluginManagerWin;
 
     #endregion
     #region Properties
@@ -179,6 +181,7 @@ internal static class MainWindow
         FSWin = new();
         ViewCodeWin = new();
         SparkleWin = new();
+        PluginManagerWin = new();
 
         Workspaces = new();
 
@@ -200,7 +203,7 @@ internal static class MainWindow
         GetPresets();
 
         // Plugins disabled for the moment.
-        //Plugins.LoadPlugins();
+        Plugins.LoadPlugins();
 
         bool exitWindow = false;
         bool exitWindowRequested = false;
@@ -258,6 +261,7 @@ internal static class MainWindow
         FSWin.Render();
         ViewCodeWin.Render();
         SparkleWin.Render();
+        PluginManagerWin.Render();
 
         InputWindowSelector.CurrentInputWindow?.Render();
         FileDialogManager.Draw();
@@ -370,6 +374,7 @@ internal static class MainWindow
                 ImGui.MenuItem("Object Definitions", string.Empty, ref DefinitionsWin.ShowWindow);
                 ImGui.EndMenu();
             }
+            ImGui.MenuItem("Plugins", string.Empty, ref PluginManagerWin.ShowWindow);
             if (ImGui.BeginMenu("Settings"))
             {
                 ImGui.MenuItem("General settings");

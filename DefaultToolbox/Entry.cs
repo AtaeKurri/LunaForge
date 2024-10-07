@@ -1,7 +1,7 @@
 ﻿using DefaultToolbox.Nodes.Stages;
-using LunaForge.API.Attributes;
-using LunaForge.API.Core;
-using LunaForge.API.Services;
+using LunaForge.Plugins.Services;
+using LunaForge.Plugins.System;
+using LunaForge.Plugins.System.Attributes;
 
 namespace DefaultToolbox;
 
@@ -10,18 +10,20 @@ public class Entry : ILunaPlugin
     [PluginService]
     public static IToolboxService ToolboxService { get; set; }
 
-    [PluginService]
-    public static INodeService NodeService { get; set; }
-
     public string Name => "Default Toolbox";
-    public string[] Authors => [ "Tania Anehina" ];
+    public string[] Authors => [ "Rül Hölos" ];
 
     public void Initialize()
     {
-        //NodeService.RegisterDefinitionNode<StageDefinition>("Stage");
+        //ToolboxService.RegisterNodePickerRegister<>();
     }
 
     public void Update()
+    {
+        return;
+    }
+
+    public void Reload()
     {
         return;
     }

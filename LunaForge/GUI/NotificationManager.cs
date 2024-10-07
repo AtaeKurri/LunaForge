@@ -25,7 +25,7 @@ public struct Toast
     public Action ClickCallback;
 }
 
-public static class NotificationManager
+internal static class NotificationManager
 {
     private static readonly List<Toast> toasts = [];
 

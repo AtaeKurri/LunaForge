@@ -100,7 +100,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LunaForge.API\LunaForge.API.csproj" />
     <ProjectReference Include="..\rlImGui-cs\rlImGui\rlImGui.csproj" />
   </ItemGroup>
 

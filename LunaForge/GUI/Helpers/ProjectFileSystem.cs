@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LunaForge.GUI.Helpers;
 
-public static class ProjectFileSystem
+internal static class ProjectFileSystem
 {
     public static void CreateHiddenFolder(string path)
     {

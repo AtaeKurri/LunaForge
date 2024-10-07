@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LunaForge.API.Core;
+namespace LunaForge.Plugins.System;
 
 /// <summary>
 /// Base interface for LunaForge plugins. Every plugin needs to implement this class.<br/>
@@ -31,4 +31,10 @@ public interface ILunaPlugin : IDisposable
     /// This method is called every frame.
     /// </summary>
     public void Update();
+
+    /// <summary>
+    /// Performs a semi hot-reload of the plugin.<br/>
+    /// This method will be called if the plugin is loaded and the user pressed the reload button in the plugin manager window.
+    /// </summary>
+    public void Reload();
 }

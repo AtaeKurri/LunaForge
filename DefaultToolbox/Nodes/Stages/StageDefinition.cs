@@ -1,5 +1,4 @@
-﻿using LunaForge.API.Attributes;
-using LunaForge.API.Core;
+﻿using LunaForge.EditorData.Nodes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,19 +7,32 @@ using System.Threading.Tasks;
 
 namespace DefaultToolbox.Nodes.Stages;
 
-public class StageDefinition : ITreeNode
+public class StageDefinition : TreeNode
 {
-    public IEnumerable<Tuple<int, ITreeNode>> GetLines()
+    public override string ToString()
     {
-        return default;
+        throw default;
     }
 
-    public IEnumerable<string> ToLua(int spacing)
+    public override IEnumerable<Tuple<int, TreeNode>> GetLines()
     {
-        return default;
+        yield return new Tuple<int, TreeNode>(1, this);
+        foreach (var a in GetChildLines())
+        {
+            yield return a;
+        }
+        yield return new Tuple<int, TreeNode>(1, this);
     }
 
-    public object Clone()
+    public override IEnumerable<string> ToLua(int spacing)
+    {
+        foreach (var a in base.ToLua(spacing + 1))
+        {
+            yield return a;
+        }
+    }
+
+    public override object Clone()
     {
         return default;
     }

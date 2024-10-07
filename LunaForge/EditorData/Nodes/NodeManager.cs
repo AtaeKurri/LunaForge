@@ -1,5 +1,4 @@
-﻿using LunaForge.API.Core;
-using LunaForge.EditorData.Nodes.NodeData.General;
+﻿using LunaForge.EditorData.Nodes.NodeData.General;
 using LunaForge.EditorData.Nodes.NodeData.Stages;
 using LunaForge.EditorData.Project;
 using LunaForge.GUI;
@@ -11,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace LunaForge.EditorData.Nodes;
 
-public static class NodeManager
+internal static class NodeManager
 {
     public static Dictionary<string, AddDefNode> DefinitionNodes { get; set; } = [];
 

@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 using TreeNode = LunaForge.EditorData.Nodes.TreeNode;
 using ImGuiNET;
-using LunaForge.API.Core;
 using LunaForge.EditorData.Commands;
 using System.ComponentModel;
 using LunaForge.GUI;

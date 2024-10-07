@@ -3,17 +3,6 @@
     {
       "src": [
         {
-          "src": "LunaForge.API",
-          "files": [
-            "LunaForge.API.csproj"
-          ]
-        }
-      ],
-      "dest": "api"
-    },
-    {
-      "src": [
-        {
           "src": "LunaForge",
           "files": [
             "LunaForge.csproj"
