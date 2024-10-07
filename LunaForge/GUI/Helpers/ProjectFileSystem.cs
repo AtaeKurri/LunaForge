@@ -33,7 +33,7 @@ public static class ProjectFileSystem
 
     public static string[] GetPackableFiles(string path)
     {
-        EnumerationOptions options = new EnumerationOptions()
+        EnumerationOptions options = new()
         {
             RecurseSubdirectories = true,
             ReturnSpecialDirectories = false,

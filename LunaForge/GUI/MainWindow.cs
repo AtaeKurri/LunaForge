@@ -60,17 +60,23 @@ namespace LunaForge.GUI;
  * One definition can be the entry point of the game.
  * There a node "Import Definition" to allow the editor to allow the user to instanciate this definition. "Create Object"
  * 
+ * For the Object Definition node: the parameters of the init() are stored in the defcache.yaml. Each parameter is a new Attribute in the Object Create node.
+ * 
  * 
  * Scripts:
  * Pure lua scripts. Can be opened by the editor as code.
  * 
  * 
  * Structure:
- * .LunaForge invisible folder in the root of the project. Contains the DefinitionCache.yaml, meta.dat, and other files. Doesn't get included in the templates
+ * .LunaForge invisible folder in the root of the project. Contains the defcache.yaml, meta.dat, and other files. Doesn't get included in the templates
  * and is instead generated at runtime on a project on which it's missing.
  * 
- * DefinitionCache.yaml : data of all definitions on the project: The file, the object type and optional params and its scope (cf: loaded by another definition)
+ * defcache.yaml : data of all definitions on the project: The file, the object type and optional params and its scope (cf: loaded by another definition)
+ * This Definition cache is updated every time a .lfd file is saved.
+ * 
  * meta.dat : md5 hash of files to pack.
+ * 
+ * Export profile: Since THlib is not the only lib existing (Verita, KaleidoLib, HolosLib), specify a pre-existing profile for exporting (like, arguments and values, etc)
  */
 
 /// <summary>

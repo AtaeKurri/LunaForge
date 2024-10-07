@@ -57,15 +57,26 @@ public static class ImGuiEx
         }
     }
 
-    public static void ClickToCopyText(string text, string? textToCopy = null)
+    [Flags]
+    public enum ImGuiClickToCopyTextFlags
+    {
+        MouseToHand,
+        TooltipToCopiedText,
+    }
+
+    public static void ClickToCopyText(
+        string text,
+        string? textToCopy = null,
+        ImGuiClickToCopyTextFlags flags = ImGuiClickToCopyTextFlags.MouseToHand | ImGuiClickToCopyTextFlags.TooltipToCopiedText)
     {
         textToCopy ??= text;
 
         ImGui.Text(text);
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-            if (textToCopy != text)
+            if (flags.HasFlag(ImGuiClickToCopyTextFlags.MouseToHand))
+                ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+            if (textToCopy != text && flags.HasFlag(ImGuiClickToCopyTextFlags.TooltipToCopiedText))
                 ImGui.SetTooltip(textToCopy);
         }
         if (ImGui.IsItemClicked())
