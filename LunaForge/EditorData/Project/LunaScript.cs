@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ImGuiNET;
 using LunaForge.EditorData.Traces;
+using LunaForge.GUI;
 using YamlDotNet.Core.Tokens;
 
 namespace LunaForge.EditorData.Project;
@@ -97,7 +98,7 @@ public class LunaScript : LunaProjectFile
         if (string.IsNullOrEmpty(FullFilePath) || saveAs)
         {
             string lastUsedPath = Configuration.Default.LastUsedPath;
-            ParentProject.Window.ParentWindow.FileDialogManager.SaveFileDialog("Save Script", "Lua Script{.lua}",
+            MainWindow.FileDialogManager.SaveFileDialog("Save Script", "Lua Script{.lua}",
                 saveAs ? string.Empty : FileName, "Lua Script{.lua}", SelectPath, string.IsNullOrEmpty(lastUsedPath)
                     ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
                     : lastUsedPath, true);

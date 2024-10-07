@@ -9,8 +9,6 @@ namespace LunaForge.GUI.Helpers;
 
 public static class ShortcutList
 {
-    public static MainWindow MainWin { get; private set; }
-
     public static List<Shortcut> Shortcuts = [];
 
     #region Shortcuts
@@ -18,99 +16,98 @@ public static class ShortcutList
     public static Shortcut NewShortcut = new(
         () => ImGui.GetIO().KeyCtrl,
         ImGuiKey.N,
-        (obj) => { MainWin.NewProj(); },
-        () => { return MainWin.NewProj_CanExecute(); }
+        (obj) => { MainWindow.NewProj(); },
+        () => { return MainWindow.NewProj_CanExecute(); }
     );
 
     public static Shortcut OpenShortcut = new(
         () => ImGui.GetIO().KeyCtrl,
         ImGuiKey.O,
-        (obj) => { MainWin.OpenProj(); },
-        () => { return MainWin.OpenProj_CanExecute(); }
+        (obj) => { MainWindow.OpenProj(); },
+        () => { return MainWindow.OpenProj_CanExecute(); }
     );
 
     public static Shortcut SaveShortcut = new(
         () => ImGui.GetIO().KeyCtrl,
         ImGuiKey.S,
-        (obj) => { MainWin.SaveActiveProjectFile(); },
-        () => { return MainWin.SaveActiveProjectFile_CanExecute(); }
+        (obj) => { MainWindow.SaveActiveProjectFile(); },
+        () => { return MainWindow.SaveActiveProjectFile_CanExecute(); }
     );
 
     public static Shortcut UndoShortcut = new(
         () => ImGui.GetIO().KeyCtrl,
         [ImGuiKey.Z, ImGuiKey.W],
-        (obj) => { MainWin.Undo(); },
-        () => { return MainWin.Undo_CanExecute(); }
+        (obj) => { MainWindow.Undo(); },
+        () => { return MainWindow.Undo_CanExecute(); }
     );
 
     public static Shortcut RedoShortcut = new(
         () => ImGui.GetIO().KeyCtrl,
         ImGuiKey.Y,
-        (obj) => { MainWin.Redo(); },
-        () => { return MainWin.Redo_CanExecute(); }
+        (obj) => { MainWindow.Redo(); },
+        () => { return MainWindow.Redo_CanExecute(); }
     );
 
     public static Shortcut InsertBeforeShortcut = new(
         () => ImGui.GetIO().KeyAlt,
         ImGuiKey.UpArrow,
-        (obj) => { MainWin.InsertMode = InsertMode.Before; },
+        (obj) => { MainWindow.InsertMode = InsertMode.Before; },
         () => true
     );
 
     public static Shortcut InsertChildShortcut = new(
         () => ImGui.GetIO().KeyAlt,
         ImGuiKey.RightArrow,
-        (obj) => { MainWin.InsertMode = InsertMode.Child; },
+        (obj) => { MainWindow.InsertMode = InsertMode.Child; },
         () => true
     );
 
     public static Shortcut InsertAfterShortcut = new(
         () => ImGui.GetIO().KeyAlt,
         ImGuiKey.DownArrow,
-        (obj) => { MainWin.InsertMode = InsertMode.After; },
+        (obj) => { MainWindow.InsertMode = InsertMode.After; },
         () => true
     );
 
     public static Shortcut DeleteShortcut = new(
         () => true,
         ImGuiKey.Delete,
-        (obj) => { MainWin.Delete(); },
-        () => { return MainWin.Delete_CanExecute(); }
+        (obj) => { MainWindow.Delete(); },
+        () => { return MainWindow.Delete_CanExecute(); }
     );
 
     public static Shortcut CutShortcut = new(
         () => ImGui.GetIO().KeyCtrl,
         ImGuiKey.X,
-        (obj) => { MainWin.CutNode(); },
-        () => { return MainWin.CutNode_CanExecute(); }
+        (obj) => { MainWindow.CutNode(); },
+        () => { return MainWindow.CutNode_CanExecute(); }
     );
 
     public static Shortcut CopyShortcut = new(
         () => ImGui.GetIO().KeyCtrl,
         ImGuiKey.C,
-        (obj) => { MainWin.CopyNode(); },
-        () => { return MainWin.CopyNode_CanExecute(); }
+        (obj) => { MainWindow.CopyNode(); },
+        () => { return MainWindow.CopyNode_CanExecute(); }
     );
 
     public static Shortcut PasteShortcut = new(
         () => ImGui.GetIO().KeyCtrl,
         ImGuiKey.V,
-        (obj) => { MainWin.PasteNode(); },
-        () => { return MainWin.PasteNode_CanExecute(); }
+        (obj) => { MainWindow.PasteNode(); },
+        () => { return MainWindow.PasteNode_CanExecute(); }
     );
 
     public static Shortcut RunProjectShortcut = new(
         () => true,
         ImGuiKey.F5,
-        (obj) => { MainWin.RunProject(); },
-        () => { return MainWin.RunProject_CanExecute(); }
+        (obj) => { MainWindow.RunProject(); },
+        () => { return MainWindow.RunProject_CanExecute(); }
      );
 
     #endregion
 
-    public static void RegisterShortcuts(MainWindow mainWin)
+    public static void RegisterShortcuts()
     {
-        MainWin = mainWin;
         Shortcuts.Add(NewShortcut);
         Shortcuts.Add(OpenShortcut);
         Shortcuts.Add(SaveShortcut);

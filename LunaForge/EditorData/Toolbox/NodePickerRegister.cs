@@ -8,12 +8,11 @@ using System.Threading.Tasks;
 
 namespace LunaForge.EditorData.Toolbox;
 
-public abstract class NodePickerRegister(NodePickerTab tab, MainWindow mainApp)
+public abstract class NodePickerRegister(NodePickerTab tab)
 {
-    public readonly MainWindow MainApp = mainApp;
     public NodePickerTab Tab = tab;
 
-    public LunaDefinition Def => MainApp.Workspaces.Current?.CurrentProjectFile as LunaDefinition;
+    public LunaDefinition Def => MainWindow.Workspaces.Current?.CurrentProjectFile as LunaDefinition;
 
     public abstract NodePickerTab RegisterTab();
 }

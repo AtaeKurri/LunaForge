@@ -12,8 +12,8 @@ public class DebugLogWindow : ImGuiWindow
 {
     public string DebugLogContent = string.Empty;
 
-    public DebugLogWindow(MainWindow parent)
-        : base(parent, true)
+    public DebugLogWindow()
+        : base(true)
     {
 
     }

@@ -16,10 +16,10 @@ public class ToolboxWindow : ImGuiWindow
 {
     public NodePicker NodePickerBox { get; private set; }
 
-    public ToolboxWindow(MainWindow parent)
-        : base(parent, true)
+    public ToolboxWindow()
+        : base(true)
     {
-        NodePickerBox = new(parent);
+        NodePickerBox = new();
     }
 
     public override void Render()
@@ -33,7 +33,7 @@ public class ToolboxWindow : ImGuiWindow
                     ImGui.PushID(tab.Header);
                     if (ImGui.BeginTabItem(tab.Header))
                     {
-                        ImGui.BeginDisabled(ParentWindow.Workspaces.Current?.CurrentProjectFile is not LunaDefinition);
+                        ImGui.BeginDisabled(MainWindow.Workspaces.Current?.CurrentProjectFile is not LunaDefinition);
                         //ImGui.Columns(tab.Items.Count(x => x.IsSeparator) + 1); // Number of separators.
 
                         foreach (NodePickerItem item in tab.Items)
@@ -42,7 +42,7 @@ public class ToolboxWindow : ImGuiWindow
                                 VerticalSeparator(); //ImGui.NextColumn();
                             else
                             {
-                                if (rlImGui.ImageButtonSize(item.Tag, ParentWindow.FindTexture(item.Icon), new Vector2(24, 24)))
+                                if (rlImGui.ImageButtonSize(item.Tag, MainWindow.FindTexture(item.Icon), new Vector2(24, 24)))
                                     item.AddNodeMethod();
                                 if (ImGui.IsItemHovered())
                                     ImGui.SetTooltip(item.Tooltip);

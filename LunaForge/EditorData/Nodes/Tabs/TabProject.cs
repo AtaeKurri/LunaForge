@@ -12,7 +12,7 @@ namespace LunaForge.EditorData.Nodes.Tabs;
 
 public class TabProject : NodePickerRegister
 {
-    public TabProject(NodePickerTab tab, MainWindow parentWindow) : base(tab, parentWindow) { }
+    public TabProject(NodePickerTab tab) : base(tab) { }
 
     public override NodePickerTab RegisterTab()
     {
@@ -25,7 +25,7 @@ public class TabProject : NodePickerRegister
 
     private void AddNode_LoadDefinition()
     {
-        MainApp.Insert(new LoadDefinition(Def));
+        MainWindow.Insert(new LoadDefinition(Def));
     }
 
     #endregion

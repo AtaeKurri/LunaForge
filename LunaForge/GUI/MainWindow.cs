@@ -82,7 +82,7 @@ namespace LunaForge.GUI;
 /// <summary>
 /// How should a new <see cref="TreeNode"/> be inserted into the tree.
 /// </summary>
-public enum InsertMode
+internal enum InsertMode
 {
     /// <summary>
     /// Insert node before the selected one.
@@ -101,83 +101,62 @@ public enum InsertMode
 /// <summary>
 /// Entry point of the editor. Must not be instancied more than once.
 /// </summary>
-public sealed class MainWindow : IDisposable
+internal static class MainWindow
 {
     /// <summary>
     /// Static string to be inserted into the window titles.
     /// </summary>
     public static readonly string LunaForgeName = $"LunaForge Editor";
-    private Version? VersionNumber = Assembly.GetEntryAssembly()?.GetName().Version;
+    private static Version? VersionNumber = Assembly.GetEntryAssembly()?.GetName().Version;
 
     /// <summary>
     /// The plugin manager. Currently not active in alpha. See the API documentation to see how to use plugins.
     /// </summary>
-    public PluginManager Plugins { get; private set; } = new();
+    public static PluginManager Plugins { get; private set; } = new();
 
-    public FileDialogManager FileDialogManager { get; set; } = new();
+    public static FileDialogManager FileDialogManager { get; set; } = new();
 
-    public SparkleUpdater Sparkle;
+    public static SparkleUpdater Sparkle;
 
     #region Windows
 
-    public ToolboxWindow ToolboxWin;
-    public NodeAttributeWindow NodeAttributeWin;
-    public DefinitionsWindow DefinitionsWin;
-    public TracesWindow TracesWin;
-    public DebugLogWindow DebugLogWin;
-    public NewProjWindow NewProjWin;
-    public FileSystemWindow FSWin;
-    public ViewCodeWindow ViewCodeWin;
-    public SparkleWindow SparkleWin;
+    public static ToolboxWindow ToolboxWin;
+    public static NodeAttributeWindow NodeAttributeWin;
+    public static DefinitionsWindow DefinitionsWin;
+    public static TracesWindow TracesWin;
+    public static DebugLogWindow DebugLogWin;
+    public static NewProjWindow NewProjWin;
+    public static FileSystemWindow FSWin;
+    public static ViewCodeWindow ViewCodeWin;
+    public static SparkleWindow SparkleWin;
 
     #endregion
     #region Properties
 
-    public InsertMode InsertMode { get; set; } = InsertMode.Child;
+    public static InsertMode InsertMode { get; set; } = InsertMode.Child;
 
     /// <summary>
     /// The images loaded by <see cref="LoadEditorImages"/>. Must be disposed.
     /// </summary>
-    public Dictionary<string, Texture2D> EditorImages = [];
+    public static Dictionary<string, Texture2D> EditorImages = [];
     /// <summary>
     /// The LunaForge icon <see cref="Image"/>.
     /// </summary>
-    public Image EditorIcon = Raylib.LoadImage(Path.Combine(Directory.GetCurrentDirectory(), "Images/Icon.png"));
+    public static Image EditorIcon = Raylib.LoadImage(Path.Combine(Directory.GetCurrentDirectory(), "Images/Icon.png"));
 
     /// <summary>
     /// The list of currently opened <see cref="LunaForgeProject"/>s.
     /// </summary>
-    public ProjectCollection Workspaces;
+    public static ProjectCollection Workspaces;
 
-    public List<PresetListInfo> PresetsList { get; set; } = [];
+    public static List<PresetListInfo> PresetsList { get; set; } = [];
 
     #endregion
 
     /// <summary>
-    /// Initialize all ImGui windows with the corresponding context.<br/>
-    /// Initialize the Workspaces.
-    /// </summary>
-    public MainWindow()
-    {
-        Configuration.Load();
-
-        ToolboxWin = new(this);
-        NodeAttributeWin = new(this);
-        DefinitionsWin = new(this);
-        TracesWin = new(this);
-        DebugLogWin = new(this);
-        NewProjWin = new(this);
-        FSWin = new(this);
-        ViewCodeWin = new(this);
-        SparkleWin = new(this);
-
-        Workspaces = new(this);
-    }
-
-    /// <summary>
     /// Get rid of the loaded <see cref="Texture2D"/> since Raylib is not resource managed.
     /// </summary>
-    public void Dispose()
+    public static void Dispose()
     {
         foreach (Texture2D texture in EditorImages.Values)
             Raylib.UnloadTexture(texture);
@@ -187,8 +166,22 @@ public sealed class MainWindow : IDisposable
     /// <summary>
     /// Raylib/ImGui window initialization and main rendering loop of the editor.
     /// </summary>
-    public void Initialize()
+    public static void Initialize()
     {
+        Configuration.Load();
+
+        ToolboxWin = new();
+        NodeAttributeWin = new();
+        DefinitionsWin = new();
+        TracesWin = new();
+        DebugLogWin = new();
+        NewProjWin = new();
+        FSWin = new();
+        ViewCodeWin = new();
+        SparkleWin = new();
+
+        Workspaces = new();
+
         Raylib.SetConfigFlags(ConfigFlags.Msaa4xHint | ConfigFlags.HighDpiWindow | ConfigFlags.VSyncHint | ConfigFlags.ResizableWindow);
         Raylib.InitWindow(1280, 800, $"{LunaForgeName} v{VersionNumber}");
         Raylib.SetWindowIcon(EditorIcon);
@@ -203,7 +196,7 @@ public sealed class MainWindow : IDisposable
         rlImGui.Setup(true, true);
         ImGui.GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
 
-        ShortcutList.RegisterShortcuts(this);
+        ShortcutList.RegisterShortcuts();
         GetPresets();
 
         // Plugins disabled for the moment.
@@ -252,7 +245,7 @@ public sealed class MainWindow : IDisposable
         Raylib.CloseWindow();
     }
 
-    private void Render()
+    private static void Render()
     {
         ToolboxWin.Render();
         NodeAttributeWin.Render();
@@ -271,14 +264,14 @@ public sealed class MainWindow : IDisposable
         NotificationManager.Render();
     }
 
-    private bool ForceCloseWindow = false;
+    private static bool ForceCloseWindow = false;
 
-    public void ForceClose()
+    public static void ForceClose()
     {
         ForceCloseWindow = true;
     }
 
-    public bool RenderCloseOpenedProjects()
+    public static bool RenderCloseOpenedProjects()
     {
         if (Workspaces.Count > 0)
         {
@@ -291,7 +284,7 @@ public sealed class MainWindow : IDisposable
 
     #region Init
 
-    public void SetupDiscordRpc()
+    public static void SetupDiscordRpc()
     {
 
     }
@@ -299,7 +292,7 @@ public sealed class MainWindow : IDisposable
     #endregion
     #region RenderMenu
 
-    private void RenderMenu()
+    private static void RenderMenu()
     {
         if (ImGui.BeginMainMenuBar())
         {
@@ -401,7 +394,7 @@ public sealed class MainWindow : IDisposable
     #endregion
     #region Presets
 
-    public void GetPresets()
+    public static void GetPresets()
     {
         PresetsList.Clear();
         string path = Path.GetFullPath(Path.Combine(
@@ -416,7 +409,7 @@ public sealed class MainWindow : IDisposable
         }
     }
 
-    public void RenderPresetList()
+    public static void RenderPresetList()
     {
         int i = 0;
         foreach (PresetListInfo presetDir in  PresetsList)
@@ -438,7 +431,7 @@ public sealed class MainWindow : IDisposable
         }
     }
 
-    public void NodeToPreset(TreeNode nodeToSave = null)
+    public static void NodeToPreset(TreeNode nodeToSave = null)
     {
         TreeNode node = nodeToSave ?? (Workspaces.Current?.CurrentProjectFile as LunaDefinition).SelectedNode.Clone() as TreeNode;
         void SelectPath(bool success, string path)
@@ -462,9 +455,9 @@ public sealed class MainWindow : IDisposable
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                 "LunaForge Definition Presets")), true);
     }
-    public bool NodeToPreset_CanExecute() => (Workspaces.Current?.CurrentProjectFile as LunaDefinition) != null;
+    public static bool NodeToPreset_CanExecute() => (Workspaces.Current?.CurrentProjectFile as LunaDefinition) != null;
 
-    public async Task InsertPreset(string path)
+    public static async Task InsertPreset(string path)
     {
         try
         {
@@ -477,7 +470,7 @@ public sealed class MainWindow : IDisposable
             Console.WriteLine(ex.ToString());
         }
     }
-    public bool InsertPreset_CanExecute() => (Workspaces.Current?.CurrentProjectFile as LunaDefinition) != null;
+    public static bool InsertPreset_CanExecute() => (Workspaces.Current?.CurrentProjectFile as LunaDefinition) != null;
 
     #endregion
     #region Editor Exec
@@ -485,7 +478,7 @@ public sealed class MainWindow : IDisposable
     /// <summary>
     /// Loads all images inside the "Image" directorys to a <see cref="Texture2D"/> and adds them to <see cref="EditorImages"/>.
     /// </summary>
-    public void LoadEditorImages()
+    public static void LoadEditorImages()
     {
         EditorImages = [];
         string rootDir = Path.Combine(Directory.GetCurrentDirectory(), "Images");
@@ -508,7 +501,7 @@ public sealed class MainWindow : IDisposable
     /// </summary>
     /// <param name="name">The name of the texture to find in <see cref="EditorImages"/>.</param>
     /// <returns>A <see cref="Texture2D"/> object if it's found; otherwise, the default value, which is an "Unknown" image.</returns>
-    public Texture2D FindTexture(string name)
+    public static Texture2D FindTexture(string name)
     {
         if (EditorImages.TryGetValue(name, out Texture2D value))
             return value;
@@ -519,7 +512,7 @@ public sealed class MainWindow : IDisposable
     /// <summary>
     /// Prompts the user to choose a directory and creates a new project at the given location.
     /// </summary>
-    public void CreateNewProject()
+    public static void CreateNewProject()
     {
         string pathToTemplate = Path.GetFullPath(NewProjWin.SelectedPath);
 
@@ -541,7 +534,7 @@ public sealed class MainWindow : IDisposable
     /// </summary>
     /// <param name="pathToTemplate">The path to the *.zip template file.</param>
     /// <param name="pathToFolder">The path in which to extract the template.</param>
-    public async void CloneTemplate(string pathToTemplate, string pathToFolder)
+    public static async void CloneTemplate(string pathToTemplate, string pathToFolder)
     {
         try
         {
@@ -577,7 +570,7 @@ public sealed class MainWindow : IDisposable
     /// <summary>
     /// Prompts the used to select a ".lfp" project file and creates a new ImGui window context to open it.
     /// </summary>
-    public void OpenProject()
+    public static void OpenProject()
     {
         void SelectPath(bool success, List<string> paths)
         {
@@ -603,14 +596,14 @@ public sealed class MainWindow : IDisposable
     /// </summary>
     /// <param name="path">Path to the project .lfp file.</param>
     /// <returns>True if the project is opened in the editor; otherwise, false.</returns>
-    public bool IsProjectOpened(string path) => Workspaces.Any(x => Path.GetDirectoryName(x.PathToLFP) == Path.GetDirectoryName(path));
+    public static bool IsProjectOpened(string path) => Workspaces.Any(x => Path.GetDirectoryName(x.PathToLFP) == Path.GetDirectoryName(path));
 
     /// <summary>
     /// Tries to load a project .lfp file.
     /// </summary>
     /// <param name="path">The path to the .lfp file.</param>
     /// <returns>A <see cref="LunaForgeProject"/> instance.</returns>
-    public LunaForgeProject? OpenProjectFromPath(string path)
+    public static LunaForgeProject? OpenProjectFromPath(string path)
     {
         try
         {
@@ -633,7 +626,7 @@ public sealed class MainWindow : IDisposable
     /// <param name="proj">The project to close.</param>
     /// <returns>True if all opened files were closed; false if some weren't closed.</returns>
     /// <seealso cref="CloseProjectFile(LunaProjectFile)">This method is called to close individual opened files in the project window.</seealso>
-    public bool CloseProject(LunaForgeProject proj)
+    public static bool CloseProject(LunaForgeProject proj)
     {
         bool allClosed = true;
         foreach (LunaProjectFile file in proj.ProjectFiles.ToList())
@@ -656,7 +649,7 @@ public sealed class MainWindow : IDisposable
     /// <param name="file">The project file instance.</param>
     /// <returns>True if the file was saved/closed; otherwise, false.</returns>
     [Obsolete]
-    public bool CloseProjectFile(LunaProjectFile file)
+    public static bool CloseProjectFile(LunaProjectFile file)
     {
         void CloseCallback()
         {
@@ -693,50 +686,50 @@ public sealed class MainWindow : IDisposable
     #endregion
     #region Shortcuts
 
-    public void NewProj()
+    public static void NewProj()
     {
         NewProjWin.ResetAndShow();
     }
-    public bool NewProj_CanExecute() => true;
+    public static bool NewProj_CanExecute() => true;
 
-    public void OpenProj()
+    public static void OpenProj()
     {
         OpenProject();
     }
-    public bool OpenProj_CanExecute() => true;
+    public static bool OpenProj_CanExecute() => true;
 
-    public bool SaveActiveProjectFile_CanExecute() => Workspaces.Current?.CurrentProjectFile != null;
+    public static bool SaveActiveProjectFile_CanExecute() => Workspaces.Current?.CurrentProjectFile != null;
 
-    public void Undo()
+    public static void Undo()
     {
         Workspaces.Current?.CurrentProjectFile?.Undo();
     }
-    public bool Undo_CanExecute() => Workspaces.Current?.CurrentProjectFile?.CommandStack.Count > 0;
+    public static bool Undo_CanExecute() => Workspaces.Current?.CurrentProjectFile?.CommandStack.Count > 0;
 
-    public void Redo()
+    public static void Redo()
     {
         Workspaces.Current?.CurrentProjectFile?.Redo();
     }
-    public bool Redo_CanExecute() => Workspaces.Current?.CurrentProjectFile?.UndoCommandStack.Count > 0;
+    public static bool Redo_CanExecute() => Workspaces.Current?.CurrentProjectFile?.UndoCommandStack.Count > 0;
 
-    public void Delete()
+    public static void Delete()
     {
         if (Workspaces.Current?.CurrentProjectFile == null)
             return;
         Workspaces.Current.CurrentProjectFile!.Delete();
     }
-    public bool Delete_CanExecute()
+    public static bool Delete_CanExecute()
     {
         if (Workspaces.Current?.CurrentProjectFile == null)
             return false;
         return Workspaces.Current.CurrentProjectFile!.Delete_CanExecute();
     }
 
-    public void CutNode()
+    public static void CutNode()
     {
         (Workspaces.Current?.CurrentProjectFile as LunaDefinition)?.CutNode();
     }
-    public bool CutNode_CanExecute()
+    public static bool CutNode_CanExecute()
     {
         LunaDefinition def = (Workspaces.Current?.CurrentProjectFile as LunaDefinition);
         if (def == null)
@@ -744,11 +737,11 @@ public sealed class MainWindow : IDisposable
         return def.CutNode_CanExecute();
     }
 
-    public void CopyNode()
+    public static void CopyNode()
     {
         (Workspaces.Current?.CurrentProjectFile as LunaDefinition)?.CopyNode();
     }
-    public bool CopyNode_CanExecute()
+    public static bool CopyNode_CanExecute()
     {
         LunaDefinition def = (Workspaces.Current?.CurrentProjectFile as LunaDefinition);
         if (def == null)
@@ -756,11 +749,11 @@ public sealed class MainWindow : IDisposable
         return def.CopyNode_CanExecute();
     }
 
-    public void PasteNode()
+    public static void PasteNode()
     {
         (Workspaces.Current?.CurrentProjectFile as LunaDefinition)?.PasteNode();
     }
-    public bool PasteNode_CanExecute()
+    public static bool PasteNode_CanExecute()
     {
         LunaDefinition def = (Workspaces.Current?.CurrentProjectFile as LunaDefinition);
         if (def == null)
@@ -771,15 +764,15 @@ public sealed class MainWindow : IDisposable
     #endregion
     #region Compile
 
-    public bool OpenedProject() => Workspaces.Current != null;
-    public bool OpenedDefinition() => Workspaces.Current?.CurrentProjectFile as LunaDefinition != null;
-    public bool OpenedScript() => Workspaces.Current?.CurrentProjectFile as LunaScript != null;
+    public static bool OpenedProject() => Workspaces.Current != null;
+    public static bool OpenedDefinition() => Workspaces.Current?.CurrentProjectFile as LunaDefinition != null;
+    public static bool OpenedScript() => Workspaces.Current?.CurrentProjectFile as LunaScript != null;
 
-    public void RunProject() => BeginPackingCurrentProject();
-    public bool RunProject_CanExecute() => OpenedProject();
-    public void PackProject() => BeginPackingCurrentProject(run: false);
-    public bool PackProject_CanExecute() => OpenedProject();
-    public void SCDebugProject()
+    public static void RunProject() => BeginPackingCurrentProject();
+    public static bool RunProject_CanExecute() => OpenedProject();
+    public static void PackProject() => BeginPackingCurrentProject(run: false);
+    public static bool PackProject_CanExecute() => OpenedProject();
+    public static void SCDebugProject()
     {
         TreeNode node = (Workspaces.Current?.CurrentProjectFile as LunaDefinition)?.SelectedNode;
         if (node == null)
@@ -791,7 +784,7 @@ public sealed class MainWindow : IDisposable
         }
         BeginPackingCurrentProject(node);
     }
-    public void StageDebugProject()
+    public static void StageDebugProject()
     {
         TreeNode node = (Workspaces.Current?.CurrentProjectFile as LunaDefinition)?.SelectedNode;
         BeginPackingCurrentProject(null, node);
@@ -801,7 +794,7 @@ public sealed class MainWindow : IDisposable
     /// Calls <see cref="BeginPacking(LunaForgeProject, TreeNode, TreeNode, bool, bool)"/> with the currently active project.
     /// </summary>
     /// <param name="args"></param>
-    public void BeginPackingCurrentProject(
+    public static void BeginPackingCurrentProject(
         TreeNode SCDebugger = null,
         TreeNode StageDebugger = null,
         bool run = true)
@@ -815,7 +808,7 @@ public sealed class MainWindow : IDisposable
     /// <param name="StageDebugger"></param>
     /// <param name="run"></param>
     /// <param name="saveMeta"></param>
-    public void BeginPacking(
+    public static void BeginPacking(
         LunaForgeProject projectToCompile,
         TreeNode SCDebugger = null,
         TreeNode StageDebugger = null,
@@ -861,14 +854,14 @@ public sealed class MainWindow : IDisposable
         packingThread.Start();
         
     }
-    public bool BeginPacking_CanExecute() => Workspaces.Current != null;
+    public static bool BeginPacking_CanExecute() => Workspaces.Current != null;
 
-    private void PackageProgressReport(object sender, ProgressChangedEventArgs args)
+    private static void PackageProgressReport(object sender, ProgressChangedEventArgs args)
     {
         DebugLogWin.DebugLogContent += args.UserState?.ToString() + "\n";
     }
 
-    public void RunLuaSTG()
+    public static void RunLuaSTG()
     {
         LSTGExecution exec = null;
         LunaForgeProject proj = Workspaces.Current;
@@ -898,7 +891,7 @@ public sealed class MainWindow : IDisposable
     #endregion
     #region TreeNode Operation
 
-    
+
 
     #endregion
     #region Project Operation
@@ -908,13 +901,13 @@ public sealed class MainWindow : IDisposable
     /// </summary>
     /// <returns>True if the save went without problem; otherwise, false.</returns>
     /// <seealso cref="SaveActiveProjectFileAs">Saves the project file but as a new file.</seealso>
-    public void SaveActiveProjectFile() => SaveProject(Workspaces.Current?.CurrentProjectFile);
+    public static void SaveActiveProjectFile() => SaveProject(Workspaces.Current?.CurrentProjectFile);
     /// <summary>
     /// Saves the currently selected <see cref="LunaProjectFile"/> as new file.
     /// </summary>
     /// <returns>True if the save went without problem; otherwise, false.</returns>
     /// <seealso cref="SaveActiveProjectFile">Saves the project file normally.</seealso>
-    public void SaveActiveProjectFileAs() => SaveProject(Workspaces.Current?.CurrentProjectFile, true);
+    public static void SaveActiveProjectFileAs() => SaveProject(Workspaces.Current?.CurrentProjectFile, true);
 
     /// <summary>
     /// Saves the given <see cref="LunaProjectFile"/> normally or as a new file.
@@ -933,7 +926,7 @@ public sealed class MainWindow : IDisposable
     /// Tries to pack the currently selected project into a .zip template being able to be used by <see cref="CreateNewProject"/>.
     /// </summary>
     /// <returns>True if the .zip was created successfuly; otherwise, false.</returns>
-    public bool ProjectToTemplate()
+    public static bool ProjectToTemplate()
     {
         LunaForgeProject? currentProj = Workspaces.Current;
         if (currentProj == null)
@@ -963,7 +956,7 @@ public sealed class MainWindow : IDisposable
     /// <param name="node">The new node to insert into the tree.</param>
     /// <param name="doInvoke">Tells the editor to execute the <see cref="TreeNode.GetCreateInvoke"/> attribute.</param>
     /// <returns></returns>
-    public bool Insert(TreeNode node, bool doInvoke = true)
+    public static bool Insert(TreeNode node, bool doInvoke = true)
     {
         try
         {

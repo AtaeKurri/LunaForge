@@ -8,10 +8,8 @@ using System.Threading.Tasks;
 
 namespace LunaForge.GUI.Helpers;
 
-public abstract class ImGuiWindow(MainWindow parentWin, bool showByDefault)
+public abstract class ImGuiWindow(bool showByDefault)
 {
-    public MainWindow ParentWindow = parentWin;
-
     public bool ShowWindow = showByDefault;
 
     public bool Begin(string windowName, Vector2? windowSize = null)

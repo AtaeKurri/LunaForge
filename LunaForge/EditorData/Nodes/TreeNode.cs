@@ -268,13 +268,13 @@ public abstract class TreeNode : ITraceThrowable
                 StringBuilder code = new();
                 foreach (string codeLine in ToLua(0))
                     code.Append(codeLine);
-                ParentDef.ParentProject.Parent.MainWin.ViewCodeWin.ResetAndShow(code.ToString());
+                MainWindow.ViewCodeWin.ResetAndShow(code.ToString());
             }
         }
         ImGui.Separator();
-        if (ImGui.MenuItem("Save as Preset", string.Empty, false, ParentDef.ParentProject.Parent.MainWin.NodeToPreset_CanExecute()))
+        if (ImGui.MenuItem("Save as Preset", string.Empty, false, MainWindow.NodeToPreset_CanExecute()))
         {
-            ParentDef.ParentProject.Parent.MainWin.NodeToPreset(this);
+            MainWindow.NodeToPreset(this);
         }
     }
 

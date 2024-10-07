@@ -32,8 +32,8 @@ public class NewProjWindow : ImGuiWindow
 
     private List<TemplateDef> Templates;
 
-    public NewProjWindow(MainWindow parent)
-        : base(parent, false)
+    public NewProjWindow()
+        : base(false)
     {
         Author = Configuration.Default.AuthorName;
     }
@@ -144,14 +144,14 @@ public class NewProjWindow : ImGuiWindow
     public void ClickOk()
     {
         SelectedPath = SelectedTemplate?.ZipPath;
-        ParentWindow.CreateNewProject();
+        MainWindow.CreateNewProject();
         Close();
     }
 
     public void ClickGenerateEmpty()
     {
         SelectedPath = "specialCommand|=GenerateEmpty";
-        ParentWindow.CreateNewProject();
+        MainWindow.CreateNewProject();
         Close();
     }
 

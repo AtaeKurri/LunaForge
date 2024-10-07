@@ -16,8 +16,8 @@ public class SparkleWindow : ImGuiWindow
 {
     public SparkleUpdater Sparkle { get; set; }
 
-    public SparkleWindow(MainWindow parent)
-        : base(parent, false)
+    public SparkleWindow()
+        : base(false)
     {
         Sparkle = new(
             "", // TODO: Replace with AppCast.xml url.
@@ -30,7 +30,7 @@ public class SparkleWindow : ImGuiWindow
         };
         Sparkle.UpdateDetected += OnUpdateDetected;
         Sparkle.PreparingToExit += SparkleCloseFiles;
-        Sparkle.CloseApplication += ParentWindow.ForceClose;
+        Sparkle.CloseApplication += MainWindow.ForceClose;
         Sparkle.StartLoop(true, true);
     }
 
@@ -41,7 +41,7 @@ public class SparkleWindow : ImGuiWindow
 
     private void SparkleCloseFiles(object sender, CancelEventArgs e)
     {
-        ParentWindow.RenderCloseOpenedProjects();
+        MainWindow.RenderCloseOpenedProjects();
     }
 
     public override void Render()

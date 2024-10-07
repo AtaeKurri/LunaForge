@@ -14,23 +14,20 @@ public class NodePicker : IEnumerable<NodePickerTab>
 {
     public delegate void AddNode();
 
-    public readonly MainWindow MainApp;
-
     public List<NodePickerTab> NodePickerTabs = [];
     public Dictionary<string, AddNode> NodeFuncs = [];
 
-    public NodePicker(MainWindow mainApp)
+    public NodePicker()
     {
-        MainApp = mainApp;
         Initialize();
         InitializeData();
     }
 
     public void Initialize()
     {
-        AddRegister(new TabGeneral(new("General"), MainApp));
-        AddRegister(new TabStages(new("Stages"), MainApp));
-        AddRegister(new TabProject(new("Project"), MainApp));
+        AddRegister(new TabGeneral(new("General")));
+        AddRegister(new TabStages(new("Stages")));
+        AddRegister(new TabProject(new("Project")));
     }
 
     public void InitializeData()

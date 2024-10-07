@@ -15,8 +15,8 @@ public class TracesWindow : ImGuiWindow
 {
     public List<EditorTrace> Traces { get => EditorTraceContainer.Traces; }
 
-    public TracesWindow(MainWindow parent)
-        : base(parent, true)
+    public TracesWindow()
+        : base(true)
     {
 
     }
@@ -39,7 +39,7 @@ public class TracesWindow : ImGuiWindow
 
                     // Icon
                     ImGui.TableSetColumnIndex(0);
-                    rlImGui.ImageSize(ParentWindow.FindTexture(trace.Icon), 12, 12);
+                    rlImGui.ImageSize(MainWindow.FindTexture(trace.Icon), 12, 12);
 
                     ImGui.TableSetColumnIndex(1);
                     ImGui.Text(trace.Trace);

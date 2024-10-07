@@ -12,7 +12,7 @@ namespace LunaForge.EditorData.Nodes.Tabs;
 
 public class TabGeneral : NodePickerRegister
 {
-    public TabGeneral(NodePickerTab tab, MainWindow mainApp) : base(tab, mainApp) { }
+    public TabGeneral(NodePickerTab tab) : base(tab) { }
 
     public override NodePickerTab RegisterTab()
     {
@@ -39,37 +39,37 @@ public class TabGeneral : NodePickerRegister
 
     private void AddNode_Folder()
     {
-        MainApp.Insert(new Folder(Def));
+        MainWindow.Insert(new Folder(Def));
     }
 
     private void AddNode_FolderRed()
     {
-        MainApp.Insert(new FolderRed(Def));
+        MainWindow.Insert(new FolderRed(Def));
     }
 
     private void AddNode_FolderGreen()
     {
-        MainApp.Insert(new FolderGreen(Def));
+        MainWindow.Insert(new FolderGreen(Def));
     }
 
     private void AddNode_FolderBlue()
     {
-        MainApp.Insert(new FolderBlue(Def));
+        MainWindow.Insert(new FolderBlue(Def));
     }
 
     private void AddNode_Code()
     {
-        MainApp.Insert(new Code(Def));
+        MainWindow.Insert(new Code(Def));
     }
 
     private void AddNode_CodeSegment()
     {
-        MainApp.Insert(new CodeSegment(Def));
+        MainWindow.Insert(new CodeSegment(Def));
     }
 
     private void AddNode_Comment()
     {
-        MainApp.Insert(new Comment(Def));
+        MainWindow.Insert(new Comment(Def));
     }
 
     private void AddNode_IfNode()
@@ -77,27 +77,27 @@ public class TabGeneral : NodePickerRegister
         TreeNode newIf = new IfNode(Def);
         newIf.AddChild(new IfThen(Def));
         newIf.AddChild(new IfElse(Def));
-        MainApp.Insert(newIf);
+        MainWindow.Insert(newIf);
     }
 
     private void AddNode_IfElse()
     {
-        MainApp.Insert(new IfElse(Def));
+        MainWindow.Insert(new IfElse(Def));
     }
 
     private void AddNode_IfElseIf()
     {
-        MainApp.Insert(new IfElseIf(Def));
+        MainWindow.Insert(new IfElseIf(Def));
     }
 
     private void AddNode_WhileNode()
     {
-        MainApp.Insert(new WhileNode(Def));
+        MainWindow.Insert(new WhileNode(Def));
     }
 
     private void AddNode_CodeBlock()
     {
-        MainApp.Insert(new CodeBlock(Def));
+        MainWindow.Insert(new CodeBlock(Def));
     }
 
     #endregion

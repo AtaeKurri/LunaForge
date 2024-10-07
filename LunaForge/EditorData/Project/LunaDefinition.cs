@@ -73,19 +73,19 @@ public class LunaDefinition : LunaProjectFile
 
     private void RenderNodeToolbar()
     {
-        if (ImGui.RadioButton("Insert Before", ParentProject.Parent.MainWin.InsertMode == InsertMode.Before))
+        if (ImGui.RadioButton("Insert Before", MainWindow.InsertMode == InsertMode.Before))
         {
-            ParentProject.Parent.MainWin.InsertMode = InsertMode.Before;
+            MainWindow.InsertMode = InsertMode.Before;
         }
         ImGui.SameLine();
-        if (ImGui.RadioButton("Insert as Child", ParentProject.Parent.MainWin.InsertMode == InsertMode.Child))
+        if (ImGui.RadioButton("Insert as Child", MainWindow.InsertMode == InsertMode.Child))
         {
-            ParentProject.Parent.MainWin.InsertMode = InsertMode.Child;
+            MainWindow.InsertMode = InsertMode.Child;
         }
         ImGui.SameLine();
-        if (ImGui.RadioButton("Insert After", ParentProject.Parent.MainWin.InsertMode == InsertMode.After))
+        if (ImGui.RadioButton("Insert After", MainWindow.InsertMode == InsertMode.After))
         {
-            ParentProject.Parent.MainWin.InsertMode = InsertMode.After;
+            MainWindow.InsertMode = InsertMode.After;
         }
     }
 
@@ -119,7 +119,7 @@ public class LunaDefinition : LunaProjectFile
             flags |= ImGuiTreeNodeFlags.DefaultOpen;
 
         
-        rlImGui.ImageSize(ParentProject.Parent.MainWin.FindTexture(node.MetaData.Icon), 18, 18);
+        rlImGui.ImageSize(MainWindow.FindTexture(node.MetaData.Icon), 18, 18);
         ImGui.SameLine(0, 1.5f);
 
 #if DEBUG
@@ -289,7 +289,7 @@ public class LunaDefinition : LunaProjectFile
         if (string.IsNullOrEmpty(FullFilePath) || saveAs)
         {
             string lastUsedPath = Configuration.Default.LastUsedPath;
-            ParentProject.Window.ParentWindow.FileDialogManager.SaveFileDialog("Save Definition", "LunaForge Definition{.lfd}",
+            MainWindow.FileDialogManager.SaveFileDialog("Save Definition", "LunaForge Definition{.lfd}",
                 saveAs ? string.Empty : FileName, "LunaForge Definition{.lfd}", SelectPath, string.IsNullOrEmpty(lastUsedPath)
                     ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
                     : lastUsedPath, true);
@@ -359,7 +359,7 @@ public class LunaDefinition : LunaProjectFile
                 node.IsExpanded = true;
             TreeNode oldSelection = SelectedNode;
             Command cmd = null;
-            switch (ParentProject.Window.ParentWindow.InsertMode)
+            switch (MainWindow.InsertMode)
             {
                 case InsertMode.Before:
                     if (SelectedNode.Parent == null || !SelectedNode.Parent.ValidateChild(node))
@@ -377,7 +377,7 @@ public class LunaDefinition : LunaProjectFile
                     cmd = new InsertAfterCommand(SelectedNode, node);
                     break;
             }
-            if (SelectedNode.Parent == null && ParentProject.Window.ParentWindow.InsertMode != InsertMode.Child)
+            if (SelectedNode.Parent == null && MainWindow.InsertMode != InsertMode.Child)
                 return false;
             if (AddAndExecuteCommand(cmd))
             {

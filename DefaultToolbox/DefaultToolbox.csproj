@@ -27,6 +27,8 @@
 			<ReferenceOutputAssembly>true</ReferenceOutputAssembly>
 			<CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
 		</ProjectReference>
+		
+		<ProjectReference Include="..\LunaForge\LunaForge.csproj" />
 	</ItemGroup>
 
 </Project>

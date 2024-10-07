@@ -14,10 +14,10 @@ namespace LunaForge.GUI.Windows;
 
 public class NodeAttributeWindow : ImGuiWindow
 {
-    public TreeNode? CurrentNode => (ParentWindow.Workspaces.Current?.CurrentProjectFile as LunaDefinition)?.SelectedNode;
+    public TreeNode? CurrentNode => (MainWindow.Workspaces.Current?.CurrentProjectFile as LunaDefinition)?.SelectedNode;
 
-    public NodeAttributeWindow(MainWindow parent)
-        : base(parent, true)
+    public NodeAttributeWindow()
+        : base(true)
     {
 
     }

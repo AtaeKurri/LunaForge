@@ -12,8 +12,8 @@ public class ViewCodeWindow : ImGuiWindow
 {
     public string CodeContent = string.Empty;
 
-    public ViewCodeWindow(MainWindow parent)
-        : base(parent, false)
+    public ViewCodeWindow()
+        : base(false)
     { }
 
     public void ResetAndShow(string code)

@@ -11,7 +11,7 @@ namespace LunaForge.EditorData.Nodes.Tabs;
 
 public class TabStages : NodePickerRegister
 {
-    public TabStages(NodePickerTab tab, MainWindow parentWindow) : base(tab, parentWindow) { }
+    public TabStages(NodePickerTab tab) : base(tab) { }
 
     public override NodePickerTab RegisterTab()
     {

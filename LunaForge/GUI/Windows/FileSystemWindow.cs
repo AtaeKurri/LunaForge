@@ -18,8 +18,8 @@ public class FileSystemWindow : ImGuiWindow
     bool NewFolderPopupOpen = false;
     bool NewFilePopupOpen = false;
 
-    public FileSystemWindow(MainWindow parent)
-        : base(parent, true)
+    public FileSystemWindow()
+        : base(true)
     {
 
     }
@@ -29,13 +29,13 @@ public class FileSystemWindow : ImGuiWindow
         if (BeginNoClose("Project Files"))
         {
             // No project
-            if (ParentWindow.Workspaces.Current == null)
+            if (MainWindow.Workspaces.Current == null)
             {
                 End();
                 return;
             }
 
-            string dirPath = ParentWindow.Workspaces.Current.PathToProjectRoot;
+            string dirPath = MainWindow.Workspaces.Current.PathToProjectRoot;
             RenderFileTree(dirPath);
 
             End();
@@ -142,7 +142,7 @@ public class FileSystemWindow : ImGuiWindow
 
     public async Task OpenFile(string filePath)
     {
-        if (ParentWindow.Workspaces.Current!.IsFileOpened(filePath))
+        if (MainWindow.Workspaces.Current!.IsFileOpened(filePath))
             return; // File already opened, don't do anything.
 
         switch (Path.GetExtension(filePath))
@@ -150,10 +150,10 @@ public class FileSystemWindow : ImGuiWindow
             case ".png":
                 break;
             case ".lfd":
-                ParentWindow.Workspaces.Current!.OpenDefinitionFile(filePath);
+                MainWindow.Workspaces.Current!.OpenDefinitionFile(filePath);
                 break;
             case ".lua":
-                ParentWindow.Workspaces.Current!.OpenScriptFile(filePath);
+                MainWindow.Workspaces.Current!.OpenScriptFile(filePath);
                 break;
             default:
                 return;

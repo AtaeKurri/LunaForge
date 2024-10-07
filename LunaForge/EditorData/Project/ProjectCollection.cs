@@ -7,14 +7,13 @@ using System.Threading.Tasks;
 
 namespace LunaForge.EditorData.Project;
 
-public class ProjectCollection(MainWindow mainWin) : List<LunaForgeProject>
+public class ProjectCollection : List<LunaForgeProject>
 {
     public int MaxHash { get; private set; } = 0;
     /// <summary>
     /// The currently selected project. (Selected ProjectViewerWindow)
     /// </summary>
     public LunaForgeProject? Current { get; set; } = null;
-    public MainWindow MainWin { get; private set; } = mainWin;
 
     /// <summary>
     /// Creates and modifies a <see cref="LunaForgeProject"/>'s hash and create window context.
@@ -24,9 +23,8 @@ public class ProjectCollection(MainWindow mainWin) : List<LunaForgeProject>
     {
         proj.Parent = this;
         proj.Hash = MaxHash;
-        proj.Window = new(MainWin)
+        proj.Window = new()
         {
-            ParentWindow = MainWin,
             ParentProject = proj
         };
         base.Add(proj);

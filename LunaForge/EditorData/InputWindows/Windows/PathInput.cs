@@ -1,5 +1,6 @@
 ﻿using ImGuiNET;
 using LunaForge.EditorData.Nodes;
+using LunaForge.GUI;
 using LunaForge.GUI.Helpers;
 using System;
 using System.Collections.Generic;
@@ -47,7 +48,7 @@ public class PathInput : InputWindow
             if (ImGui.Button($"...##AttributePathInput_btn"))
             {
                 Close(false);
-                Owner.ParentNode.ParentDef.ParentProject.Parent.MainWin.FileDialogManager.OpenFileDialog("Open File", Filter, SelectPath, 1, InitialDirectory, true);
+                MainWindow.FileDialogManager.OpenFileDialog("Open File", Filter, SelectPath, 1, InitialDirectory, true);
             }
 
             RenderModalButtons();
