@@ -1,4 +1,5 @@
-﻿using LunaForge.EditorData.Nodes.NodeData.General;
+﻿using DefaultToolbox.Nodes.General;
+using LunaForge.EditorData.Nodes;
 using LunaForge.EditorData.Toolbox;
 using LunaForge.GUI;
 using System;
@@ -8,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static LunaForge.EditorData.Toolbox.NodePicker;
 
-namespace LunaForge.EditorData.Nodes.Tabs;
+namespace DefaultToolbox.Tabs;
 
 public class TabGeneral : NodePickerRegister
 {
@@ -39,37 +40,37 @@ public class TabGeneral : NodePickerRegister
 
     private void AddNode_Folder()
     {
-        MainWindow.Insert(new Folder(Def));
+        Entry.ToolboxService.Insert(new Folder(Def));
     }
 
     private void AddNode_FolderRed()
     {
-        MainWindow.Insert(new FolderRed(Def));
+        Entry.ToolboxService.Insert(new FolderRed(Def));
     }
 
     private void AddNode_FolderGreen()
     {
-        MainWindow.Insert(new FolderGreen(Def));
+        Entry.ToolboxService.Insert(new FolderGreen(Def));
     }
 
     private void AddNode_FolderBlue()
     {
-        MainWindow.Insert(new FolderBlue(Def));
+        Entry.ToolboxService.Insert(new FolderBlue(Def));
     }
 
     private void AddNode_Code()
     {
-        MainWindow.Insert(new Code(Def));
+        Entry.ToolboxService.Insert(new Code(Def));
     }
 
     private void AddNode_CodeSegment()
     {
-        MainWindow.Insert(new CodeSegment(Def));
+        Entry.ToolboxService.Insert(new CodeSegment(Def));
     }
 
     private void AddNode_Comment()
     {
-        MainWindow.Insert(new Comment(Def));
+        Entry.ToolboxService.Insert(new Comment(Def));
     }
 
     private void AddNode_IfNode()
@@ -77,27 +78,27 @@ public class TabGeneral : NodePickerRegister
         TreeNode newIf = new IfNode(Def);
         newIf.AddChild(new IfThen(Def));
         newIf.AddChild(new IfElse(Def));
-        MainWindow.Insert(newIf);
+        Entry.ToolboxService.Insert(newIf);
     }
 
     private void AddNode_IfElse()
     {
-        MainWindow.Insert(new IfElse(Def));
+        Entry.ToolboxService.Insert(new IfElse(Def));
     }
 
     private void AddNode_IfElseIf()
     {
-        MainWindow.Insert(new IfElseIf(Def));
+        Entry.ToolboxService.Insert(new IfElseIf(Def));
     }
 
     private void AddNode_WhileNode()
     {
-        MainWindow.Insert(new WhileNode(Def));
+        Entry.ToolboxService.Insert(new WhileNode(Def));
     }
 
     private void AddNode_CodeBlock()
     {
-        MainWindow.Insert(new CodeBlock(Def));
+        Entry.ToolboxService.Insert(new CodeBlock(Def));
     }
 
     #endregion

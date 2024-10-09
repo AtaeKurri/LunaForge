@@ -1,22 +1,25 @@
-﻿using LunaForge.EditorData.Nodes.Attributes;
+﻿using LunaForge.EditorData.Nodes;
+using LunaForge.EditorData.Nodes.Attributes;
 using LunaForge.EditorData.Project;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Printing;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace LunaForge.EditorData.Nodes.NodeData.General;
+namespace DefaultToolbox.Nodes.General;
 
-[IsFolder, NodeIcon("FolderBlue")]
-public class FolderBlue : TreeNode
+[IsFolder, NodeIcon("FolderGreen")]
+public class FolderGreen : TreeNode
 {
     [JsonConstructor]
-    private FolderBlue() : base() { }
+    private FolderGreen() : base() { }
 
-    public FolderBlue(LunaDefinition def) : this(def, "Folder") { }
-    public FolderBlue(LunaDefinition def, string name) : base(def)
+    public FolderGreen(LunaDefinition def) : this(def, "Folder") { }
+    public FolderGreen(LunaDefinition def, string name) : base(def)
     {
         Name = name;
     }
@@ -41,7 +44,7 @@ public class FolderBlue : TreeNode
 
     public override object Clone()
     {
-        FolderBlue cloned = new(ParentDef);
+        FolderGreen cloned = new(ParentDef);
         cloned.CopyData(this);
         return cloned;
     }

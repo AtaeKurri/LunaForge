@@ -25,7 +25,7 @@ public class NodePicker : IEnumerable<NodePickerTab>
 
     public void Initialize()
     {
-        AddRegister(new TabGeneral(new("General")));
+        //AddRegister(new TabGeneral(new("General")));
         AddRegister(new TabStages(new("Stages")));
         AddRegister(new TabProject(new("Project")));
     }

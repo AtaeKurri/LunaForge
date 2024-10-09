@@ -1,4 +1,5 @@
-﻿using LunaForge.EditorData.Nodes.Attributes;
+﻿using LunaForge.EditorData.Nodes;
+using LunaForge.EditorData.Nodes.Attributes;
 using LunaForge.EditorData.Project;
 using Newtonsoft.Json;
 using System;
@@ -9,22 +10,22 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace LunaForge.EditorData.Nodes.NodeData.General;
+namespace DefaultToolbox.Nodes.General;
 
-[Serializable, NodeIcon("then.png")]
-[CannotBeBanned, CannotBeDeleted]
+[NodeIcon("else")]
 [RequireParent(typeof(IfNode)), Unique]
-public class IfThen : TreeNode, IIfChild
+public class IfElse : TreeNode, IIfChild
 {
     [JsonConstructor]
-    private IfThen() : base() { }
+    private IfElse() : base() { }
 
-    public IfThen(LunaDefinition def)
+    public IfElse(LunaDefinition def)
         : base(def) { }
 
     public override IEnumerable<string> ToLua(int spacing)
     {
-        yield return " then\n";
+        string sp = Indent(spacing);
+        yield return sp + "else\n";
         foreach (var a in base.ToLua(spacing + 1))
         {
             yield return a;
@@ -33,6 +34,7 @@ public class IfThen : TreeNode, IIfChild
 
     public override IEnumerable<Tuple<int, TreeNode>> GetLines()
     {
+        yield return new Tuple<int, TreeNode>(1, this);
         foreach (Tuple<int, TreeNode> t in GetChildLines())
         {
             yield return t;
@@ -41,16 +43,16 @@ public class IfThen : TreeNode, IIfChild
 
     public override string ToString()
     {
-        return "then";
+        return "else";
     }
 
     public override object Clone()
     {
-        IfThen n = new(ParentDef);
+        IfElse n = new(ParentDef);
         n.CopyData(this);
         return n;
     }
 
     [JsonIgnore]
-    public int Priority => -1;
+    public int Priority => 1;
 }

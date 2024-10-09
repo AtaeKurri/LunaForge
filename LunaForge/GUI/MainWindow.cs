@@ -22,7 +22,6 @@ using LunaForge.EditorData.Nodes;
 using LunaForge.EditorData.Traces;
 using LunaForge.EditorData.InputWindows;
 using NetSparkleUpdater;
-using NetSparkleUpdater.SignatureVerifiers;
 
 namespace LunaForge.GUI;
 
@@ -47,6 +46,7 @@ namespace LunaForge.GUI;
  * There is a node to instanciate the ones who can be accessed and another one to load the definition file.
  * The packed "mod" has the same format and file tree as the actual project. Every .lfd are replaced by its lua counterpart.
  * (so it can be loaded by LoadDefinition by just replacing the extension)
+ * Definitions CAN contain multiple other definition nodes (object define, item define, ...)
  * 
  * 
  * Plugin system:
@@ -77,7 +77,7 @@ namespace LunaForge.GUI;
  * 
  * meta.dat : md5 hash of files to pack.
  * 
- * Export profile: Since THlib is not the only lib existing (Verita, KaleidoLib, HolosLib), specify a pre-existing profile for exporting (like, arguments and values, etc)
+ * Export profile: Since THlib is not the only lib existing (KaleidoLib, HolosLib, CuOLib ...), specify a pre-existing profile for exporting (like, arguments and values, etc)
  */
 
 /// <summary>
@@ -120,6 +120,8 @@ internal static class MainWindow
     public static SparkleUpdater Sparkle;
 
     #region Windows
+
+    public static List<ImGuiWindow> Windows = [];
 
     public static ToolboxWindow ToolboxWin;
     public static NodeAttributeWindow NodeAttributeWin;
@@ -192,6 +194,16 @@ internal static class MainWindow
         Raylib.MaximizeWindow();
         Raylib.SetTargetFPS(60);
 
+        try
+        {
+            PluginManager.GetAllPluginInfo();
+            PluginManager.LoadAllEnabledPlugins();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Something went wrong at plugin loading: {ex}");
+        }
+
         LoadEditorImages();
         NodeManager.RegisterDefinitionNodes();
         InputWindowSelector.Register(new InputWindowSelectorRegister());
@@ -201,9 +213,6 @@ internal static class MainWindow
 
         ShortcutList.RegisterShortcuts();
         GetPresets();
-
-        PluginManager.GetAllPluginInfo();
-        PluginManager.LoadAllEnabledPlugins();
 
         bool exitWindow = false;
         bool exitWindowRequested = false;
@@ -262,6 +271,9 @@ internal static class MainWindow
         ViewCodeWin.Render();
         SparkleWin.Render();
         PluginManagerWin.Render();
+
+        foreach (ImGuiWindow window in Windows)
+            window?.Render();
 
         InputWindowSelector.CurrentInputWindow?.Render();
         FileDialogManager.Draw();
