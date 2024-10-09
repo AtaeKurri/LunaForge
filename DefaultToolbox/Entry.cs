@@ -28,7 +28,7 @@ public class Entry : ILunaPlugin
         return;
     }
 
-    public void Dispose()
+    public void Unload()
     {
         return;
     }

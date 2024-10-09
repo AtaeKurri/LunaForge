@@ -113,7 +113,7 @@ internal static class MainWindow
     /// <summary>
     /// The plugin manager. Currently not active in alpha. See the API documentation to see how to use plugins.
     /// </summary>
-    public static PluginManager Plugins { get; private set; } = new();
+    public static PluginManager PluginManager { get; private set; } = new();
 
     public static FileDialogManager FileDialogManager { get; set; } = new();
 
@@ -183,7 +183,7 @@ internal static class MainWindow
         SparkleWin = new();
         PluginManagerWin = new();
 
-        Workspaces = new();
+        Workspaces = [];
 
         Raylib.SetConfigFlags(ConfigFlags.Msaa4xHint | ConfigFlags.HighDpiWindow | ConfigFlags.VSyncHint | ConfigFlags.ResizableWindow);
         Raylib.InitWindow(1280, 800, $"{LunaForgeName} v{VersionNumber}");
@@ -202,8 +202,8 @@ internal static class MainWindow
         ShortcutList.RegisterShortcuts();
         GetPresets();
 
-        // Plugins disabled for the moment.
-        Plugins.LoadPlugins();
+        PluginManager.GetAllPluginInfo();
+        PluginManager.LoadAllEnabledPlugins();
 
         bool exitWindow = false;
         bool exitWindowRequested = false;
@@ -796,9 +796,11 @@ internal static class MainWindow
     }
 
     /// <summary>
-    /// Calls <see cref="BeginPacking(LunaForgeProject, TreeNode, TreeNode, bool, bool)"/> with the currently active project.
+    /// Calls <see cref="BeginPacking(LunaForgeProject, TreeNode, TreeNode, bool)"/> with the currently active project.
     /// </summary>
-    /// <param name="args"></param>
+    /// <param name="SCDebugger"></param>
+    /// <param name="StageDebugger"></param>
+    /// <param name="run"></param>
     public static void BeginPackingCurrentProject(
         TreeNode SCDebugger = null,
         TreeNode StageDebugger = null,
@@ -812,7 +814,6 @@ internal static class MainWindow
     /// <param name="SCDebugger"></param>
     /// <param name="StageDebugger"></param>
     /// <param name="run"></param>
-    /// <param name="saveMeta"></param>
     public static void BeginPacking(
         LunaForgeProject projectToCompile,
         TreeNode SCDebugger = null,
@@ -828,6 +829,7 @@ internal static class MainWindow
             return;
         }
 
+        // Threading for packing to not stop the UI/Main thread.
         Thread packingThread = new(async () =>
         {
             NotificationManager.AddToast($"Beginning packaging...", ToastType.Info);
@@ -855,7 +857,6 @@ internal static class MainWindow
                 return;
             }
         });
-        packingThread.SetApartmentState(ApartmentState.STA);
         packingThread.Start();
         
     }

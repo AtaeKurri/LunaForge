@@ -23,6 +23,8 @@ public struct DefaultConfig
 
     [DefaultValue("")]
     public string LastUsedPath { get; set; } = "";
+
+    public Dictionary<string, bool> EnabledPlugins { get; set; } = [];
 }
 
 public static class Configuration

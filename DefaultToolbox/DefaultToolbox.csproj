@@ -21,6 +21,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="DefaultToolbox.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="DefaultToolbox.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
 		
 		<ProjectReference Include="..\LunaForge\LunaForge.csproj">
 			<Private>false</Private>

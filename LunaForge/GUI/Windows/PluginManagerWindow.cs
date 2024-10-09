@@ -37,10 +37,26 @@ internal class PluginManagerWindow : ImGuiWindow
             {
                 if (ImGui.BeginListBox("##PluginList", new Vector2(300, ImGui.GetContentRegionAvail().Y)))
                 {
-                    foreach (LunaPluginInfo plugin in MainWindow.Plugins.Plugins)
+                    foreach (LunaPluginInfo plugin in MainWindow.PluginManager.Plugins)
                     {
-                        ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(plugin.IsEnabled ? ImGuiCol.Text : ImGuiCol.TextDisabled));
-                        if (ImGui.Selectable($"{plugin.Plugin.Name}", selectedPlugin.Equals(plugin)))
+                        uint color = 0x0;
+                        switch (plugin.State)
+                        {
+                            case LunaPluginState.Enabled:
+                                color = ImGui.GetColorU32(ImGuiCol.Text);
+                                break;
+                            case LunaPluginState.Disabled:
+                                color = ImGui.GetColorU32(ImGuiCol.TextDisabled);
+                                break;
+                            case LunaPluginState.ErrorWhileLoading:
+                                color = 0xFF0000FFu;
+                                break;
+                            default:
+                                color = ImGui.GetColorU32(ImGuiCol.Text);
+                                break;
+                        }
+                        ImGui.PushStyleColor(ImGuiCol.Text, color);
+                        if (ImGui.Selectable($"{plugin.Meta.Name} {(plugin.State == LunaPluginState.ErrorWhileLoading ? "(Error)" : "")}", selectedPlugin.Equals(plugin)))
                             selectedPlugin = plugin;
                         ImGui.PopStyleColor();
                     }
@@ -49,13 +65,26 @@ internal class PluginManagerWindow : ImGuiWindow
 
                 ImGui.SameLine();
 
-                if (selectedPlugin.Plugin != null)
+                if (!selectedPlugin.IsEmpty)
                 {
                     ImGui.BeginGroup();
 
-                    string authors = string.Join(" ; ", selectedPlugin.Plugin.Authors);
-                    ImGui.TextWrapped($"{selectedPlugin.Plugin.Name} ({(selectedPlugin.IsEnabled ? "Enabled" : "Disabled")})");
-                    ImGui.TextWrapped($"Author{(selectedPlugin.Plugin.Authors.Length > 1 ? "s" : "")}: {authors}");
+                    string authors = string.Join(" ; ", selectedPlugin.Meta.Authors);
+                    ImGui.TextWrapped($"{selectedPlugin.Meta.Name} ({(selectedPlugin.State == LunaPluginState.Enabled ? "Enabled" : "Disabled")})");
+                    ImGui.TextWrapped($"Author{(selectedPlugin.Meta.Authors.Length > 1 ? "s" : "")}: {authors}");
+                    if (selectedPlugin.State == LunaPluginState.Enabled)
+                    {
+                        if (ImGui.Button($"Disable##{selectedPlugin.Meta.Name}"))
+                            MainWindow.PluginManager.UnloadPlugin(selectedPlugin);
+                    }
+                    else
+                    {
+                        if (ImGui.Button($"Enable##{selectedPlugin.Meta.Name}"))
+                            MainWindow.PluginManager.LoadPlugin(selectedPlugin);
+                    }
+                    ImGui.Spacing();
+                    ImGui.Separator();
+                    ImGui.TextWrapped(selectedPlugin.Meta.Description);
 
                     ImGui.EndGroup();
                 }

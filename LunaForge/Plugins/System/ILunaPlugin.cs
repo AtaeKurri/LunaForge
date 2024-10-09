@@ -11,17 +11,8 @@ namespace LunaForge.Plugins.System;
 /// There can be only one class implementing this interface by assembly.<br/>
 /// Plugins are initialized after the window initialization and right before anything is drawn.
 /// </summary>
-public interface ILunaPlugin : IDisposable
+public interface ILunaPlugin
 {
-    /// <summary>
-    /// The plugin's name displayed in the plugin manager.
-    /// </summary>
-    public string Name { get; }
-    /// <summary>
-    /// The plugin's author(s). Every string in the array is a different person.
-    /// </summary>
-    public string[] Authors { get; }
-
     /// <summary>
     /// The entry point of the plugin. This method will be used everytime your plugin is loaded/enabled.
     /// </summary>
@@ -33,8 +24,8 @@ public interface ILunaPlugin : IDisposable
     public void Update();
 
     /// <summary>
-    /// Performs a semi hot-reload of the plugin.<br/>
-    /// This method will be called if the plugin is loaded and the user pressed the reload button in the plugin manager window.
+    /// Perform the cleanup part of the plugin's resources and/or loaded parts like Toolboxes.<br/>
+    /// This method will be called once at the very end of the plugin's lifespan.
     /// </summary>
-    public void Reload();
+    public void Unload();
 }

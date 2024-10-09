@@ -2,8 +2,10 @@
 using LunaForge.Plugins.System;
 using LunaForge.Plugins.System.Attributes;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -12,12 +14,40 @@ using System.Threading.Tasks;
 
 namespace LunaForge.Plugins;
 
-internal struct LunaPluginInfo
+internal enum LunaPluginState
 {
-    public ILunaPlugin Plugin { get; set; }
-    public bool IsEnabled { get; set; }
+    Enabled,
+    Disabled,
+    ErrorWhileLoading
+}
 
-    public static LunaPluginInfo Null => new() { Plugin = null };
+internal class LunaPluginInfo
+{
+    public LunaPluginInfo()
+    {
+    }
+
+    public ILunaPlugin? Plugin { get; set; }
+    public PluginLoadContext Context { get; set; }
+    public LunaPluginState State { get; set; }
+
+    public LunaPluginMeta Meta { get; set; }
+
+    public static LunaPluginInfo Null => new() { IsEmpty = true };
+
+    /// <summary>
+    /// Never set this yourself, this is for the UI.
+    /// </summary>
+    public bool IsEmpty { get; set; } = false;
+}
+
+[Serializable]
+internal class LunaPluginMeta
+{
+    [DefaultValue("")]
+    public string Name { get; set; }
+    public string[] Authors { get; set; }
+    public string Description { get; set; }
 }
 
 internal sealed class PluginManager
@@ -36,7 +66,7 @@ internal sealed class PluginManager
         Plugins = [];
     }
 
-    public void LoadPlugins()
+    public void GetAllPluginInfo()
     {
         try
         {
@@ -48,25 +78,25 @@ internal sealed class PluginManager
 
             foreach (string file in plugins)
             {
-                try
-                {
-                    Assembly assembly = Assembly.LoadFrom(file);
+                Configuration.Default.EnabledPlugins.TryGetValue(Path.GetFileName(file), out bool enabled);
+                string infoFile = Path.ChangeExtension(file, ".json");
+                if (!File.Exists(infoFile))
+                    continue; // Ensure the plugin isn't loaded if it's missing is meta file.
 
-                    Type? pluginType = assembly.GetTypes()
-                        .FirstOrDefault(t => typeof(ILunaPlugin).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+                using StreamReader sr = new(infoFile);
+                LunaPluginMeta meta = JsonConvert.DeserializeObject<LunaPluginMeta>(sr.ReadToEnd());
 
-                    if (pluginType != null)
-                    {
-                        ILunaPlugin? newPlugin = (ILunaPlugin?)Activator.CreateInstance(pluginType);
-                        if (newPlugin != null)
-                            InitializePlugin(newPlugin);
-                    }
-                }
-                catch (Exception ex)
+                LunaPluginInfo pluginInfo = new()
                 {
-                    Console.WriteLine($"Failed to load plugin {file}. Reason:\n{ex}");
-                }
+                    Plugin = null,
+                    Context = new(file),
+                    State = enabled ? LunaPluginState.Enabled : LunaPluginState.Disabled,
+                    Meta = meta
+                };
+                Plugins.Add(pluginInfo);
+                Configuration.Default.EnabledPlugins.TryAdd(Path.GetFileName(file), enabled);
             }
+            Plugins.Sort((x, y) => string.Compare(x.Meta.Name, y.Meta.Name));
         }
         catch (IOException ex)
         {
@@ -74,7 +104,44 @@ internal sealed class PluginManager
         }
     }
 
-    private void InitializePlugin(ILunaPlugin plugin)
+    public void LoadAllEnabledPlugins()
+    {
+        foreach (LunaPluginInfo pluginInfo in Plugins)
+        {
+            if (pluginInfo.State == LunaPluginState.Enabled)
+                LoadPlugin(pluginInfo);
+        }
+    }
+
+    public void LoadPlugin(LunaPluginInfo info)
+    {
+        try
+        {
+            Assembly assembly = info.Context.LoadFromAssemblyPath(info.Context.filePath);
+
+            Type? pluginType = assembly.GetTypes()
+                .FirstOrDefault(t => typeof(ILunaPlugin).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+
+            if (pluginType != null)
+            {
+                ILunaPlugin? newPlugin = (ILunaPlugin?)Activator.CreateInstance(pluginType);
+                if (newPlugin != null)
+                {
+                    InitializePlugin(info, newPlugin);
+                } 
+            }
+
+            info.State = LunaPluginState.Enabled;
+            Console.WriteLine($"Plugin \"{info.Meta.Name}\" ({Path.GetFileName(info.Context.filePath)}) loaded successfully.");
+        }
+        catch (Exception ex)
+        {
+            info.State = LunaPluginState.ErrorWhileLoading;
+            Console.WriteLine($"Failed to load plugin {info.Meta.Name}. Reason:\n{ex}");
+        }
+    }
+
+    private void InitializePlugin(LunaPluginInfo info, ILunaPlugin plugin)
     {
         Type pluginType = plugin.GetType();
         foreach (var property in pluginType.GetProperties(BindingFlags.Public | BindingFlags.Static))
@@ -89,6 +156,19 @@ internal sealed class PluginManager
         }
 
         plugin.Initialize();
-        Plugins.Add(new() { Plugin = plugin, IsEnabled = true }); // TODO: Change with editor config '<Plugin>.IsEnabled'
+        info.Plugin = plugin;
+    }
+
+    public void UnloadPlugin(LunaPluginInfo info)
+    {
+        info.Plugin.Unload();
+        info.Context.Unload();
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+
+        info.State = LunaPluginState.Disabled;
+        info.Context = new(info.Context.filePath);
+        Console.WriteLine($"Plugin \"{info.Meta.Name}\" ({Path.GetFileName(info.Context.filePath)}) disabled.");
     }
 }
