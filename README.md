@@ -60,10 +60,6 @@
 The goal of LunaForge is to be a kind of "all-in-one" editor: It can compile plain lua script, compile nodes to lua, and shaders.<br />
 There is more to come~
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
 ### Built With
 
 [![.Net][dotnet]][NET-url] [![C#][csharp]][csharp-url] [![ImGUI][imgui-shield]][imgui-url] [![Raylib][raylib-shield]][raylib-url]
@@ -186,7 +182,7 @@ Project Link: [https://github.com/RulHolos/LunaForge](https://github.com/RulHolo
 
 * [LuaSTG Editor Sharp X](https://github.com/Sharp-X-Team/LuaSTG-Editor-Sharp-X) (By Tom, Ryann, Zino and Rül)
 * [LuaSTG branches](https://github.com/Legacy-LuaSTG-Engine)
-* [LuaSTG English Wiki](https://luastgen.miraheze.org/wiki/Main_Page) (The mizaheze one)
+* [LuaSTG English Wiki](https://luastgen.miraheze.org/wiki/Main_Page) (The miraheze one)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

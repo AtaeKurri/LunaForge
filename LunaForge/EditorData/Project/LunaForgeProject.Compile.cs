@@ -40,7 +40,8 @@ public partial class LunaForgeProject
 
         c.CurrentTempPath = tempPath;
         c.Source = this;
-        c.RootCode = $"_mod_version = 4096\nInclude(\'THlib.lua\')\nInclude(\'{Path.ChangeExtension(EntryPointRelative, ".lua")}\')";
+        // Take this root code from a file.
+        //c.RootCode = $"_mod_version = 4096\nInclude(\'THlib.lua\')\nInclude(\'{Path.ChangeExtension(EntryPointRelative, ".lua")}\')";
 
         CompileProcess = c;
     }

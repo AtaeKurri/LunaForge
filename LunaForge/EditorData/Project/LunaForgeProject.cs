@@ -66,10 +66,10 @@ public partial class LunaForgeProject : ITraceThrowable
     public Vector2 DebugRes = new(800, 600);
 
     /// <summary>
-    /// Path to the entry point file. Relative to <see cref="PathToProjectRoot"/>
+    /// Path to the root.lua file. Relative to <see cref="PathToProjectRoot"/>
     /// </summary>
     /// <remarks>
-    /// The entry point MUST be a .lfd file. .lua doesn't work because of how LoadDefinition node works.
+    /// If you're using THlib, the entry point MUST be named "root.lua" because of how THlib works.
     /// </remarks>
     [DefaultValue("")]
     public string EntryPoint = string.Empty;

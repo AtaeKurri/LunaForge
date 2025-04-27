@@ -278,6 +278,7 @@ internal static class MainWindow
             bool exitWindow = false;
             bool exitWindowRequested = false;
 
+            // === MAIN LOOP === //
             while (!exitWindow && !ForceCloseWindow)
             {
                 try
@@ -321,6 +322,8 @@ internal static class MainWindow
                 }
             }
 
+            // === SHUTDOWN SEQUENCE === //
+
             Dispose();
 
             rlImGui.Shutdown();
@@ -330,6 +333,10 @@ internal static class MainWindow
         Configuration.Save();
     }
 
+    /// <summary>
+    /// Renders all the windows in <see cref="Windows"/>.<br/>
+    /// Also responsible for drawing the <see cref="FileDialogManager"/> and <see cref="NotificationManager"/>.
+    /// </summary>
     private static void Render()
     {
         foreach (LunaForgeProject? proj in Workspaces.ToList())
@@ -364,6 +371,14 @@ internal static class MainWindow
             return true;
     }
 
+    #region ImGui
+
+    /// <summary>
+    /// Loads TTF files into the memory to be read by ImGui.
+    /// </summary>
+    /// <param name="pathToTTF">The absolute path to the TTF file</param>
+    /// <param name="size">Font size</param>
+    /// <returns>True if the ttf was loaded correctly. Otherwise; false.</returns>
     public static bool LoadTTF(string pathToTTF, float size)
     {
         try
@@ -385,6 +400,24 @@ internal static class MainWindow
         }
     }
 
+    /// <summary>
+    /// Setups the ImGui style colors. Only called at startup.
+    /// </summary>
+    public static void SetupStyle()
+    {
+        Configuration.DefaultStyle = ImGui.GetStyle().Colors.ConvertToArray();
+        if (!string.IsNullOrEmpty(Configuration.GetCurrentTheme().FontPath))
+            LoadTTF(Configuration.GetCurrentTheme().FontPath, Configuration.GetCurrentTheme().FontSize);
+        if (Configuration.GetCurrentTheme() != null)
+        {
+            for (int i = 0; i < (int)ImGuiCol.COUNT; i++)
+            {
+                ImGui.GetStyle().Colors[i] = Configuration.GetCurrentTheme().Colors[i];
+            }
+        }
+    }
+
+    #endregion
     #region Sparkle
 
     private static void SetupSparkle()
@@ -399,6 +432,10 @@ internal static class MainWindow
     #endregion
     #region Discord RPC
 
+    /// <summary>
+    /// Loads the Discord RPC server.<br/>
+    /// Is only loaded if <see cref="DefaultConfig.UseDiscordRPC"/> is true.
+    /// </summary>
     public static void SetupDiscordRpc()
     {
         if (!Configuration.Default.UseDiscordRPC || Discord != null)
@@ -414,6 +451,9 @@ internal static class MainWindow
         ResetRPC();
     }
 
+    /// <summary>
+    /// Resets the Discord RPC to the idle state.
+    /// </summary>
     public static void ResetRPC()
     {
         Discord?.SetPresence(new RichPresence()
@@ -441,23 +481,12 @@ internal static class MainWindow
         } 
     }
 
-    public static void SetupStyle()
-    {
-        Configuration.DefaultStyle = ImGui.GetStyle().Colors.ConvertToArray();
-        if (!string.IsNullOrEmpty(Configuration.GetCurrentTheme().FontPath))
-            LoadTTF(Configuration.GetCurrentTheme().FontPath, Configuration.GetCurrentTheme().FontSize);
-        if (Configuration.GetCurrentTheme() != null)
-        {
-            for (int i = 0; i < (int)ImGuiCol.COUNT; i++)
-            {
-                ImGui.GetStyle().Colors[i] = Configuration.GetCurrentTheme().Colors[i];
-            }
-        }
-    }
-
     #endregion
     #region RenderMenu
 
+    /// <summary>
+    /// ImGui callback for rendering the menu bar.
+    /// </summary>
     private static void RenderMenu()
     {
         if (ImGui.BeginMainMenuBar())
@@ -576,6 +605,10 @@ internal static class MainWindow
     #endregion
     #region Presets
 
+    /// <summary>
+    /// Loads all the presets files in the memory.<br/>
+    /// Preset folder is <see cref="Environment.SpecialFolder.MyDocuments"/> by default.
+    /// </summary>
     public static void GetPresets()
     {
         PresetsList.Clear();
@@ -591,6 +624,9 @@ internal static class MainWindow
         }
     }
 
+    /// <summary>
+    /// ImGui callback to render the preset list loaded by <see cref="GetPresets"/>.
+    /// </summary>
     public static void RenderPresetList()
     {
         int i = 0;
@@ -613,6 +649,10 @@ internal static class MainWindow
         }
     }
 
+    /// <summary>
+    /// Transforms a <see cref="TreeNode"/> and its children into a preset. Then, save it to the specified path.
+    /// </summary>
+    /// <param name="nodeToSave">The <see cref="TreeNode"/> to save as a preset.</param>
     public static void NodeToPreset(TreeNode nodeToSave = null)
     {
         TreeNode node = nodeToSave ?? (Workspaces.Current?.CurrentProjectFile as LunaDefinition).SelectedNode.Clone() as TreeNode;
@@ -639,6 +679,11 @@ internal static class MainWindow
     }
     public static bool NodeToPreset_CanExecute() => (Workspaces.Current?.CurrentProjectFile as LunaDefinition) != null;
 
+    /// <summary>
+    /// Inserts a preset using the current <see cref="InsertMode"/> into the TreeView.
+    /// </summary>
+    /// <param name="path">The path to the preset .lfd file.</param>
+    /// <returns></returns>
     public static async Task InsertPreset(string path)
     {
         try

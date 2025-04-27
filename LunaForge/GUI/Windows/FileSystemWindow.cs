@@ -241,6 +241,7 @@ public class FileSystemWindow : ImGuiWindow
                 ImGui.CloseCurrentPopup();
                 newFilePopupOpen = -1;
                 shouldClose = true;
+                OpenFile(Path.Combine(CurrentPath, newFileName));
             }
             ImGui.EndPopup();
         }

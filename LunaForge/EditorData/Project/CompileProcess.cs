@@ -99,6 +99,17 @@ public class CompileProcess
          * -> Supprimer le dossier temp.
          */
 
+        /* Rework du process:
+         * -> Check le hash de tous les fichiers récursivement et copier les fichiers qui ne correspondent pas au hash déjà enregistré (ou si y'en a aucun d'enregistré)
+         * dans le dossier temp avec le chemin d'accès correspondant dans le dir tree.
+         * (ignore les fichiers .lfp)
+         * -> A partir des fichiers copiés dans temp: Générer le code et supprimer les fichiers lfd après chaque génération,
+         * seulement si le hash ne correspond pas ou le lua existe pas.
+         * -> Créer un fichier "_editor_output.lua" à partir de l'entrypoint (fichier qui sera considéré comme la racine du projet)
+         * -> Remplir le fichier en prenant les fichiers .lua compilés. A chaque fois qu'on trouve un "LoadDefinition", prendre le fichier correspondant et append le code.
+         * -> Copier le root.lua et le editor ouput dans le zip target.
+         */
+
         // TODO: Force repack on option (or not use md5) or just button.
         List<string> filesToPack = await CheckMetaParity(!File.Exists(FinalZipPath));
         foreach (string file in filesToPack)
@@ -110,7 +121,7 @@ public class CompileProcess
             File.Copy(file, Path.Combine(CurrentTempPath, relativePath), true);
         }
 
-        WriteRootCode();
+        //WriteRootCode();
         await GenerateCode(filesToPack, SCDebug, StageDebug); // Wait for all the code to be generated.
         if (EditorTraceContainer.ContainSeverity(TraceSeverity.Error))
         {
